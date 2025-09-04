@@ -83,7 +83,7 @@ public class Program
             Log("- SMTP Client Created", ConsoleColor.Green);
 
             var mail = smtpClient.WriteEmail
-                .From(From)
+                .From(Sender)
                 .To(receiver)
                 .Subject(subject)
                 .BodyHtml(body);
