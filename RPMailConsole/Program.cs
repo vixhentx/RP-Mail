@@ -13,6 +13,9 @@ public class Program
     [Option(Template = "-s|--sender", Description = "Sender email address")]
     public string Sender { get;}
     
+    [Option(Template = "-f|--from", Description = "The From Text in the email")]
+    public string? From { get;}
+    
     [Required]
     [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
     public string DataFile { get;}
@@ -46,14 +49,20 @@ public class Program
     //misc
     [Option]
     public bool Verbose { get; } = false;
+
+    public Program()
+    {
+        From??= Sender;
+    }
     
     //Execution
-    private async Task OnExecute(CommandLineApplication app, CancellationToken cancellationToken =  default)
+    private async Task OnExecute()
     {
         //Parse Data
         Log($"Parsing Data File: {DataFile}", ConsoleColor.White);
         DataParser dataParser = new(DataFile);
         var receivers = dataParser.GetProperties(ReceiverHeader);
+        var htmlContent = await File.ReadAllTextAsync(BodyPattern);
         Log($"Data File Parsed: {receivers.Count} Receivers Found", ConsoleColor.Green);
         
         //Build And Send
@@ -64,10 +73,8 @@ public class Program
             
             Log($"- Parsing Email Subject and Body", ConsoleColor.White);
             string subject = dataParser.Parse(SubjectPattern,i);
-            string body = dataParser.Parse(BodyPattern,i);
+            string body = dataParser.Parse(htmlContent,i);
             Log($"- Email Subject and Body Parsed", ConsoleColor.Green);
-            
-            //Create MailMessage
             
             //Create SmtpClient
             Log("- Creating SMTP Client", ConsoleColor.White);
@@ -76,7 +83,7 @@ public class Program
             Log("- SMTP Client Created", ConsoleColor.Green);
 
             var mail = smtpClient.WriteEmail
-                .From(Sender)
+                .From(From)
                 .To(receiver)
                 .Subject(subject)
                 .BodyHtml(body);
@@ -94,7 +101,10 @@ public class Program
             await mail.SendAsync();
             Log("- Email Sent", ConsoleColor.Green);
         }
-        Log("All Emails Sent", ConsoleColor.Green);
+        //Done
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("All Emails Sent");
+        Console.ResetColor();
     }
 
     private void Log(string message, ConsoleColor color)
