@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Mail;
+using MailKitSimplified.Sender.Services;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace RPMailConsole;
@@ -23,17 +22,12 @@ public class Program
     
     //smtp settings
     [Required]
-    [Option(Template = "-h|--host", Description = "SMTP Host")]
+    [Option(Template = "-h|--host", Description = "SMTP Host & Port")]
     public string Host { get;}
     
     [Required]
     [Option(Template = "-p|--pwd|--password", Description = "Password")]
     public string Password { get;}
-    
-    [Option(Template = "--port", Description = "SMTP Port")]
-    public int Port { get;} = 587;
-    [Option(Template = "--enable-ssl", Description = "Enable SSL")]
-    public bool EnableSsl { get;} = true;
     
     //parse settings
     [Option(Template = "-r|--receiver-header", Description = "Receiver header in CSV file")]
@@ -54,16 +48,8 @@ public class Program
     public bool Verbose { get; } = false;
     
     //Execution
-    private void OnExecute(CommandLineApplication app, CancellationToken cancellationToken =  default)
+    private async Task OnExecute(CommandLineApplication app, CancellationToken cancellationToken =  default)
     {
-        //Create SmtpClient
-        Log($"Creating SMTP Client: {Host}:{Port}", ConsoleColor.White);
-        SmtpClient smtpClient = new(Host,Port);
-        smtpClient.EnableSsl = EnableSsl;
-        smtpClient.UseDefaultCredentials = false;
-        smtpClient.Credentials = new NetworkCredential(Sender, Password);
-        Log($"SMTP Client Created: {smtpClient.Host}:{smtpClient.Port}", ConsoleColor.Green);
-        
         //Parse Data
         Log($"Parsing Data File: {DataFile}", ConsoleColor.White);
         DataParser dataParser = new(DataFile);
@@ -82,25 +68,30 @@ public class Program
             Log($"- Email Subject and Body Parsed", ConsoleColor.Green);
             
             //Create MailMessage
-            MailMessage mailMessage = new();
-            mailMessage.From = new MailAddress(Sender);
-            mailMessage.To.Add(receiver);
-            mailMessage.Subject = subject;
-            mailMessage.Body = body;
-            mailMessage.IsBodyHtml = true;
             
+            //Create SmtpClient
+            Log("- Creating SMTP Client", ConsoleColor.White);
+            using var smtpClient = SmtpSender.Create(Host)
+                .SetCredential(Sender, Password);
+            Log("- SMTP Client Created", ConsoleColor.Green);
+
+            var mail = smtpClient.WriteEmail
+                .From(Sender)
+                .To(receiver)
+                .Subject(subject)
+                .BodyHtml(body);
             //Add Attachments
             if (Attachments is not null)
             {
                 foreach (string attachment in Attachments)
                 {
-                    mailMessage.Attachments.Add(new (attachment));
+                    mail.TryAttach(attachment);
                 }
             }
             
             //Send
             Log("- Sending Email", ConsoleColor.Yellow);
-            smtpClient.Send(mailMessage);
+            await mail.SendAsync();
             Log("- Email Sent", ConsoleColor.Green);
         }
         Log("All Emails Sent", ConsoleColor.Green);
