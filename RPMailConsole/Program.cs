@@ -17,7 +17,7 @@ public class Program
     [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
     public string DataFile { get;}
     
-    [Option(Template = "-a|--attachment", Description = "Attachment File Path")]
+    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
     public string[]?  Attachments { get;} = null;
     
     //smtp settings
@@ -42,20 +42,40 @@ public class Program
     [Required]
     [Option(Template = "-m|-b|--html|--body|--message", Description = "HTML Email Body Pattern File Path")]
     public string BodyPattern { get;}
+
+    [Option(Template = "-o|--output", Description = "Attachment Convert File Directory")]
+    public string OutputFileDir { get; } = "Output";
+    
+    [Option(Template = "--delete-after-convert", Description = "Delete Attachment Output after convert")]
+    public bool DeleteAfterConvert { get; } = false;
     
     //misc
     [Option]
     public bool Quiet { get; } = false;
+    [Option(Template = "--convert-only", Description = "Only Convert Attachments and Exit")]
+    public bool ConvertOnly { get; } = false;
+    [Option(Template = "--save-raw-doc", Description = "Save Raw Document in Output Directory")]
+    public bool SaveRawDoc { get; } = false;
     
     //Execution
     private async Task OnExecute()
     {
+        DateTime time = DateTime.Now;
+        
         //Parse Data
         Log($"Parsing Data File: {DataFile}", ConsoleColor.White);
         DataParser dataParser = new(DataFile);
         var receivers = dataParser.GetProperties(ReceiverHeader);
         var htmlContent = await File.ReadAllTextAsync(BodyPattern);
         Log($"Data File Parsed: {receivers.Count} Receivers Found", ConsoleColor.Green);
+        
+        //Prebuild Output Directory
+        string realOutputDir = $"{OutputFileDir}/{time:yyyy-MM-dd_HH-mm-ss}";
+        if (!Directory.Exists(realOutputDir))
+        {
+            Directory.CreateDirectory(realOutputDir);
+            Log($"Output Directory Created: {realOutputDir}", ConsoleColor.White);
+        }
         
         //Build And Send
         for (int i = 0; i < receivers.Count; i++)
@@ -79,23 +99,43 @@ public class Program
                 .To(receiver)
                 .Subject(subject)
                 .BodyHtml(body);
-            //Add Attachments
+            //Build Attachments
             if (Attachments is not null)
             {
-                foreach (string attachment in Attachments)
+                Log("- Building Attachments", ConsoleColor.White);
+                PDFParser pdfParser = new(dataParser)
                 {
-                    mail.TryAttach(attachment);
+                    SaveRawDoc = SaveRawDoc
+                };
+                
+                for(int j = 0; j < Attachments.Length; j++)
+                {
+                    var attachment = Attachments[j];
+                    
+                    string patternPath = dataParser.Parse(attachment,i);
+                    string outputPath = $"{realOutputDir}/{receiver}_attachment_{j}.pdf";
+                    
+                    //parse attachment
+                    pdfParser.Parse(patternPath,outputPath,i);
+                    
+                    //add attachment to mail
+                    mail.Attach(outputPath);
                 }
+                Log("- Attachments Built", ConsoleColor.Green);
             }
+            
+            if(ConvertOnly) continue;
             
             //Send
             Log("- Sending Email", ConsoleColor.Yellow);
             await mail.SendAsync();
             Log("- Email Sent", ConsoleColor.Green);
+            
+            if(DeleteAfterConvert) Directory.Delete(realOutputDir,true);
         }
         //Done
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("All Emails Sent");
+        Console.WriteLine("All Done");
         Console.ResetColor();
     }
 
