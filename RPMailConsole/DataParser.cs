@@ -1,31 +1,41 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
+using CsvHelper;
 
 namespace RPMailConsole;
 
 public class DataParser
 {
     readonly Dictionary<string, List<string>> _dictionary = [];
-    public int DataCount { get; private set; }
     
-    public DataParser(string dataFile)
+    public DataParser(string dataFilePath)
     {
-        var lines =  File.ReadAllLines(dataFile);
-        var headers = lines[0].Split(',').Select(s => s.Trim()).ToArray();
-        for(int i = 1; i < lines.Length; i++)
+        //parse csv data file
+        
+        using StreamReader reader = new(dataFilePath);
+        using CsvReader csv = new(reader, CultureInfo.InvariantCulture);
+        
+        if(!csv.Read()) throw new InvalidDataException("Incorrect data format");
+        
+        //header row
+        if(!csv.ReadHeader()) throw new InvalidDataException("Cannot read header row");
+        
+        var headers = csv.HeaderRecord;
+        if(headers is null) throw new InvalidDataException("Header row is null");
+        
+        foreach (var header in headers) _dictionary.Add(header, []);
+        
+        //data rows
+        while (csv.Read())
         {
-            var values = lines[i].Split(',').Select(s => s.Trim()).ToArray();
-            if (values.Length != headers.Length)
+            foreach (var header in headers)
             {
-                throw new InvalidDataException("CSV Header count mismatch!");
-            }
-
-            for (int j = 0; j < values.Length; j++)
-            {
-                _dictionary.TryAdd(headers[j], new());
-                _dictionary[headers[j]].Add(values[j]);
+                var value = csv.GetField(header);
+                //value would not be null
+                _dictionary[header].Add(value);
             }
         }
-        DataCount = lines.Length - 1;
+
     }
     
     static Regex regex = new(@"\{\$([A-Za-z_][A-Za-z0-9_]*)\}"); //Such as {$Name}
