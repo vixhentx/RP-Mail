@@ -2,25 +2,22 @@ using System.ComponentModel.DataAnnotations;
 using MailKitSimplified.Sender.Services;
 using McMaster.Extensions.CommandLineUtils;
 
+// ReSharper disable UnusedMember.Local
+// ReSharper disable UnassignedGetOnlyAutoProperty
+// ReSharper disable ReplaceAutoPropertyWithComputedProperty
+#pragma warning disable CS8618
+
 namespace RPMailConsole;
 
 public class Program
 {
     public static void Main(string[] args) => CommandLineApplication.Execute<Program>(args);
     
-    //basic settings
+    #region sender settings
     [Required]
     [Option(Template = "-s|--sender", Description = "Sender email address")]
     public string Sender { get;}
     
-    [Required]
-    [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
-    public string DataFile { get;}
-    
-    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
-    public string[]?  Attachments { get;} = null;
-    
-    //smtp settings
     [Required]
     [Option(Template = "-h|--host", Description = "SMTP Host & Port")]
     public string Host { get;}
@@ -33,6 +30,16 @@ public class Program
     [Option(Template = "-r|--receiver-header", Description = "Receiver header in CSV file")]
     public string ReceiverHeader { get;} = "Receiver";
     
+    #endregion
+    
+    #region content settings
+    
+    [Required]
+    [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
+    public string DataFile { get;}
+    
+    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
+    public string[]? AttachmentsPattern { get;} = null;
     
     [Required]
     [Option(Template = "-t|--title|--subject", Description = "Email Subject Pattern")]
@@ -42,14 +49,17 @@ public class Program
     [Required]
     [Option(Template = "-m|-b|--html|--body|--message", Description = "HTML Email Body Pattern File Path")]
     public string BodyPattern { get;}
-
+    
+    #endregion
+    
+    #region misc
+    
     [Option(Template = "-o|--output", Description = "Attachment Convert File Directory")]
     public string OutputFileDir { get; } = "Output";
     
     [Option(Template = "--delete-after-convert", Description = "Delete Attachment Output after convert")]
     public bool DeleteAfterConvert { get; } = false;
     
-    //misc
     [Option]
     public bool Quiet { get; } = false;
     [Option(Template = "--convert-only", Description = "Only Convert Attachments and Exit")]
@@ -57,7 +67,10 @@ public class Program
     [Option(Template = "--save-raw-doc", Description = "Save Raw Document in Output Directory")]
     public bool SaveRawDoc { get; } = false;
     
-    //Execution
+    #endregion
+
+    #region excution
+
     private async Task OnExecute()
     {
         DateTime time = DateTime.Now;
@@ -100,7 +113,7 @@ public class Program
                 .Subject(subject)
                 .BodyHtml(body);
             //Build Attachments
-            if (Attachments is not null)
+            if (AttachmentsPattern is not null)
             {
                 Log("- Building Attachments", ConsoleColor.White);
                 PDFParser pdfParser = new(dataParser)
@@ -108,9 +121,9 @@ public class Program
                     SaveRawDoc = SaveRawDoc
                 };
                 
-                for(int j = 0; j < Attachments.Length; j++)
+                for(int j = 0; j < AttachmentsPattern.Length; j++)
                 {
-                    var attachment = Attachments[j];
+                    var attachment = AttachmentsPattern[j];
                     
                     string patternPath = dataParser.Parse(attachment,i);
                     string outputPath = $"{realOutputDir}/{receiver}_attachment_{j}.pdf";
@@ -147,4 +160,6 @@ public class Program
         Console.ResetColor();
     }
     
+    
+    #endregion
 }
