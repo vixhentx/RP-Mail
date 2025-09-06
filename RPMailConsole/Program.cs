@@ -79,7 +79,6 @@ public class Program
         Log($"Parsing Data File: {DataFile}", ConsoleColor.White);
         DataParser dataParser = new(DataFile);
         var receivers = dataParser.GetProperties(ReceiverHeader);
-        var htmlContent = await File.ReadAllTextAsync(BodyPattern);
         Log($"Data File Parsed: {receivers.Count} Receivers Found", ConsoleColor.Green);
         
         //Prebuild Output Directory
@@ -93,6 +92,8 @@ public class Program
         //Build And Send
         for (int i = 0; i < receivers.Count; i++)
         {
+            var htmlContent = await File.ReadAllTextAsync(dataParser.Parse(BodyPattern,i));
+            
             string receiver = receivers[i];
             Log($"Building Email To: {receiver}", ConsoleColor.White);
             
