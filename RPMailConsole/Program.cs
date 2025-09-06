@@ -38,17 +38,19 @@ public class Program
     [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
     public string DataFile { get;}
     
-    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
-    public string[]? AttachmentsPattern { get;} = null;
-    
     [Required]
     [Option(Template = "-t|--title|--subject", Description = "Email Subject Pattern")]
     public string SubjectPattern { get;}
     
-    
     [Required]
     [Option(Template = "-m|-b|--html|--body|--message", Description = "HTML Email Body Pattern File Path")]
     public string BodyPattern { get;}
+    
+    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
+    public string[]? AttachmentPatterns { get;} = null;
+    
+    [Option(Template = "-n|--attachment-name", Description = "Attachment Name Pattern File Path")]
+    public string[]? AttachmentNamePattern { set; get;} = null;
     
     #endregion
     
@@ -71,8 +73,34 @@ public class Program
 
     #region excution
 
+    private string GetDefaultPattern(int index) => $"{DataParser.Format(ReceiverHeader)}_attachment_{index + 1}.pdf";
+    
+    private void InitArgs()
+    {
+        if (AttachmentPatterns is not null)
+        {
+            var newNamePatterns = new string[AttachmentPatterns.Length];
+            int nameLength = 0;
+            if (AttachmentNamePattern is not null)
+            {
+                for (int i = 0; i < AttachmentNamePattern.Length; i++)
+                {
+                    newNamePatterns[i] = AttachmentNamePattern[i];
+                }
+                nameLength = AttachmentNamePattern.Length;
+            }
+            for (int i = nameLength; i < AttachmentPatterns.Length; i++)
+            {
+                newNamePatterns[i] = GetDefaultPattern(i);
+            }
+            AttachmentNamePattern = newNamePatterns;
+        }
+    }
+    
     private async Task OnExecute()
     {
+        InitArgs();
+        
         DateTime time = DateTime.Now;
         
         //Parse Data
@@ -82,7 +110,7 @@ public class Program
         Log($"Data File Parsed: {receivers.Count} Receivers Found", ConsoleColor.Green);
         
         //Prebuild Output Directory
-        string realOutputDir = $"{OutputFileDir}/{time:yyyy-MM-dd_HH-mm-ss}";
+        string realOutputDir = Path.Combine(OutputFileDir,$"{time:yyyy-MM-dd_HH-mm-ss}");
         if (!Directory.Exists(realOutputDir))
         {
             Directory.CreateDirectory(realOutputDir);
@@ -114,7 +142,8 @@ public class Program
                 .Subject(subject)
                 .BodyHtml(body);
             //Build Attachments
-            if (AttachmentsPattern is not null)
+            List<string> outputs = [];
+            if (AttachmentPatterns is not null)
             {
                 Log("- Building Attachments", ConsoleColor.White);
                 PDFParser pdfParser = new(dataParser)
@@ -122,12 +151,14 @@ public class Program
                     SaveRawDoc = SaveRawDoc
                 };
                 
-                for(int j = 0; j < AttachmentsPattern.Length; j++)
+                for(int j = 0; j < AttachmentPatterns.Length; j++)
                 {
-                    var attachment = AttachmentsPattern[j];
+                    var attachment = AttachmentPatterns[j];
                     
                     string patternPath = dataParser.Parse(attachment,i);
-                    string outputPath = $"{realOutputDir}/{receiver}_attachment_{j}.pdf";
+                    
+                    string outputPath = Path.Combine(realOutputDir, dataParser.Parse(AttachmentNamePattern[j],i));
+                    outputs.Add(outputPath + ".pdf");
                     
                     //parse attachment
                     pdfParser.Parse(patternPath,outputPath,i);
@@ -144,8 +175,20 @@ public class Program
             Log("- Sending Email", ConsoleColor.Yellow);
             await mail.SendAsync();
             Log("- Email Sent", ConsoleColor.Green);
-            
-            if(DeleteAfterConvert) Directory.Delete(realOutputDir,true);
+
+            if (DeleteAfterConvert)
+            {
+                foreach (var output in outputs) File.Delete(output);
+            }
+            else
+            {
+                //rename outputs
+                for (int j = 0; j < outputs.Count; j++)
+                {
+                    var output = outputs[j];
+                    File.Move(output, Path.Combine(realOutputDir,dataParser.Parse(AttachmentNamePattern[j], i))+".pdf");
+                }
+            }
         }
         //Done
         Console.ForegroundColor = ConsoleColor.Green;

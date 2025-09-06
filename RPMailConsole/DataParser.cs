@@ -41,7 +41,7 @@ public class DataParser
     
     public static readonly Regex REGEX = new(@"\{\$([A-Za-z_][A-Za-z0-9_]*)\}"); //Such as {$Name}
 
-    public string Format(string property) => "{$" + property + "}";
+    public static string Format(string property) => "{$" + property + "}";
 
     public List<string> ParseProperties(string pattern)
     {
