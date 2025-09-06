@@ -13,9 +13,6 @@ public class Program
     [Option(Template = "-s|--sender", Description = "Sender email address")]
     public string Sender { get;}
     
-    [Option(Template = "-f|--from", Description = "The From Text in the email")]
-    public string? From { get;}
-    
     [Required]
     [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
     public string DataFile { get;}
@@ -48,12 +45,7 @@ public class Program
     
     //misc
     [Option]
-    public bool Verbose { get; } = false;
-
-    public Program()
-    {
-        From??= Sender;
-    }
+    public bool Quiet { get; } = false;
     
     //Execution
     private async Task OnExecute()
@@ -109,7 +101,7 @@ public class Program
 
     private void Log(string message, ConsoleColor color)
     {
-        if (!Verbose)  return;
+        if (Quiet)  return;
         Console.ForegroundColor = color;
         Console.WriteLine(message);
         Console.ResetColor();
