@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using CsvHelper;
 
@@ -6,8 +7,10 @@ namespace RPMailConsole;
 
 public class DataParser
 {
-    readonly Dictionary<string, List<string>> _dictionary = [];
-    public Dictionary<string, List<string>> Dictionary => _dictionary;
+    readonly String[] _headers = [];
+    readonly List<Dictionary<string,string>> _rows = [];
+    public string[] Headers => _headers;
+    public List<Dictionary<string,string>> Rows => _rows;
     
     public DataParser(string dataFilePath)
     {
@@ -22,19 +25,16 @@ public class DataParser
         if(!csv.ReadHeader()) throw new InvalidDataException("Cannot read header row");
         
         var headers = csv.HeaderRecord;
-        if(headers is null) throw new InvalidDataException("Header row is null");
+        _headers = headers ?? throw new InvalidDataException("Header row is null");
         
-        foreach (var header in headers) _dictionary.Add(header, []);
-        
-        //data rows
         while (csv.Read())
         {
-            foreach (var header in headers)
+            var obj = new Dictionary<string,string>();
+            foreach(var header in headers)
             {
-                var value = csv.GetField(header);
-                //value would not be null
-                _dictionary[header].Add(value);
+                obj[header] = csv.GetField(header);
             }
+            _rows.Add(obj);
         }
 
     }
@@ -67,7 +67,7 @@ public class DataParser
         string parsed = pattern;
         foreach (var property in properties)
         {
-            parsed = parsed.Replace(Format(property), _dictionary[property][index]);
+            parsed = parsed.Replace(Format(property), _rows[index][property]);
         }
         
         return parsed;
@@ -80,9 +80,23 @@ public class DataParser
         //Action
         foreach (var property in properties)
         {
-            replacer(Format(property), _dictionary[property][index]);
+            replacer(Format(property), _rows[index][property]);
         }
     }
 
-    public List<string> GetProperties(string header) => _dictionary[header];
+    public void HandleFailed(List<int> failedIndices, string outputPath)
+    {
+        using StreamWriter sw = File.CreateText(outputPath);
+        StringBuilder sb = new();
+        sb.AppendJoin(",", _headers);
+        sw.WriteLine(sb.ToString());
+        foreach (int index in failedIndices)
+        {
+            sb.Clear();
+            sb.AppendJoin(",", _headers.Select(header => _rows[index][header]).ToList());
+            sw.WriteLine(sb.ToString());
+        }
+    }
+    
+    public List<string> GetProperties(string header) =>_rows.Select(row => row[header]).ToList();
 }

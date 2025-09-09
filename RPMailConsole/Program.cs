@@ -116,84 +116,120 @@ public class Program
             Directory.CreateDirectory(realOutputDir);
             Log($"Output Directory Created: {realOutputDir}", ConsoleColor.White);
         }
+
+        List<int> failList = [];
         
         //Build And Send
         for (int i = 0; i < receivers.Count; i++)
         {
-            var htmlContent = await File.ReadAllTextAsync(dataParser.Parse(BodyPattern,i));
-            
-            string receiver = receivers[i];
-            Log($"Building Email To: {receiver}", ConsoleColor.White);
-            
-            Log($"- Parsing Email Subject and Body", ConsoleColor.White);
-            string subject = dataParser.Parse(SubjectPattern,i);
-            string body = dataParser.Parse(htmlContent,i);
-            Log($"- Email Subject and Body Parsed", ConsoleColor.Green);
-            
-            //Create SmtpClient
-            Log("- Creating SMTP Client", ConsoleColor.White);
-            using var smtpClient = SmtpSender.Create(Host)
-                .SetCredential(Sender, Password);
-            Log("- SMTP Client Created", ConsoleColor.Green);
+            try
+            {
+                var htmlContent = await File.ReadAllTextAsync(dataParser.Parse(BodyPattern, i));
 
-            var mail = smtpClient.WriteEmail
-                .From(Sender)
-                .To(receiver)
-                .Subject(subject)
-                .BodyHtml(body);
-            //Build Attachments
-            List<string> outputs = [];
-            if (AttachmentPatterns is not null)
-            {
-                Log("- Building Attachments", ConsoleColor.White);
-                PDFParser pdfParser = new(dataParser)
-                {
-                    SaveRawDoc = SaveRawDoc
-                };
-                
-                for(int j = 0; j < AttachmentPatterns.Length; j++)
-                {
-                    var attachment = AttachmentPatterns[j];
-                    
-                    string patternPath = dataParser.Parse(attachment,i);
-                    
-                    string outputPath = Path.Combine(realOutputDir, dataParser.Parse(AttachmentNamePattern[j],i));
-                    outputs.Add(outputPath + ".pdf");
-                    
-                    //parse attachment
-                    pdfParser.Parse(patternPath,outputPath,i);
-                    
-                    //add attachment to mail
-                    mail.Attach(outputPath);
-                }
-                Log("- Attachments Built", ConsoleColor.Green);
-            }
-            
-            if(ConvertOnly) continue;
-            
-            //Send
-            Log("- Sending Email", ConsoleColor.Yellow);
-            await mail.SendAsync();
-            Log("- Email Sent", ConsoleColor.Green);
+                string receiver = receivers[i];
+                Log($"Building Email To: {receiver}", ConsoleColor.White);
 
-            if (DeleteAfterConvert)
-            {
-                foreach (var output in outputs) File.Delete(output);
-            }
-            else
-            {
-                //rename outputs
-                for (int j = 0; j < outputs.Count; j++)
+                Log($"- Parsing Email Subject and Body", ConsoleColor.White);
+                string subject = dataParser.Parse(SubjectPattern, i);
+                string body = dataParser.Parse(htmlContent, i);
+                Log($"- Email Subject and Body Parsed", ConsoleColor.Green);
+
+                //Create SmtpClient
+                Log("- Creating SMTP Client", ConsoleColor.White);
+                using var smtpClient = SmtpSender.Create(Host)
+                    .SetCredential(Sender, Password);
+                Log("- SMTP Client Created", ConsoleColor.Green);
+
+                var mail = smtpClient.WriteEmail
+                    .From(Sender)
+                    .To(receiver)
+                    .Subject(subject)
+                    .BodyHtml(body);
+                //Build Attachments
+                List<string> outputs = [];
+                if (AttachmentPatterns is not null)
                 {
-                    var output = outputs[j];
-                    File.Move(output, Path.Combine(realOutputDir,dataParser.Parse(AttachmentNamePattern[j], i))+".pdf");
+                    Log("- Building Attachments", ConsoleColor.White);
+                    PDFParser pdfParser = new(dataParser)
+                    {
+                        SaveRawDoc = SaveRawDoc
+                    };
+
+                    for (int j = 0; j < AttachmentPatterns.Length; j++)
+                    {
+                        var attachment = AttachmentPatterns[j];
+
+                        string patternPath = dataParser.Parse(attachment, i);
+
+                        string outputPath = Path.Combine(realOutputDir, dataParser.Parse(AttachmentNamePattern[j], i));
+                        if (Path.GetExtension(attachment) != ".pdf")
+                        {
+                            outputPath = Path.ChangeExtension(outputPath, ".pdf");
+                        }
+                        outputs.Add(outputPath);
+
+                        //parse attachment
+                        pdfParser.Parse(patternPath, outputPath, i);
+
+                        //add attachment to mail
+                        mail.Attach(outputPath);
+                    }
+
+                    Log("- Attachments Built", ConsoleColor.Green);
                 }
+
+                if (ConvertOnly) continue;
+
+                //Send
+                Log("- Sending Email", ConsoleColor.Yellow);
+                await mail.SendAsync();
+                Log("- Email Sent", ConsoleColor.Green);
+
+                if (DeleteAfterConvert)
+                {
+                    foreach (var output in outputs) File.Delete(output);
+                }
+                else
+                {
+                    //rename outputs
+                    string targetDir = Path.Combine(realOutputDir, receiver);
+                    if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+                    for (int j = 0; j < outputs.Count; j++)
+                    {
+                        var output = outputs[j];
+                        File.Move(output,
+                            Path.Combine(targetDir, dataParser.Parse(AttachmentNamePattern[j], i)));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine(e);
+                Console.ResetColor();
+                //make it into fail list
+                failList.Add(i);
             }
         }
         //Done
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("All Done");
-        Console.ResetColor();
+        if (failList.Count == 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("All Done");
+            Console.ResetColor();
+        }
+        else
+        {
+            string dataToResend =
+                Path.Combine(realOutputDir, Path.GetFileNameWithoutExtension(DataFile) + "_failed.csv");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"Failed to send {failList.Count} emails");
+            
+            dataParser.HandleFailed(failList, dataToResend);
+            
+            Console.WriteLine($"Created failed data to {dataToResend}");
+            Console.ResetColor();
+        }
     }
 
     private void Log(string message, ConsoleColor color)
