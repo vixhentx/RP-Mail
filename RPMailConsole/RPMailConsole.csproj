@@ -5,11 +5,21 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Company>RobotPilot Software R&amp;D Department</Company>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>RPSRDD.snk</AssemblyOriginatorKeyFile>
+        <Version>0.1.0</Version>
+        <Authors>RobotPilot Software R&amp;D Department</Authors>
+        <Description>A console application to send EMail autoMatically, with the converter to accept pattern text like "{$Text}" and make doc attachment into PDF file.</Description>
+        <RepositoryUrl>https://github.com/vixhentx/RP-Mail</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CsvHelper" Version="33.1.0" />
+      <PackageReference Include="FreeSpire.Doc" Version="12.2.0" />
       <PackageReference Include="MailKitSimplified.Sender" Version="2.11.15" />
       <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+      <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.0-rc.1.25451.107" />
     </ItemGroup>
 
 </Project>
