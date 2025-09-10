@@ -160,8 +160,12 @@ public class Program
                         var attachment = AttachmentPatterns[j];
 
                         string patternPath = dataParser.Parse(attachment, i);
+                        if (string.IsNullOrWhiteSpace(patternPath)) continue;
 
-                        string outputPath = Path.Combine(realOutputDir, dataParser.Parse(AttachmentNamePattern[j], i));
+                        string targetFile = dataParser.Parse(AttachmentNamePattern[j], i);
+                        if(string.IsNullOrWhiteSpace(targetFile)) continue;
+                        
+                        string outputPath = Path.Combine(realOutputDir, targetFile);
                         if (Path.GetExtension(attachment) != ".pdf")
                         {
                             outputPath = Path.ChangeExtension(outputPath, ".pdf");
