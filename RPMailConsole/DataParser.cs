@@ -7,16 +7,18 @@ namespace RPMailConsole;
 
 public class DataParser
 {
-    readonly String[] _headers = [];
+    readonly String[] _headers;
     readonly List<Dictionary<string,string>> _rows = [];
+    readonly Encoding _encoding;
     public string[] Headers => _headers;
     public List<Dictionary<string,string>> Rows => _rows;
     
-    public DataParser(string dataFilePath)
+    public DataParser(string dataFilePath, Encoding encoding)
     {
+        _encoding = encoding;
         //parse csv data file
         
-        using StreamReader reader = new(dataFilePath);
+        using StreamReader reader = new (dataFilePath, encoding, true);
         using CsvReader csv = new(reader, CultureInfo.InvariantCulture);
         
         if(!csv.Read()) throw new InvalidDataException("Incorrect data format");
@@ -84,16 +86,20 @@ public class DataParser
         }
     }
 
+    public List<string> GetPropertiesOf(int index) => _headers.Select(header => _rows[index][header]).ToList();
+    public Dictionary<string,string> GetRow(int index) => _rows[index];
+
     public void HandleFailed(List<int> failedIndices, string outputPath)
     {
-        using StreamWriter sw = File.CreateText(outputPath);
+        using Stream fileStream = File.Create(outputPath);
+        using StreamWriter sw = new(fileStream, _encoding);
         StringBuilder sb = new();
         sb.AppendJoin(",", _headers);
         sw.WriteLine(sb.ToString());
         foreach (int index in failedIndices)
         {
             sb.Clear();
-            sb.AppendJoin(",", _headers.Select(header => _rows[index][header]).ToList());
+            sb.AppendJoin(",", GetPropertiesOf(index));
             sw.WriteLine(sb.ToString());
         }
     }

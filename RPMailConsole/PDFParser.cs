@@ -1,11 +1,11 @@
 
+using System.Text;
 using Spire.Doc;
 
 namespace RPMailConsole;
 
-public class PDFParser(DataParser parser)
+public class PDFParser(DataParser dataParser)
 {
-    private readonly DataParser dataParser = parser;
     public bool SaveRawDoc { get; set; } = false;
 
     public void Parse(string patternPath, string outputPath, int index)
@@ -24,7 +24,7 @@ public class PDFParser(DataParser parser)
 
     private void ParseFromPDF(string patternPath, string outputPath, int index)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException("ParseFromPDF is not implemented yet.");
     }
 
     private void ParseAutoMatically(string patternPath, string outputPath, int index)
