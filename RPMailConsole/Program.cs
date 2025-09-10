@@ -163,17 +163,26 @@ public class Program
                         if (string.IsNullOrWhiteSpace(patternPath)) continue;
 
                         string targetFile = dataParser.Parse(AttachmentNamePattern[j], i);
-                        if(string.IsNullOrWhiteSpace(targetFile)) continue;
-                        
+                        if (string.IsNullOrWhiteSpace(targetFile)) continue;
+
                         string outputPath = Path.Combine(realOutputDir, targetFile);
                         if (Path.GetExtension(attachment) != ".pdf")
                         {
                             outputPath = Path.ChangeExtension(outputPath, ".pdf");
                         }
+
                         outputs.Add(outputPath);
 
-                        //parse attachment
-                        pdfParser.Parse(patternPath, outputPath, i);
+                        if (Path.GetExtension(outputPath) == ".pdf")
+                        {
+                            //parse attachment
+                            pdfParser.Parse(patternPath, outputPath, i);
+                        }
+                        else
+                        {
+                            //simply copy attachment
+                            File.Copy(patternPath, outputPath, true);
+                        }
 
                         //add attachment to mail
                         mail.Attach(outputPath);
