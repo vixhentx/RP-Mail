@@ -165,15 +165,15 @@ public class Program
                         string targetFile = dataParser.Parse(AttachmentNamePattern[j], i);
                         if (string.IsNullOrWhiteSpace(targetFile)) continue;
 
-                        string outputPath = Path.Combine(realOutputDir, targetFile);
-                        if (Path.GetExtension(attachment) != ".pdf")
+                        if (string.IsNullOrWhiteSpace(Path.GetExtension(targetFile)))
                         {
-                            outputPath = Path.ChangeExtension(outputPath, ".pdf");
+                            targetFile = Path.ChangeExtension(targetFile, ".pdf");
                         }
+                        string outputPath = Path.Combine(realOutputDir, targetFile);
 
                         outputs.Add(outputPath);
 
-                        if (Path.GetExtension(outputPath) == ".pdf")
+                        if (Path.GetExtension(targetFile) == ".pdf")
                         {
                             //parse attachment
                             pdfParser.Parse(patternPath, outputPath, i);
@@ -211,7 +211,7 @@ public class Program
                     {
                         var output = outputs[j];
                         File.Move(output,
-                            Path.Combine(targetDir, dataParser.Parse(AttachmentNamePattern[j], i)));
+                            Path.Combine(targetDir, Path.GetFileName(output)), true);
                     }
                 }
             }
