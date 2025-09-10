@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailConsole", "RPMailCons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailUI", "RPMailUI\RPMailUI.csproj", "{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailCore", "RPMailCore\RPMailCore.csproj", "{0EB075A8-7C5A-4989-8823-1A9F0884036E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
