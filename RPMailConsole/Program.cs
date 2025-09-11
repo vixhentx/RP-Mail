@@ -51,7 +51,7 @@ public class Program
     public string[]? AttachmentPatterns { get;} = null;
     
     [Option(Template = "-n|--attachment-name", Description = "Attachment Name Pattern File Path")]
-    public string[]? AttachmentNamePattern { set; get;} = null;
+    public string[]? AttachmentNamePattern { set; get;}
     
     [Option(Template = "-c|--charset", Description = "All Files Encoding if BOM absent")]
     public string CharSet { get; } = "utf-8";
@@ -147,7 +147,6 @@ public class Program
 
         _outputFileHelper = new OutputFileHelper
         {
-            DeleteAfterConvert = DeleteAfterConvert,
             Encoding = _encoding
         };
         _outputFileHelper.OnWriteFileFailed += (o, args) =>
@@ -158,8 +157,6 @@ public class Program
             Info($"Failed to delete file: {args.file}: {args.e.Message}", ConsoleColor.Red);
         _outputFileHelper.OnMoveFileFailed += (o, args) =>
             Info($"Failed to move file: {args.source} to {args.destination}: {args.e.Message}", ConsoleColor.Red);
-        _outputFileHelper.OnCreateDirCompleted += (o, args) =>
-            Log($"Directory Created: {args}", ConsoleColor.Green);
         _outputFileHelper.OnCreateDirFailed += (o, args) =>
             Info($"Failed to create directory: {args.path}: {args.e.Message}", ConsoleColor.Red);
 
@@ -174,6 +171,12 @@ public class Program
             Info($"Failed to send email to {args.content.Receiver}: {args.e.Message}", ConsoleColor.Red);
         _mailSender.OnSendCompleted += (sender, args) =>
             Log("Email sent.", ConsoleColor.Green);
+        if (!ConvertOnly && DeleteAfterConvert)
+            _mailSender.OnSendCompleted += (sender, args) =>
+            {
+                foreach (var attachment in args.Attachments)
+                    _outputFileHelper.Delete(attachment);
+            };
             
 
         #endregion
@@ -206,10 +209,13 @@ public class Program
             InputHelper = _inputFileHelper,
             OutputHelper = _outputFileHelper,
             OutputDir = OutputFileDir,
-            SaveRawDocs = SaveRawDoc
+            SaveRawDocs = SaveRawDoc,
+            SaveHtmlFile = ConvertOnly,
         };
         _contentParser.OnBeforeParse += (sender, args) =>
             Log($"Parsing Contents from {args.CsvPath} ", ConsoleColor.Cyan);
+        _contentParser.OnParseReceiver += (sender, args) =>
+            Log($"Parsing Receiver: {args.receiver}", ConsoleColor.White);
         _contentParser.OnParseFailed += (o, args) =>
             Info($"Failed to parse content: {args.e.Message}", ConsoleColor.Red);
         _contentParser.OnParseRowFailed += (o, args) =>
@@ -244,14 +250,18 @@ public class Program
             List<(ContentParsed content, string reason)> failList = [];
             _mailSender.OnSendFailed += (o, args) =>
                 failList.Add((args.content, args.e.Message));
-            foreach (var content in parsedContents)
+            if(!ConvertOnly)
             {
-                await _mailSender.SendAsync(content);
+                foreach (var content in parsedContents)
+                {
+                    await _mailSender.SendAsync(content);
+                }
             }
 
-            _contentParser.WriteCsv(failList.Select(x => x.content).ToList());
-
-            Log("All Done!", ConsoleColor.Green);
+            if(failList.Count > 0)
+                _contentParser.WriteCsv(failList.Select(x => x.content).ToList());
+            else
+                Log("All Done!", ConsoleColor.White);
         }
         catch (ApplicationException)
         {

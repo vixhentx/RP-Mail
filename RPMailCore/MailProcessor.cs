@@ -13,6 +13,8 @@ public abstract class MailSender
     public event EventHandler<ContentParsed>? OnBeforeSend;
     public event EventHandler<(ContentParsed content,Exception e)>? OnSendFailed;
     public event EventHandler<ContentParsed>? OnSendCompleted;
+    
+    public bool DeleteAttachmentsAfterSent { get; set; } = false;
 
     public async Task SendAsync(ContentParsed content, CancellationToken cancellationToken = default)
     {
@@ -25,6 +27,7 @@ public abstract class MailSender
         catch (Exception e)
         {
             OnSendFailed?.Invoke(this, (content, e));
+            return;
         }
     }
     protected abstract Task SendAsyncInner(ContentParsed content, CancellationToken cancellationToken = default);
@@ -76,6 +79,7 @@ public class ContentParser
 {
     public string OutputDir { get; set; } = "Output";
     public bool SaveRawDocs { get; set; } = false;
+    public bool SaveHtmlFile { get; set; } = false;
     public required InputFileHelper InputHelper { get; set; }
     public required OutputFileHelper OutputHelper { get; set; }
 
@@ -83,6 +87,7 @@ public class ContentParser
     private DataParser? _dataParser;
     
     public event EventHandler<ContentTemplate>? OnBeforeParse;
+    public event EventHandler<(ContentTemplate template,string receiver)>? OnParseReceiver;
     public event EventHandler<(ContentTemplate template,Exception e)>? OnParseFailed;
     public event EventHandler<(ContentTemplate template,ContentParsed[] result)>? OnParseCompleted;
     public event EventHandler<(int index,Dictionary<string,string> row,Exception e)>? OnParseRowFailed;
@@ -111,10 +116,16 @@ public class ContentParser
                 var row = rows[i];
                 try{
                     string receiver = row[template.Receiver];
+                    OnParseReceiver?.Invoke(this, (template, receiver));
                     string subject = _dataParser.Parse(template.Subject, row);
                     string htmlPath = _dataParser.Parse(template.HtmlPath, row);
                     string htmlBody = _dataParser.Parse(InputHelper.Read(htmlPath), row);
                     string outputDir = Path.Combine(_realOutputDir, receiver);
+
+                    if (SaveHtmlFile)
+                    {
+                        OutputHelper.Write(htmlBody, Path.Combine(outputDir, "body.html"));
+                    }
 
                     var attachments = BuildAttachments(template.AttachmentMap, _dataParser, outputDir, row);
                     ret[i] = new ContentParsed
@@ -252,7 +263,6 @@ public class InputFileHelper
 public class OutputFileHelper
 {
     public required Encoding Encoding { get; set; }
-    public required bool DeleteAfterConvert { get; set; }
     
     public event EventHandler<string>? OnBeforeDeleteFile;
     public event EventHandler<(string file,Exception e)>? OnDeleteFileFailed;
@@ -274,7 +284,10 @@ public class OutputFileHelper
     public event EventHandler<(string file,Exception e)>? OnWriteFileFailed;
     public event EventHandler<string>? OnWriteFileCompleted;
     
-    public StreamWriter CreateWriter(string path) => new(path, false, Encoding);
+    public StreamWriter CreateWriter(string path) {
+        CreateDirIfNotExist(Path.GetDirectoryName(path)!);
+        return new(File.Create(path), Encoding);
+    }
 
     public void Copy(string source, string target)
     {
@@ -324,6 +337,21 @@ public class OutputFileHelper
         {
             OnWriteFileFailed?.Invoke(this, (outputPath, e));
             throw;
+        }
+    }
+
+    public void Delete(string path)
+    {
+        if (!File.Exists(path)) return;
+        OnBeforeDeleteFile?.Invoke(this, path);
+        try
+        {
+            File.Delete(path);
+            OnDeleteFileCompleted?.Invoke(this, path);
+        }
+        catch (Exception e)
+        {
+            OnDeleteFileFailed?.Invoke(this, (path, e));
         }
     }
 
