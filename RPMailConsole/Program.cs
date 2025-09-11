@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using MailKitSimplified.Sender.Abstractions;
-using MailKitSimplified.Sender.Services;
 using McMaster.Extensions.CommandLineUtils;
+using RPMailCore;
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -124,222 +123,139 @@ public class Program
             }
         }
     }
-    
+
+    #region Services
+    private InputFileHelper _inputFileHelper;
+    private OutputFileHelper _outputFileHelper;
+    private MailSender _mailSender;
+    private ContentTemplate _contentTemplate;
+    private ContentParser _contentParser;
+    private void InitServices()
+    {
+        #region InputFileHelper
+
+        _inputFileHelper = new InputFileHelper
+        {
+            Encoding = _encoding
+        };
+        _inputFileHelper.OnReadFileFailed += (o, args) =>
+            Info($"Failed to read file: {args.file}: {args.e.Message}", ConsoleColor.Red);
+
+        #endregion
+
+        #region OutputFileHelper
+
+        _outputFileHelper = new OutputFileHelper
+        {
+            DeleteAfterConvert = DeleteAfterConvert,
+            Encoding = _encoding
+        };
+        _outputFileHelper.OnWriteFileFailed += (o, args) =>
+            Info($"Failed to write file: {args.file}: {args.e.Message}", ConsoleColor.Red);
+        _outputFileHelper.OnCopyFileFailed += (o, args) =>
+            Info($"Failed to copy {args.source} to {args.destination}: {args.e.Message}", ConsoleColor.Red);
+        _outputFileHelper.OnDeleteFileFailed += (o, args) =>
+            Info($"Failed to delete file: {args.file}: {args.e.Message}", ConsoleColor.Red);
+        _outputFileHelper.OnMoveFileFailed += (o, args) =>
+            Info($"Failed to move file: {args.source} to {args.destination}: {args.e.Message}", ConsoleColor.Red);
+        _outputFileHelper.OnCreateDirCompleted += (o, args) =>
+            Log($"Directory Created: {args}", ConsoleColor.Green);
+        _outputFileHelper.OnCreateDirFailed += (o, args) =>
+            Info($"Failed to create directory: {args.path}: {args.e.Message}", ConsoleColor.Red);
+
+        #endregion
+
+        #region MailSender
+
+        _mailSender = new SmtpMailSender(Host, Sender, Password);
+        _mailSender.OnBeforeSend += (sender, parsed) => 
+            Log($"Sending Email To: {parsed.Receiver}, Subject: {parsed.Subject}", ConsoleColor.Cyan);
+        _mailSender.OnSendFailed += (sender, args) =>
+            Info($"Failed to send email to {args.content.Receiver}: {args.e.Message}", ConsoleColor.Red);
+        _mailSender.OnSendCompleted += (sender, args) =>
+            Log("Email sent.", ConsoleColor.Green);
+            
+
+        #endregion
+        
+        #region ContentTemplate
+
+        Dictionary<string, string> attachmentMap = [];
+        for (int i = 0; i < AttachmentPatterns?.Length; i++)
+        {
+            var key  = AttachmentPatterns[i];
+            var value = AttachmentNamePattern![i];
+            attachmentMap[key] = value;
+        }
+        
+        _contentTemplate = new ContentTemplate
+        {
+            Receiver = ReceiverHeader,
+            Subject = SubjectPattern,
+            CsvPath = DataFile,
+            HtmlPath = BodyPattern,
+            AttachmentMap = attachmentMap,
+        };
+
+        #endregion
+        
+        #region ContentParser
+
+        _contentParser = new(DateTime.Now)
+        {
+            InputHelper = _inputFileHelper,
+            OutputHelper = _outputFileHelper,
+            OutputDir = OutputFileDir,
+            SaveRawDocs = SaveRawDoc
+        };
+        _contentParser.OnBeforeParse += (sender, args) =>
+            Log($"Parsing Contents from {args.CsvPath} ", ConsoleColor.Cyan);
+        _contentParser.OnParseFailed += (o, args) =>
+            Info($"Failed to parse content: {args.e.Message}", ConsoleColor.Red);
+        _contentParser.OnParseRowFailed += (o, args) =>
+        {
+            Info($"Failed to parse row {args.index+1}: {args.e.Message}", ConsoleColor.Red);
+            string[] data = ((ContentParser) o!).GenCsvString([args.row]);
+            Info("--- Data ---",ConsoleColor.Red);
+            Info(data[0],ConsoleColor.Yellow);
+            Info(data[1],ConsoleColor.Yellow);
+        };
+        _contentParser.OnParseCompleted += (o, args) =>
+            Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} ", ConsoleColor.Green);
+        _contentParser.OnWriteCsvCompleted += (o, args) =>
+            Info($"Written FailedList to CSV File: {args}", ConsoleColor.Yellow);
+        _contentParser.OnWriteCsvFailed += (o, args) =>
+            Info($"Failed to write failed list to CSV file: {args.e.Message}", ConsoleColor.Red);
+            
+
+        #endregion
+        
+
+    }
+    #endregion
+
     private async Task OnExecute()
     {
         InitArgs();
-        
-        DateTime time = DateTime.Now;
-        
-        //Parse Data
-        Log($"Parsing Data File: {DataFile}", ConsoleColor.White);
-        DataParser dataParser;
-        List<string> receivers;
+        InitServices();
         try
         {
-            dataParser = new(DataFile,_encoding);
-            receivers = dataParser.GetProperties(ReceiverHeader);
-            Log($"Data File Parsed: {receivers.Count} Receivers Found", ConsoleColor.Green);
-        }
-        catch (Exception e)
-        {
-            Info("Failed to parse data file and get receivers", ConsoleColor.DarkRed);
-            Info(e.Message, ConsoleColor.DarkRed);
-            return;
-        }
-        
-        //Prebuild Output Directory
-        string realOutputDir = Path.Combine(OutputFileDir,$"{time:yyyy-MM-dd_HH-mm-ss}");
-        if (!Directory.Exists(realOutputDir))
-        {
-            Directory.CreateDirectory(realOutputDir);
-            Log($"Output Directory Created: {realOutputDir}", ConsoleColor.White);
-        }
-        
-        Log("- Creating SMTP Client", ConsoleColor.White);
-        await using var smtpClient = SmtpSender.Create(Host)
-            .SetCredential(Sender, Password);
-        Log("- SMTP Client Created", ConsoleColor.Green);
-
-        List<int> failList = [];
-        List<string> failReasons = [];
-        
-        //Build And Send
-        for (int i = 0; i < receivers.Count; i++)
-        {
-            List<string> outputs = [];
-            string receiver = receivers[i];
-            string htmlPath = string.Empty;
-            string htmlBody = string.Empty;
-            Log($"Building Email {i+1}/{receivers.Count} To: {receiver}", ConsoleColor.White);
-            try
+            var parsedContents = _contentParser.Parse(_contentTemplate);
+            List<(ContentParsed content, string reason)> failList = [];
+            _mailSender.OnSendFailed += (o, args) =>
+                failList.Add((args.content, args.e.Message));
+            foreach (var content in parsedContents)
             {
-                #region Build Email Basics
-                htmlPath = dataParser.Parse(BodyPattern, i);
-                var htmlContent = await File.ReadAllTextAsync(htmlPath, _encoding);
-
-                Log($"- Parsing Email Subject and Body", ConsoleColor.White);
-                string subject = dataParser.Parse(SubjectPattern, i);
-                htmlBody = dataParser.Parse(htmlContent, i);
-                Log($"- Email Subject and Body Parsed", ConsoleColor.Green);
-
-                IEmailWriter? mail = null;
-                if (!ConvertOnly)
-                {
-                    mail = smtpClient.WriteEmail
-                        .From(Sender)
-                        .To(receiver)
-                        .Subject(subject)
-                        .BodyHtml(htmlBody);
-
-                }
-                #endregion
-
-                #region Build Attachments
-                if (AttachmentPatterns is not null)
-                {
-                    Log("- Building Attachments", ConsoleColor.White);
-                    PDFParser pdfParser = new(dataParser)
-                    {
-                        SaveRawDoc = SaveRawDoc
-                    };
-
-                    for (int j = 0; j < AttachmentPatterns.Length; j++)
-                    {
-                        var attachment = AttachmentPatterns[j];
-
-                        string patternPath = dataParser.Parse(attachment, i);
-                        if (string.IsNullOrWhiteSpace(patternPath)) continue;
-
-                        string targetFile = dataParser.Parse(AttachmentNamePattern[j], i);
-                        if (string.IsNullOrWhiteSpace(targetFile)) continue;
-
-                        if (string.IsNullOrWhiteSpace(Path.GetExtension(targetFile)))
-                        {
-                            targetFile = Path.ChangeExtension(targetFile, ".pdf");
-                        }
-
-                        string outputPath = Path.Combine(realOutputDir, targetFile);
-
-                        outputs.Add(outputPath);
-
-                        if (Path.GetExtension(targetFile) == ".pdf")
-                        {
-                            //parse attachment
-                            pdfParser.Parse(patternPath, outputPath, i);
-                        }
-                        else
-                        {
-                            //simply copy attachment
-                            File.Copy(patternPath, outputPath, true);
-                        }
-
-                        //add attachment to mail
-                        if (!ConvertOnly)
-                            mail.Attach(outputPath);
-                    }
-
-                    Log("- Attachments Built", ConsoleColor.Green);
-                }
-                #endregion
-
-                #region Send Email
-                if (!ConvertOnly)
-                {
-                    Log("- Sending Email", ConsoleColor.Yellow);
-                    await mail.SendAsync();
-                    Log("- Email Sent", ConsoleColor.Green);
-                }
-                #endregion
+                await _mailSender.SendAsync(content);
             }
-            catch (Exception e)
-            {
-                Info(e.Message, ConsoleColor.Red);
-                //make it into fail list
-                failList.Add(i);
-                failReasons.Add(e.Message);
-            }
-            finally
-            {
-                #region Move or Delete
-                if (DeleteAfterConvert)
-                {
-                    try
-                    {
-                        foreach (var output in outputs)
-                        {
-                            if(File.Exists(output)) File.Delete(output);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Info("Failed to delete output files", ConsoleColor.Yellow);
-                        Info(e.Message, ConsoleColor.Yellow);
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        //rename outputs
-                        string targetDir = Path.Combine(realOutputDir, receiver);
-                        if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
-                        for (int j = 0; j < outputs.Count; j++)
-                        {
-                            var output = outputs[j];
-                            if (File.Exists(output))
-                                File.Move(output,
-                                    Path.Combine(targetDir, Path.GetFileName(output)), true);
-                        }
 
-                        if (ConvertOnly)
-                        {
-                            //save html
-                            string htmlFileOutput = Path.Combine(targetDir, htmlPath);
-                            if (File.Exists(htmlFileOutput)) File.Delete(htmlFileOutput);
-                            File.WriteAllText(htmlFileOutput, htmlBody, _encoding);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Info("Failed to move output files to receiver directory", ConsoleColor.Yellow);
-                        Info(e.Message, ConsoleColor.Yellow);
-                    }
-                }
-                #endregion
-            }
+            _contentParser.WriteCsv(failList.Select(x => x.content).ToList());
+
+            Log("All Done!", ConsoleColor.Green);
         }
-        //Done
-        if (failList.Count == 0)
+        catch (ApplicationException)
         {
-            Log("All Done",ConsoleColor.Green);
-        }
-        else
-        {
-            #region Handle Failed
-            string dataToResend =
-                Path.Combine(realOutputDir, Path.GetFileNameWithoutExtension(DataFile) + "_failed.csv");
-            Info($"Failed to send {failList.Count} / {receivers.Count} emails:",ConsoleColor.White);
-
-            int n = failList.Count;
-            for (int i = 0; i < n; i++)
-            {
-                int index = failList[i];
-                string reason = failReasons[i];
-                var row = dataParser.GetRow(index);
-                
-                Info($"Failed to send to {receivers[index]} : {reason}", ConsoleColor.Yellow);
-                Info("--- Data --- ", ConsoleColor.White);
-                foreach (var item in row)
-                {
-                    Info($"{item.Key} : {item.Value}", ConsoleColor.White);
-                }
-                Info("",ConsoleColor.Gray);
-            }
-            
-            dataParser.HandleFailed(failList, dataToResend);
-            Info($"Created failed data to {dataToResend}",ConsoleColor.Yellow);
-            #endregion
+            Info("Failed.", ConsoleColor.DarkRed);
         }
     }
 
