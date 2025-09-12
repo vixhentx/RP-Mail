@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:RPMailUI.ViewModels"
+             xmlns:converter="clr-namespace:RPMailUI.Converter"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RPMailUI.Controls.TaskListView"
+             x:DataType="vm:TaskListViewModel">
+    <Design.Width>400</Design.Width>
+    <Design.Height>600</Design.Height>
+    <Design.DataContext>
+        <vm:TaskListViewModel/>
+    </Design.DataContext>
+    <UserControl.DataContext>
+        <vm:TaskListViewModel/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <converter:DictionaryValueConverter x:Key="DictionaryValueConverter"/>
+    </UserControl.Resources>
+    <Expander IsExpanded="True"
+        Padding="2" BorderThickness="5" CornerRadius="5"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Expander.Header>
+                <TextBlock Text="Task List" FontSize="20" FontWeight="SemiBold"
+                           HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,20,0" DockPanel.Dock="Left"/>
+        </Expander.Header>
+        <ScrollViewer>
+            <DockPanel>
+                <Grid DockPanel.Dock="Top"
+                      ColumnDefinitions="Auto,Auto,Auto,*">
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Property Shown:"/>
+                    <ComboBox Grid.Column="1" x:Name="PropertyListBox" HorizontalAlignment="Stretch" Margin="5" SelectedIndex="0"
+                              ItemsSource="{Binding AvailableProperties}"/>
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Search:"/>
+                    <TextBox Grid.Column="3" Text="{Binding SearchText}" HorizontalAlignment="Stretch" Margin="5"/>
+                </Grid>
+                <ItemsControl ItemsSource="{Binding TasksView}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                    CornerRadius="5" BorderThickness="2">
+                                <Border.Background>
+                                    <SolidColorBrush Color="{Binding Status.Color}"/>
+                                </Border.Background>
+                                <TextBox IsReadOnly="True">
+                                    <TextBox.Text>
+                                        <MultiBinding Converter="{StaticResource DictionaryValueConverter}">
+                                            <Binding Path="Data"/>
+                                            <Binding Path="SelectedItem" ElementName="PropertyListBox"/>
+                                        </MultiBinding>
+                                    </TextBox.Text>
+                                </TextBox>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </ScrollViewer>
+    </Expander>
+</UserControl>
