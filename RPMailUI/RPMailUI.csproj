@@ -35,5 +35,9 @@
         <DependentUpon>FileBarView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Controls\TaskListView.axaml.cs">
+        <DependentUpon>TaskListView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

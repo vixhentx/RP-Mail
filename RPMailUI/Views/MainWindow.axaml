@@ -16,6 +16,20 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     
-    <controls:TaskListView/>
+    <DockPanel>
+        <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
+        <TabControl DockPanel.Dock="Bottom" MaxHeight="300">
+            <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
+                <controls:TaskListView Tasks="{Binding Tasks}"/>
+            </TabItem>
+            <TabItem Header="Console" FontSize="20" FontWeight="SemiBold">
+                <TextBox IsReadOnly="True"/>
+            </TabItem>
+        </TabControl>
+        <StackPanel>
+            <controls:FileBarView Caption="CSV File"/>
+            <controls:FileBarView Caption="HTML File"/>
+        </StackPanel>
+    </DockPanel>
 
 </Window>
