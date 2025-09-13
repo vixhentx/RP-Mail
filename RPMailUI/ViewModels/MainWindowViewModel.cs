@@ -16,23 +16,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public MainWindowViewModel()
     {
-        Tasks = new()
-        {
-            new()
-            {
-                ["Name"] = "Vix",
-                ["Description"] = "Buy groceries"
-            },
-            new()
-            {
-                ["Name"] = "John",
-                ["Description"] = "Call mom"
-            },
-            new()
-            {
-                ["Name"] = "Alice",
-                ["Description"] = "Buy flowers"
-            }
-        };
+        
     }
 }

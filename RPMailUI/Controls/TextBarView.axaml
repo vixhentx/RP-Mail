@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RPMailUI.Controls.TextBarView"
+             x:Name="Root">
+    <Design.Height>40</Design.Height>
+    <Design.Width>300</Design.Width>
+    <DockPanel>
+        <Label DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0,5,0"
+               Target="InputBox" Content="{Binding #Root.Caption}"/>
+        <TextBox x:Name="InputBox" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,5,0"
+                 Text="{Binding #Root.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False" AcceptsTab="False"/>
+    </DockPanel>
+</UserControl>

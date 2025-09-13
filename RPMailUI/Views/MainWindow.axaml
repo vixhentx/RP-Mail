@@ -4,11 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:RPMailUI.Controls"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="RPMailUI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="RPMailUI">
+        Title="RP-Mail UI">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -18,18 +18,45 @@
     
     <DockPanel>
         <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
-        <TabControl DockPanel.Dock="Bottom" MaxHeight="300">
-            <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
-                <controls:TaskListView Tasks="{Binding Tasks}"/>
-            </TabItem>
-            <TabItem Header="Console" FontSize="20" FontWeight="SemiBold">
-                <TextBox IsReadOnly="True"/>
-            </TabItem>
-        </TabControl>
-        <StackPanel>
-            <controls:FileBarView Caption="CSV File"/>
-            <controls:FileBarView Caption="HTML File"/>
-        </StackPanel>
+        <Grid DockPanel.Dock="Bottom">
+            <Button Content="Start!" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+            <TabControl MaxHeight="300">
+                <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
+                    <controls:TaskListView Tasks="{Binding Tasks}"/>
+                </TabItem>
+                <TabItem Header="Console" FontSize="20" FontWeight="SemiBold">
+                    <TextBox IsReadOnly="True"/>
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <ScrollViewer Margin="5" AllowAutoHide="True">
+            <StackPanel Orientation="Vertical" Spacing="5">
+                <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">
+                    <StackPanel Orientation="Vertical" Spacing="5">
+                        <controls:FileBarView Caption="CSV File"/>
+                        <controls:FileBarView Caption="HTML File"/>
+                        <controls:TextBarView Caption="Subject:"/>
+                        <controls:TextBarView Caption="CharSet:"/>
+                        <controls:AttachmentView Margin="0,5,0,5"/>
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Sender Settings" HorizontalAlignment="Stretch" IsExpanded="True">
+                    <StackPanel Spacing="5">
+                        <controls:TextBarView Caption="Sender Email:"/>
+                        <controls:TextBarView Caption="Password:"/>
+                        <controls:TextBarView Caption="SMTP Host:"/>
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Convert Settings" HorizontalAlignment="Stretch" IsExpanded="True">
+                    <StackPanel>
+                        <controls:FileBarView Caption="Output Folder:" IsDirectory="True"/>
+                        <CheckBox Content="Delete After Sent"/>
+                        <CheckBox Content="Convert Only"/>
+                        <CheckBox Content="Save Raw Doc"/>
+                        <CheckBox Content="Save HTML"/>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
     </DockPanel>
-
 </Window>
