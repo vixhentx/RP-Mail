@@ -1,19 +1,16 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
-using ReactiveUI;
 using RPMailUI.Models;
 
 namespace RPMailUI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    [ObservableProperty]
     private ObservableCollection<TaskItemData> _tasks = [];
 
-    public ObservableCollection<TaskItemData> Tasks
-    {
-        get => _tasks;
-        set => this.RaiseAndSetIfChanged(ref _tasks, value);
-    }
     public MainWindowViewModel()
     {
         

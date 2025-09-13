@@ -4,6 +4,7 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using RPMailUI.Resources;
 using RPMailUI.ViewModels;
 using RPMailUI.Views;
 
@@ -18,6 +19,7 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        ResourcesEntry.Load();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

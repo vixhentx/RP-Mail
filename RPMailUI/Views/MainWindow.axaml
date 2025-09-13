@@ -11,11 +11,8 @@
         Title="RP-Mail UI">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-    
     <DockPanel>
         <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
         <Grid DockPanel.Dock="Bottom">
@@ -36,7 +33,7 @@
                         <controls:FileBarView Caption="CSV File" FileType="CSV"/>
                         <controls:FileBarView Caption="HTML File" FileType="HTML"/>
                         <controls:TextBarView Caption="Subject:"/>
-                        <controls:TextBarView Caption="CharSet:"/>
+                        <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}"/>
                         <controls:AttachmentView Margin="0,5,0,5"/>
                     </StackPanel>
                 </Expander>

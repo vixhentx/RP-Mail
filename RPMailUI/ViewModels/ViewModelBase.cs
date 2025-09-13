@@ -3,6 +3,6 @@ using ReactiveUI;
 
 namespace RPMailUI.ViewModels;
 
-public class ViewModelBase : ReactiveObject
+public class ViewModelBase : ObservableObject
 {
 }
