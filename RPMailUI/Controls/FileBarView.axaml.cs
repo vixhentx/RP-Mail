@@ -2,18 +2,18 @@ using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
 using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
-using RPMailUI.Utils;
+using RPMailUI.Services;
 
 namespace RPMailUI.Controls;
 
 public partial class FileBarView : UserControl
 {
     public static readonly StyledProperty<string> FilePathProperty = AvaloniaProperty.Register<FileBarView, string>(
-        nameof(FilePath));
+        nameof(FilePath),defaultBindingMode:BindingMode.TwoWay);
 
     public string FilePath
     {

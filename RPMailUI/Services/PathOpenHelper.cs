@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 
-namespace RPMailUI.Utils;
+namespace RPMailUI.Services;
 
 public static class PathOpenHelper
 {

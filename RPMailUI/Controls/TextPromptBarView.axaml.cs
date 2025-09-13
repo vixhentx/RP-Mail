@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 
 namespace RPMailUI.Controls;
 
@@ -17,7 +18,7 @@ public partial class TextPromptBarView : UserControl
     }
 
     public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<TextBarView, string>(
-        nameof(Text),"");
+        nameof(Text),"",defaultBindingMode:BindingMode.TwoWay);
 
     public string Text
     {

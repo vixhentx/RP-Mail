@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using CommunityToolkit.Mvvm.Input;
 using RPMailUI.Models;
 
@@ -10,7 +11,7 @@ namespace RPMailUI.Controls;
 public partial class AttachmentView : UserControl
 {
     public static readonly StyledProperty<ObservableCollection<AttachmentItemData>> AttachmentsProperty = AvaloniaProperty.Register<AttachmentView, ObservableCollection<AttachmentItemData>>(
-        nameof(Attachments),[new()]);
+        nameof(Attachments),[new()],defaultBindingMode:BindingMode.TwoWay);
 
     public ObservableCollection<AttachmentItemData> Attachments
     {

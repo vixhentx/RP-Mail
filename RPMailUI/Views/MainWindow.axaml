@@ -22,7 +22,7 @@
                     <controls:TaskListView Tasks="{Binding Tasks}"/>
                 </TabItem>
                 <TabItem Header="Console" FontSize="20" FontWeight="SemiBold">
-                    <TextBox IsReadOnly="True"/>
+                    <TextBox IsReadOnly="True" Text="{Binding ConsoleLog}"/>
                 </TabItem>
             </TabControl>
         </Grid>
@@ -30,27 +30,28 @@
             <StackPanel Orientation="Vertical" Spacing="5">
                 <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
-                        <controls:FileBarView Caption="CSV File" FileType="CSV"/>
-                        <controls:FileBarView Caption="HTML File" FileType="HTML"/>
-                        <controls:TextBarView Caption="Subject:"/>
-                        <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}"/>
-                        <controls:AttachmentView Margin="0,5,0,5"/>
+                        <controls:FileBarView Caption="CSV File" FileType="CSV" FilePath="{Binding CsvFile}"/>
+                        <controls:FileBarView Caption="HTML File" FileType="HTML" FilePath="{Binding HtmlFile}"/>
+                        <controls:TextBarView Caption="Subject:" Text="{Binding Subject}"/>
+                        <controls:TextBarView Caption="Receiver Header:" Text="{Binding ReceiverHeader}"/>
+                        <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}" Text="{Binding CharSet}"/>
+                        <controls:AttachmentView Margin="0,5,0,5" Attachments="{Binding Attachments}"/>
                     </StackPanel>
                 </Expander>
-                <Expander Header="Sender Settings" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Expander Header="Sender Settings" HorizontalAlignment="Stretch">
                     <StackPanel Spacing="5">
-                        <controls:TextBarView Caption="Sender Email:"/>
-                        <controls:TextBarView Caption="Password:"/>
-                        <controls:TextBarView Caption="SMTP Host:"/>
+                        <controls:TextBarView Caption="Sender Email:" Text="{Binding SenderEmail}"/>
+                        <controls:TextBarView Caption="Password:" Text="{Binding SenderPassword}"/>
+                        <controls:TextBarView Caption="SMTP Host:" Text="{Binding SmtpHost}"/>
                     </StackPanel>
                 </Expander>
-                <Expander Header="Convert Settings" HorizontalAlignment="Stretch" IsExpanded="True">
+                <Expander Header="Convert Settings" HorizontalAlignment="Stretch">
                     <StackPanel>
-                        <controls:FileBarView Caption="Output Folder:" IsDirectory="True"/>
-                        <CheckBox Content="Delete After Sent"/>
-                        <CheckBox Content="Convert Only"/>
-                        <CheckBox Content="Save Raw Doc"/>
-                        <CheckBox Content="Save HTML"/>
+                        <controls:FileBarView Caption="Output Folder:" IsDirectory="True" FilePath="{Binding OutputFolder}"/>
+                        <CheckBox Content="Delete After Sent" IsChecked="{Binding IsDeleteAfterSent}"/>
+                        <CheckBox Content="Convert Only" IsChecked="{Binding IsConvertOnly}"/>
+                        <CheckBox Content="Save Raw Doc" IsChecked="{Binding IsSaveRawDoc}"/>
+                        <CheckBox Content="Save HTML" IsChecked="{Binding IsSaveHtml}"/>
                     </StackPanel>
                 </Expander>
             </StackPanel>
