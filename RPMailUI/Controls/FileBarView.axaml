@@ -10,8 +10,10 @@
     <Design.Height>60</Design.Height>
     <DockPanel>
         <Label DockPanel.Dock="Left" Content="{Binding #Root.Caption}" Target="FilePathBox" VerticalAlignment="Center" Margin="5,0,5,0"/>
-        <Button DockPanel.Dock="Right" Content="..." VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0,5,0"/>
-        <Button DockPanel.Dock="Right" Content="Open" VerticalAlignment="Center" Margin="5,0,5,0"/>
+        <Button DockPanel.Dock="Right" Content="..." Command="{Binding #Root.BrowseCommand}"
+                VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0,5,0"/>
+        <Button DockPanel.Dock="Right" Content="Open" Command="{Binding #Root.OpenCommand}"
+                VerticalAlignment="Center" Margin="5,0,5,0"/>
         <TextBox x:Name="FilePathBox" Text="{Binding #Root.FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="5"/>
     </DockPanel>
 </UserControl>

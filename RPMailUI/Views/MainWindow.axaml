@@ -33,8 +33,8 @@
             <StackPanel Orientation="Vertical" Spacing="5">
                 <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
-                        <controls:FileBarView Caption="CSV File"/>
-                        <controls:FileBarView Caption="HTML File"/>
+                        <controls:FileBarView Caption="CSV File" FileType="CSV"/>
+                        <controls:FileBarView Caption="HTML File" FileType="HTML"/>
                         <controls:TextBarView Caption="Subject:"/>
                         <controls:TextBarView Caption="CharSet:"/>
                         <controls:AttachmentView Margin="0,5,0,5"/>
