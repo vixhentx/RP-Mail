@@ -153,13 +153,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<TaskItemData> _tasks = new();
 
-    public int Progress
+    public double Progress
     {
         get => _progress;
         set => this.RaiseAndSetIfChanged(ref _progress, value);
     }
 
-    private int _progress = 0;
+    private double _progress = 0;
 
     public string ConsoleLog
     {

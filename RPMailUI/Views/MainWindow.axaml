@@ -16,7 +16,7 @@
     <DockPanel>
         <controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
                             Errors="{Binding Errors}" HorizontalAlignment="Stretch" MaxHeight="55"/>
-        <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
+        <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{Binding Progress}"/>
         <Panel DockPanel.Dock="Bottom">
             <Button ZIndex="1"
                     Content="Start!" Command="{Binding StartCommand}"

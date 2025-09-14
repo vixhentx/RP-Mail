@@ -26,18 +26,18 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="model:TaskItemData">
                             <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                    CornerRadius="5" BorderThickness="2">
+                                    CornerRadius="5" BorderThickness="2" ToolTip.Tip="{Binding Tooltip}">
                                 <Border.Background>
                                     <SolidColorBrush Color="{Binding Status.Color}"/>
                                 </Border.Background>
-                                <TextBox IsReadOnly="True">
-                                    <TextBox.Text>
+                                <SelectableTextBlock FontSize="14" Margin="5">
+                                    <SelectableTextBlock.Text>
                                         <MultiBinding Converter="{StaticResource DictionaryValueConverter}">
                                             <Binding Path="Data"/>
                                             <Binding Path="#PropertyComboBox.SelectedItem"/>
                                         </MultiBinding>
-                                    </TextBox.Text>
-                                </TextBox>
+                                    </SelectableTextBlock.Text>
+                                </SelectableTextBlock>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

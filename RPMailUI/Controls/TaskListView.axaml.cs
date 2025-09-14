@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using RPMailUI.Models;
 
 namespace RPMailUI.Controls;
@@ -13,7 +14,7 @@ namespace RPMailUI.Controls;
 public partial class TaskListView : UserControl , INotifyPropertyChanged
 {
     public static readonly StyledProperty<ObservableCollection<TaskItemData>> TasksProperty = AvaloniaProperty.Register<TaskListView, ObservableCollection<TaskItemData>>(
-        nameof(Tasks),[]);
+        nameof(Tasks),[],defaultBindingMode:BindingMode.TwoWay);
 
     public ObservableCollection<TaskItemData> Tasks
     {

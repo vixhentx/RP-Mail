@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,131 +14,161 @@ namespace RPMailUI.ViewModels;
 
 public partial class MainWindowViewModel
 {
-    private InputFileHelper _inputFileHelper;
-    private OutputFileHelper _outputFileHelper;
-    private MailSender _mailSender;
-    private ContentTemplate _contentTemplate;
-    private ContentParser _contentParser;
-    private void InitService()
-    {
-        #region InputFileHelper
+    private InputFileHelper? _inputFileHelper;
+    private OutputFileHelper? _outputFileHelper;
+    private MailSender? _mailSender;
+    private ContentTemplate? _contentTemplate;
+    private ContentParser? _contentParser;
 
-        Encoding encoding;
+    [RelayCommand]
+    private async Task Start()
+    {
+        Errors.Clear();
         try
         {
-            encoding = Encoding.GetEncoding(CharSet);
-        }
-        catch (Exception e)
-        {
-            encoding = Encoding.UTF8;
-            Info($"Failed to get encoding: {e.Message}, use default encoding: {encoding.BodyName}");
-        }
+            #region InitService
 
-        _inputFileHelper = new InputFileHelper
-        {
-            Encoding = encoding
-        };
-        _inputFileHelper.OnReadFileFailed += (o, args) =>
-            Info($"Failed to read file: {args.file}: {args.e.Message}");
+            #region InputFileHelper
 
-        #endregion
-
-        #region OutputFileHelper
-
-        _outputFileHelper = new OutputFileHelper
-        {
-            Encoding = encoding
-        };
-        _outputFileHelper.OnWriteFileFailed += (o, args) =>
-            Info($"Failed to write file: {args.file}: {args.e.Message}");
-        _outputFileHelper.OnCopyFileFailed += (o, args) =>
-            Info($"Failed to copy {args.source} to {args.destination}: {args.e.Message}");
-        _outputFileHelper.OnDeleteFileFailed += (o, args) =>
-            Info($"Failed to delete file: {args.file}: {args.e.Message}");
-        _outputFileHelper.OnMoveFileFailed += (o, args) =>
-            Info($"Failed to move file: {args.source} to {args.destination}: {args.e.Message}");
-        _outputFileHelper.OnCreateDirFailed += (o, args) =>
-            Info($"Failed to create directory: {args.path}: {args.e.Message}");
-
-        #endregion
-
-        #region MailSender
-
-        _mailSender = new SmtpMailSender(SmtpHost, SenderEmail, SenderPassword);
-        _mailSender.OnBeforeSend += (sender, parsed) => 
-            Log($"Sending Email To: {parsed.Receiver}, Subject: {parsed.Subject}");
-        _mailSender.OnSendFailed += (sender, args) =>
-            Info($"Failed to send email to {args.content.Receiver}: {args.e.Message}");
-        _mailSender.OnSendCompleted += (sender, args) =>
-            Log("Email sent.");
-        if (!IsConvertOnly && IsDeleteAfterSent)
-            _mailSender.OnSendCompleted += (sender, args) =>
+            Encoding encoding;
+            try
             {
-                foreach (var attachment in args.Attachments)
-                    _outputFileHelper.Delete(attachment);
+                encoding = Encoding.GetEncoding(CharSet);
+            }
+            catch (Exception e)
+            {
+                encoding = Encoding.UTF8;
+                Error($"Failed to get encoding: {e.Message}, use default encoding: {encoding.BodyName}");
+            }
+
+            _inputFileHelper = new InputFileHelper
+            {
+                Encoding = encoding
             };
-        
-        //Task Update
-        _mailSender.OnBeforeSend += (sender, args) =>
-            Tasks.First(x => x.Data[ReceiverHeader] == args.Receiver).Status = TaskStatus.Running;
-        _mailSender.OnSendFailed += (sender, args) =>
-            Tasks.First(x => x.Data[ReceiverHeader] == args.content.Receiver).Status = TaskStatus.Failed;
-        _mailSender.OnSendCompleted += (sender, args) =>
-            Tasks.First(x => x.Data[ReceiverHeader] == args.Receiver).Status = TaskStatus.Success;
-            
+            _inputFileHelper.OnReadFileFailed += (o, args) =>
+                Log($"Failed to read file: {args.file}: {args.e.Message}");
 
-        #endregion
-        
-        #region ContentTemplate
+            #endregion
 
-        Dictionary<string, string> attachmentMap = [];
-        foreach (var item in Attachments)
-        {
-            attachmentMap[item.SourceText] = item.DestinationText;
-        }
-        
-        _contentTemplate = new ContentTemplate
-        {
-            Receiver = ReceiverHeader,
-            Subject = Subject,
-            CsvPath = CsvFile,
-            HtmlPath = HtmlFile,
-            AttachmentMap = attachmentMap,
-        };
+            #region OutputFileHelper
 
-        #endregion
-        
-        #region ContentParser
+            _outputFileHelper = new OutputFileHelper
+            {
+                Encoding = encoding
+            };
+            _outputFileHelper.OnWriteFileFailed += (o, args) =>
+                Log($"Failed to write file: {args.file}: {args.e.Message}");
+            _outputFileHelper.OnCopyFileFailed += (o, args) =>
+                Log($"Failed to copy {args.source} to {args.destination}: {args.e.Message}");
+            _outputFileHelper.OnDeleteFileFailed += (o, args) =>
+                Log($"Failed to delete file: {args.file}: {args.e.Message}");
+            _outputFileHelper.OnMoveFileFailed += (o, args) =>
+                Log($"Failed to move file: {args.source} to {args.destination}: {args.e.Message}");
+            _outputFileHelper.OnCreateDirFailed += (o, args) =>
+                Log($"Failed to create directory: {args.path}: {args.e.Message}");
 
-        _contentParser = new(DateTime.Now)
-        {
-            InputHelper = _inputFileHelper,
-            OutputHelper = _outputFileHelper,
-            OutputDir = OutputFolder,
-            SaveRawDocs = IsSaveRawDoc,
-            SaveHtmlFile = IsConvertOnly,
-        };
-        _contentParser.OnBeforeParse += (sender, args) =>
-            Log($"Parsing Contents from {args.CsvPath} ");
-        _contentParser.OnParseReceiver += (sender, args) =>
-            Log($"Parsing Receiver: {args.receiver}");
-        _contentParser.OnParseFailed += (o, args) =>
-            Info($"Failed to parse content: {args.e.Message}");
-        _contentParser.OnParseRowFailed += (o, args) =>
-        {
-            Info($"Failed to parse row {args.index+1}: {args.e.Message}");
-            string[] data = ((ContentParser) o!).GenCsvString([args.row]);
-            Info("--- Data ---");
-            Info(data[0]);
-            Info(data[1]);
-        };
-        _contentParser.OnParseCompleted += (o, args) =>
-            Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} ");
-        //Update Task
-        _contentParser.OnParseCompleted += (o, args) =>
-        {
+            #endregion
+
+            #region MailSender
+
+            _mailSender = new SmtpMailSender(SmtpHost, SenderEmail, SenderPassword);
+            _mailSender.OnBeforeSend += (sender, parsed) =>
+                Log($"Sending Email To: {parsed.Receiver}, Subject: {parsed.Subject}");
+            _mailSender.OnSendFailed += (sender, args) =>
+                Log($"Failed to send email to {args.content.Receiver}: {args.e.Message}");
+            _mailSender.OnSendCompleted += (sender, args) =>
+                Log("Email sent.");
+            if (!IsConvertOnly && IsDeleteAfterSent)
+                _mailSender.OnSendCompleted += (sender, args) =>
+                {
+                    foreach (var attachment in args.Attachments)
+                        _outputFileHelper.Delete(attachment);
+                };
+
+            //Task Update
+            _mailSender.OnBeforeSend += (sender, args) =>
+                Tasks.First(x => x.Data[ReceiverHeader] == args.Receiver).Status = TaskStatus.Running;
+            _mailSender.OnSendFailed += (sender, args) =>
+            {
+                var failedTask = Tasks.First(x => x.Data[ReceiverHeader] == args.content.Receiver);
+                failedTask.Status = TaskStatus.Failed;
+                failedTask.Tooltip = args.e.Message;
+            };
+            _mailSender.OnSendCompleted += (sender, args) =>
+                Tasks.First(x => x.Data[ReceiverHeader] == args.Receiver).Status = TaskStatus.Success;
+
+            #endregion
+
+            #region ContentTemplate
+
+            Dictionary<string, string> attachmentMap = [];
+            foreach (var item in Attachments) attachmentMap[item.SourceText] = item.DestinationText;
+
+            _contentTemplate = new ContentTemplate
+            {
+                Receiver = ReceiverHeader,
+                Subject = Subject,
+                CsvPath = CsvFile,
+                HtmlPath = HtmlFile,
+                AttachmentMap = attachmentMap
+            };
+
+            #endregion
+
+            #region ContentParser
+
+            _contentParser = new ContentParser(DateTime.Now)
+            {
+                InputHelper = _inputFileHelper,
+                OutputHelper = _outputFileHelper,
+                OutputDir = OutputFolder,
+                SaveRawDocs = IsSaveRawDoc,
+                SaveHtmlFile = IsConvertOnly
+            };
+            _contentParser.OnBeforeParse += (sender, args) =>
+                Log($"Parsing Contents from {args.CsvPath} ");
+            _contentParser.OnParseReceiver += (sender, args) =>
+                Log($"Parsing Receiver: {args.receiver}");
+            _contentParser.OnParseFailed += (o, args) =>
+                Log($"Failed to parse content: {args.e.Message}");
+            _contentParser.OnParseRowFailed += (o, args) =>
+            {
+                Error($"Failed to parse row {args.index + 1}: {args.e.Message}");
+                var data = ((ContentParser)o!).GenCsvString([args.row]);
+                Log("--- Data ---");
+                Log(data[0]);
+                Log(data[1]);
+            };
+            _contentParser.OnParseCompleted += (o, args) =>
+                Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} ");
+            //Update Task
+            _contentParser.OnParseCompleted += (o, args) =>
+            {
+                List<TaskItemData> tasks = [];
+                foreach (var content in args.result)
+                {
+                    TaskItemData task = new()
+                    {
+                        Data = content.RawRow
+                    };
+                    tasks.Add(task);
+                }
+
+                Tasks = new ObservableCollection<TaskItemData>(tasks);
+            };
+            _contentParser.OnWriteCsvCompleted += (o, args) =>
+                Log($"Written FailedList to CSV File: {args}");
+            _contentParser.OnWriteCsvFailed += (o, args) =>
+                Error($"Failed to write failed list to CSV file: {args.e.Message}");
+
+            #endregion
+
+            #endregion
+
+            //parse
+            var parsedContents = _contentParser.Parse(_contentTemplate);
             List<TaskItemData> tasks = [];
-            foreach (var content in args.result)
+            foreach (var content in parsedContents)
             {
                 TaskItemData task = new()
                 {
@@ -145,30 +176,16 @@ public partial class MainWindowViewModel
                 };
                 tasks.Add(task);
             }
-
             Tasks = new(tasks);
-        };
-        _contentParser.OnWriteCsvCompleted += (o, args) =>
-            Info($"Written FailedList to CSV File: {args}");
-        _contentParser.OnWriteCsvFailed += (o, args) =>
-            Info($"Failed to write failed list to CSV file: {args.e.Message}");
-            
 
-        #endregion
-    }
-
-    [RelayCommand]
-    private async Task Start()
-    {
-        try
-        {
-            InitService();
-            var parsedContents = _contentParser.Parse(_contentTemplate);
             if (!IsConvertOnly)
             {
+                Progress = 0;
+                double step = 100.0f / parsedContents.Length;
                 foreach (var content in parsedContents)
                 {
                     await _mailSender.SendAsync(content);
+                    Progress += step;
                 }
             }
 
@@ -180,23 +197,23 @@ public partial class MainWindowViewModel
         }
         catch (ApplicationException)
         {
-            Info("Failed.");
+            Log("Failed.");
         }
         catch (Exception e)
         {
-            Info($"Unexpected Error: {e.Message}");
+            Error($"Unexpected Error: {e.Message}");
         }
     }
 
     private void Log(string message)
     {
         ConsoleLog += message + Environment.NewLine;
-        #if DEBUG
+#if DEBUG
         Console.WriteLine(message);
-        #endif
+#endif
     }
 
-    private void Info(string message)
+    private void Error(string message)
     {
         Log(message);
         MessageFlyout.ShowError(message);

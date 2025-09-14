@@ -19,9 +19,9 @@
                                 BorderBrush="White"
                                 BorderThickness="1"
                                 CornerRadius="10" 
+                                VerticalAlignment="Center"
                                 HorizontalAlignment="Stretch">
                                 <DockPanel>
-                                    
                                     <TextBlock Text="{Binding Message}" Height="{Binding #Root.CellHeight}" FontSize="18" FontWeight="Bold"
                                                VerticalAlignment="Center" HorizontalAlignment="Stretch"
                                                Foreground="{Binding ForegroundColor, Converter={StaticResource BrushConverter}}" 

@@ -168,6 +168,10 @@ public class ContentParser
             OutputHelper.Write(ret, outputPath);
             OnWriteCsvCompleted?.Invoke(this, outputPath);
         }
+        catch (ApplicationException)
+        {
+            
+        }
         catch (Exception e)
         {
             OnWriteCsvFailed?.Invoke(this, (outputPath, e));
@@ -256,7 +260,7 @@ public class InputFileHelper
         catch (Exception e)
         {
             OnReadFileFailed?.Invoke(this, (path, e));
-            throw new ApplicationException();
+            throw;
         }
     }
 }
