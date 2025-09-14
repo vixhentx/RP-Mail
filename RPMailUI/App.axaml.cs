@@ -5,6 +5,7 @@ using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
 using RPMailUI.Resources;
+using RPMailUI.Services;
 using RPMailUI.ViewModels;
 using RPMailUI.Views;
 
@@ -26,11 +27,14 @@ public partial class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
             MainWindowViewModel vm = new();
-            desktop.MainWindow = new MainWindow
+            MainWindow window = new ()
             {
                 DataContext = vm
             };
-            desktop.MainWindow.Closing += vm.OnWindowClosing!;
+            window.Closing += vm.OnWindowClosing!;
+            vm.Errors.CollectionChanged += window.ErrorView.OnCollectionChanged;
+            MessageFlyout.Initialize(vm);
+            desktop.MainWindow = window;
         }
 
         base.OnFrameworkInitializationCompleted();

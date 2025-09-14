@@ -169,6 +169,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _consoleLog = "";
 
+    private ObservableCollection<ErrorItemData> _errors = [];
+
+    public ObservableCollection<ErrorItemData> Errors
+    {
+        get => _errors;
+        set => this.RaiseAndSetIfChanged(ref _errors, value);
+    }
+
     #endregion
 
     public MainWindowViewModel()

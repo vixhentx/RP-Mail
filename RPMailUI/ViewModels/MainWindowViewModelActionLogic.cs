@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
-using MsBox.Avalonia;
 using RPMailCore;
 using RPMailUI.Models;
+using RPMailUI.Services;
 using TaskStatus = RPMailUI.Models.TaskStatus;
 
 namespace RPMailUI.ViewModels;
@@ -199,6 +199,6 @@ public partial class MainWindowViewModel
     private void Info(string message)
     {
         Log(message);
-        MessageBoxManager.GetMessageBoxStandard("Error", message).ShowAsync().Wait();
+        MessageFlyout.ShowError(message);
     }
 }

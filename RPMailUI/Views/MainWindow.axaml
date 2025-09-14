@@ -14,9 +14,12 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     <DockPanel>
+        <controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
+                            Errors="{Binding Errors}" HorizontalAlignment="Stretch" MaxHeight="55"/>
         <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
-        <Grid DockPanel.Dock="Bottom">
-            <Button Content="Start!" Command="{Binding StartCommand}"
+        <Panel DockPanel.Dock="Bottom">
+            <Button ZIndex="1"
+                    Content="Start!" Command="{Binding StartCommand}"
                     FontSize="20" FontWeight="SemiBold" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
             <TabControl MaxHeight="300">
                 <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
@@ -25,8 +28,9 @@
                 <TabItem Header="Console" FontSize="20" FontWeight="SemiBold">
                     <TextBox IsReadOnly="True" Text="{Binding ConsoleLog}"/>
                 </TabItem>
+                <TabItem Header="Hide" FontSize="20" FontWeight="SemiBold"/>
             </TabControl>
-        </Grid>
+        </Panel>
         <ScrollViewer Margin="5" AllowAutoHide="True">
             <StackPanel Orientation="Vertical" Spacing="5">
                 <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">

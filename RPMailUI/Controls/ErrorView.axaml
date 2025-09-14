@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:RPMailUI.Models"
+             xmlns:converter="clr-namespace:RPMailUI.Converter"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RPMailUI.Controls.ErrorView"
+             x:Name="Root">
+    <UserControl.Resources>
+        <converter:BrushConverter x:Key="BrushConverter"/>
+    </UserControl.Resources>
+    <ScrollViewer HorizontalAlignment="Stretch" x:Name="ScrollView">
+            <ItemsControl ItemsSource="{Binding #Root.Errors}">
+                <ItemsControl.DataTemplates>
+                    <DataTemplate x:DataType="models:ErrorItemData">
+                        <Border x:Name="BorderFrame"
+                                Background="{Binding BackgroundColor, Converter={StaticResource BrushConverter}}"
+                                BorderBrush="White"
+                                BorderThickness="1"
+                                CornerRadius="10" 
+                                HorizontalAlignment="Stretch">
+                                <DockPanel>
+                                    
+                                    <TextBlock Text="{Binding Message}" Height="{Binding #Root.CellHeight}" FontSize="18" FontWeight="Bold"
+                                               VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                                               Foreground="{Binding ForegroundColor, Converter={StaticResource BrushConverter}}" 
+                                               TextWrapping="Wrap" TextAlignment="Center"/>
+                                </DockPanel>
+                            </Border>
+                    </DataTemplate>
+                </ItemsControl.DataTemplates>
+            </ItemsControl>
+        </ScrollViewer>
+</UserControl>

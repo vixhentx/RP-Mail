@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
-using MsBox.Avalonia;
 using RPMailUI.Services;
 
 namespace RPMailUI.Controls;
@@ -110,9 +109,7 @@ public partial class FileBarView : UserControl
         }
         catch (Exception ex)
         {
-            var box = MessageBoxManager
-                .GetMessageBoxStandard("Error", $"Cannot open {FilePath}: {ex.Message}");
-            await box.ShowAsync();
+            MessageFlyout.ShowError($"Cannot open {FilePath}: {ex.Message}");
         }
     }
 }

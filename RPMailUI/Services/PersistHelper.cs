@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using MsBox.Avalonia;
 
 namespace RPMailUI.Services;
 
@@ -24,7 +23,7 @@ public static class PersistHelper
         }
         catch (Exception e)
         {
-            MessageBoxManager.GetMessageBoxStandard("Save Error", e.Message).ShowAsync().RunSynchronously();
+            MessageFlyout.ShowMessage("Save Error", e.Message);
         }
     }
     
@@ -53,7 +52,7 @@ public static class PersistHelper
         }
         catch (Exception e)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Save Error", e.Message).ShowAsync();
+            MessageFlyout.ShowMessage("Save Error", e.Message);
         }
     }
 }
