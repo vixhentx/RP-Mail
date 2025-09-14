@@ -7,7 +7,7 @@ public class TaskItemData : ObservableObject
 {
     public Dictionary<string, string> Data { get; init; } = [];
     private TaskStatus _status = TaskStatus.Pending;
-    private string? _tooltip;
+    private string _tooltip = "Ready to send";
 
     public TaskStatus Status
     {

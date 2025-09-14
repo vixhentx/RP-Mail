@@ -76,7 +76,7 @@ public partial class TaskListView : UserControl , INotifyPropertyChanged
         this.GetObservable(TasksProperty).Subscribe(tasks =>
         {
             //Recalc TaskView
-            tasks.CollectionChanged += (_, _) => OnPropertyChanged(nameof(TasksView));
+            // tasks.CollectionChanged += (_, _) => OnPropertyChanged(nameof(TasksView));
             OnPropertyChanged(nameof(TasksView));
             //Recalc AvailableHeaders
             var headers = tasks.SelectMany(t => t.Data.Keys).Distinct().ToList();

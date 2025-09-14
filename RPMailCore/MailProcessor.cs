@@ -90,6 +90,8 @@ public class ContentParser
     public event EventHandler<(ContentTemplate template,string receiver)>? OnParseReceiver;
     public event EventHandler<(ContentTemplate template,Exception e)>? OnParseFailed;
     public event EventHandler<(ContentTemplate template,ContentParsed[] result)>? OnParseCompleted;
+    public event EventHandler<(int index,Dictionary<string,string> row)>? OnBeforeParseRow;
+    public event EventHandler<(int index,Dictionary<string,string> row)>? OnParseRowCompleted;
     public event EventHandler<(int index,Dictionary<string,string> row,Exception e)>? OnParseRowFailed;
     
     public event EventHandler<string>? OnBeforeWriteCsv;
@@ -107,14 +109,15 @@ public class ContentParser
         try
         {
             OutputHelper.CreateDirIfNotExist(_realOutputDir);
-            _dataParser = new(InputHelper.CreateReader(template.CsvPath));
-            var rows = _dataParser.Rows;
-            
-            ContentParsed[] ret = new ContentParsed[rows.Count];
-            for (int i = 0; i < rows.Count; i++)
+            _dataParser = new();
+            List<ContentParsed> list = [];
+            _dataParser.Parse(InputHelper.CreateReader(template.CsvPath), arg =>
             {
-                var row = rows[i];
+                OnBeforeParseRow?.Invoke(this, (arg.index, arg.row));
+                var index = arg.index;
+                var row = arg.row;
                 try{
+                    OnBeforeParseRow?.Invoke(this, (index, row));
                     string receiver = row[template.Receiver];
                     OnParseReceiver?.Invoke(this, (template, receiver));
                     string subject = _dataParser.Parse(template.Subject, row);
@@ -128,7 +131,7 @@ public class ContentParser
                     }
 
                     var attachments = BuildAttachments(template.AttachmentMap, _dataParser, outputDir, row);
-                    ret[i] = new ContentParsed
+                    list.Add(new ContentParsed
                     {
                         Receiver = receiver,
                         Subject = subject,
@@ -137,15 +140,17 @@ public class ContentParser
                         HtmlPath = htmlPath,
                         OutputDir = outputDir,
                         RawRow = row
-                    };
+                    });
+                    OnParseRowCompleted?.Invoke(this, (index, row));
                 }
                 catch (Exception e)
                 {
-                    OnParseRowFailed?.Invoke(this, (i, row, e));
+                    OnParseRowFailed?.Invoke(this, (index, row, e));
                     throw;
                 }
-            }
+            });
             
+            var ret = list.ToArray();
             OnParseCompleted?.Invoke(this, (template, ret));
             return ret;
         }

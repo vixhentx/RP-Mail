@@ -7,12 +7,12 @@ namespace RPMailCore;
 
 public class DataParser
 {
-    readonly String[] _headers;
-    readonly List<Dictionary<string,string>> _rows = [];
+    private string[] _headers = [];
     public string[] Headers => _headers;
-    public List<Dictionary<string,string>> Rows => _rows;
-    
-    public DataParser(StreamReader reader)
+
+    public List<Dictionary<string,string>> Rows { get; } = [];
+
+    public void Parse(StreamReader reader, Action<(int index,Dictionary<string, string> row)>? rowHandler = null)
     {
         //parse csv data file
         using CsvReader csv = new(reader, CultureInfo.InvariantCulture);
@@ -24,15 +24,18 @@ public class DataParser
         
         var headers = csv.HeaderRecord;
         _headers = headers ?? throw new InvalidDataException("Header row is null");
-        
+
+        int index = 0;
         while (csv.Read())
         {
             var obj = new Dictionary<string,string>();
             foreach(var header in headers)
             {
-                obj[header] = csv.GetField(header);
+                obj[header] = csv.GetField(header)??"";
             }
-            _rows.Add(obj);
+            rowHandler?.Invoke((index,obj));
+            Rows.Add(obj);
+            index++;
         }
 
     }
@@ -82,7 +85,7 @@ public class DataParser
         }
     }
 
-    public List<string> GetPropertiesOf(Dictionary<string,string> row) => _headers.Select(header => row[header]).ToList();
-    public Dictionary<string,string>? FindRow(string property, string value) => _rows.Find(row => row[property] == value);
-    public List<string> GetProperties(string header) =>_rows.Select(row => row[header]).ToList();
+    public List<string> GetPropertiesOf(Dictionary<string,string> row) => Headers.Select(header => row[header]).ToList();
+    public Dictionary<string,string>? FindRow(string property, string value) => Rows.Find(row => row[property] == value);
+    public List<string> GetProperties(string header) =>Rows.Select(row => row[header]).ToList();
 }
