@@ -1,9 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using RPMailUI.Models;
 
@@ -30,18 +32,22 @@ public partial class AttachmentView : PersistedUserControl
     }
 
     [RelayCommand]
-    private void AppendAttachment()
+    private async Task AppendAttachment()
     {
-        Attachments.Add(new());
+        await Dispatcher.UIThread.InvokeAsync(() =>
+            Attachments.Add(new()));
     }
 
     [RelayCommand]
-    private void RemoveAttachment()
+    private async Task RemoveAttachment()
     {
-        var selectedIndex = AttachmentListBox.SelectedIndex;
-        AttachmentListBox.SelectedIndex = -1;
-        if(selectedIndex >= 0)
-            Attachments.RemoveAt(selectedIndex);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var selectedIndex = AttachmentListBox.SelectedIndex;
+            AttachmentListBox.SelectedIndex = -1;
+            if (selectedIndex >= 0)
+                Attachments.RemoveAt(selectedIndex);
+        });
     }
 
 

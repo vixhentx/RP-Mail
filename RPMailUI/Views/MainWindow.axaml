@@ -36,7 +36,7 @@
                 <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <controls:FileBarView Caption="CSV File" FileType="CSV" FilePath="{Binding CsvFile}"/>
-                        <controls:TextBarView Caption="HTML File" Text="{Binding HtmlFile}"/>
+                        <controls:FileBarView Caption="HTML File" FileType="HTML" FilePath="{Binding HtmlFile}"/>
                         <controls:TextBarView Caption="Subject:" Text="{Binding Subject}"/>
                         <controls:TextBarView Caption="Receiver Header:" Text="{Binding ReceiverHeader}"/>
                         <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}" Text="{Binding CharSet}"/>

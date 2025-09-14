@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -58,6 +59,7 @@ public partial class FileBarView : UserControl
         var topLevel = TopLevel.GetTopLevel(this)!;
         var provider = topLevel.StorageProvider;
 
+        string selectedPath="";
         if (!IsDirectory)
         {
             var fileTypeExt = string.IsNullOrWhiteSpace(FileType) ? "*" : FileType.ToLower();
@@ -74,7 +76,7 @@ public partial class FileBarView : UserControl
         
             if (files.Count > 0)
             {
-                FilePath = files[0].TryGetLocalPath() ?? "";
+                selectedPath = files[0].TryGetLocalPath() ?? "";
             }
         }
         else
@@ -88,13 +90,24 @@ public partial class FileBarView : UserControl
 
             if (directories.Count > 0)
             {
-                FilePath = directories[0].TryGetLocalPath() ?? "";
+                selectedPath = directories[0].TryGetLocalPath() ?? "";
             }
         }
+        string filePath = selectedPath;
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            string currentDir = Directory.GetCurrentDirectory();
+            string relativePath = GetRelativePath(currentDir, selectedPath);
+            if (GetPathLayerCount(relativePath) <= 2)
+            {
+                filePath = relativePath;
+            }
+        }
+        FilePath = filePath;
     }
 
     [RelayCommand]
-    private async Task Open()
+    private void Open()
     {
         try
         {
@@ -111,5 +124,24 @@ public partial class FileBarView : UserControl
         {
             MessageFlyout.ShowError($"Cannot open {FilePath}: {ex.Message}");
         }
+    }
+    
+    //Utils
+    static string GetRelativePath(string basePath, string targetPath)
+    {
+        Uri baseUri = new Uri(basePath + Path.DirectorySeparatorChar);
+        Uri targetUri = new Uri(targetPath);
+
+        Uri relativeUri = baseUri.MakeRelativeUri(targetUri);
+
+        return Uri.UnescapeDataString(relativeUri.ToString());
+    }
+    static int GetPathLayerCount(string path)
+    {
+        char separator = Path.DirectorySeparatorChar;
+        
+        string[] parts = path.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length;
     }
 }

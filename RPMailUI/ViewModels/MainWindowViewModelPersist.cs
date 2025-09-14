@@ -9,7 +9,7 @@ namespace RPMailUI.ViewModels;
 
 public partial class MainWindowViewModel : IPersistable<MainWindowViewModel.PersistedData>
 {
-    public Timer SaveTimer { get; set; }
+    public Timer SaveTimer { get; set; } = null!;
 
     public bool IsDirtySetter
     {

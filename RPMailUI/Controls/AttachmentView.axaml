@@ -19,11 +19,12 @@
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
-                        <TextBox Grid.Column="0" LostFocus="OnLostFocus"
-                                 Text="{Binding SourceText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
+                        <local:FileBarView Grid.Column="0" LostFocus="OnLostFocus" Caption=""
+                                     FilePath="{Binding SourceText, Mode=TwoWay}"/>
                         <Label Grid.Column="1" LostFocus="OnLostFocus"
                                 Content=" ==> " VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="2" Text="{Binding DestinationText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
+                        <TextBox Grid.Column="2" Margin="5"
+                                 Text="{Binding DestinationText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
