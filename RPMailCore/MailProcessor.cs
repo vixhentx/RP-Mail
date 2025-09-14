@@ -156,13 +156,13 @@ public class ContentParser
         }
     }
 
-    public void WriteCsv(IEnumerable<ContentParsed> contents, string? outputPath = null)
+
+    public void WriteCsv(List<Dictionary<string, string>> rows, string? outputPath = null)
     {
         outputPath ??= Path.Combine(_realOutputDir, "data_failed.csv");
         OnBeforeWriteCsv?.Invoke(this, outputPath);
         try
         {
-            var rows = contents.Select(c =>c.RawRow).ToList();
             string[] ret = GenCsvString(rows);
 
             OutputHelper.Write(ret, outputPath);
@@ -172,8 +172,9 @@ public class ContentParser
         {
             OnWriteCsvFailed?.Invoke(this, (outputPath, e));
         }
-        
     }
+    public void WriteCsv(IEnumerable<ContentParsed> contents, string? outputPath = null) =>
+        WriteCsv(contents.Select(c => c.RawRow).ToList(), outputPath);
 
     public string[] GenCsvString(List<Dictionary<string,string>> rows)
     {

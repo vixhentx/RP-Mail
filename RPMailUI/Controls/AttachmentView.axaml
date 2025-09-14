@@ -1,12 +1,12 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:local="clr-namespace:RPMailUI.Controls"
-             xmlns:models="clr-namespace:RPMailUI.Models"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RPMailUI.Controls.AttachmentView"
-             x:Name="Root">
+<local:PersistedUserControl xmlns="https://github.com/avaloniaui"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:local="clr-namespace:RPMailUI.Controls"
+                      xmlns:models="clr-namespace:RPMailUI.Models"
+                      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                      x:Class="RPMailUI.Controls.AttachmentView"
+                      x:Name="Root">
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -19,15 +19,14 @@
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
-                        <!-- <local:EditView Grid.Column="0" Text="{Binding SourceText}" AvailableHeaders="{Binding #Root.AvailableHeaders}"/> -->
-                        <!-- <Label  Grid.Column="1" Content=" ==> " VerticalAlignment="Center"/> -->
-                        <!-- <local:EditView Grid.Column="2" Text="{Binding DestinationText}" AvailableHeaders="{Binding #Root.AvailableHeaders}"/> -->
-                        <TextBox Grid.Column="0" Text="{Binding SourceText}" AcceptsReturn="False" AcceptsTab="False"/>
-                        <Label  Grid.Column="1" Content=" ==> " VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="2" Text="{Binding DestinationText}" AcceptsReturn="False" AcceptsTab="False"/>
+                        <TextBox Grid.Column="0" LostFocus="OnLostFocus"
+                                 Text="{Binding SourceText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
+                        <Label Grid.Column="1" LostFocus="OnLostFocus"
+                                Content=" ==> " VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="2" Text="{Binding DestinationText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>
-</UserControl>
+</local:PersistedUserControl>

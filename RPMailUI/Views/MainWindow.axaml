@@ -16,7 +16,8 @@
     <DockPanel>
         <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5"/>
         <Grid DockPanel.Dock="Bottom">
-            <Button Content="Start!" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+            <Button Content="Start!" Command="{Binding StartCommand}"
+                    FontSize="20" FontWeight="SemiBold" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
             <TabControl MaxHeight="300">
                 <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
                     <controls:TaskListView Tasks="{Binding Tasks}"/>
@@ -31,11 +32,12 @@
                 <Expander Header="Content Settings" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <controls:FileBarView Caption="CSV File" FileType="CSV" FilePath="{Binding CsvFile}"/>
-                        <controls:FileBarView Caption="HTML File" FileType="HTML" FilePath="{Binding HtmlFile}"/>
+                        <controls:TextBarView Caption="HTML File" Text="{Binding HtmlFile}"/>
                         <controls:TextBarView Caption="Subject:" Text="{Binding Subject}"/>
                         <controls:TextBarView Caption="Receiver Header:" Text="{Binding ReceiverHeader}"/>
                         <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}" Text="{Binding CharSet}"/>
-                        <controls:AttachmentView Margin="0,5,0,5" Attachments="{Binding Attachments}"/>
+                        <controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView" IsDirty="{Binding IsDirtySetter}"
+                                                 Attachments="{Binding Attachments}"/>
                     </StackPanel>
                 </Expander>
                 <Expander Header="Sender Settings" HorizontalAlignment="Stretch">

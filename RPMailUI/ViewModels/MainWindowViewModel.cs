@@ -1,73 +1,178 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using Newtonsoft.Json;
+using ReactiveUI;
 using RPMailUI.Models;
-using RPMailUI.Services;
-using RPMailUI.Services.Attribute;
 
 namespace RPMailUI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
     #region Content Settings
-    
-    [Persisted]
-    [ObservableProperty] private string _csvFile = "";
-    [Persisted]
-    [ObservableProperty] private string _htmlFile = "";
-    [Persisted]
-    [ObservableProperty] private string _subject = "";
-    [Persisted]
-    [ObservableProperty] private string _charSet = "utf-8";
-    [Persisted]
-    [ObservableProperty] private string _receiverHeader = "Receiver";
-    [Persisted]
-    [ObservableProperty] private ObservableCollection<AttachmentItemData> _attachments = [new()];
+
+    [JsonProperty]
+    public string CsvFile
+    {
+        get => _csvFile;
+        set => this.RaiseAndSetIfChanged(ref _csvFile, value);
+    }
+
+    private string _csvFile = "";
+
+    [JsonProperty]
+    public string HtmlFile
+    {
+        get => _htmlFile;
+        set => this.RaiseAndSetIfChanged(ref _htmlFile, value);
+    }
+
+    private string _htmlFile = "";
+
+    [JsonProperty]
+    public string Subject
+    {
+        get => _subject;
+        set => this.RaiseAndSetIfChanged(ref _subject, value);
+    }
+
+    private string _subject = "";
+
+    [JsonProperty]
+    public string CharSet
+    {
+        get => _charSet;
+        set => this.RaiseAndSetIfChanged(ref _charSet, value);
+    }
+
+    private string _charSet = "utf-8";
+
+    [JsonProperty]
+    public string ReceiverHeader
+    {
+        get => _receiverHeader;
+        set => this.RaiseAndSetIfChanged(ref _receiverHeader, value);
+    }
+
+    private string _receiverHeader = "Receiver";
+
+    [JsonProperty]
+    public ObservableCollection<AttachmentItemData> Attachments
+    {
+        get => _attachments;
+        set => this.RaiseAndSetIfChanged(ref _attachments, value);
+    }
+
+    private ObservableCollection<AttachmentItemData> _attachments = new();
 
     #endregion
 
     #region Sender Settings
 
-    [Persisted]
-    [ObservableProperty] private string _senderEmail = "";
-    [Persisted]
-    [ObservableProperty] private string _senderPassword = "";
-    [Persisted]
-    [ObservableProperty] private string _smtpHost = "";
+    [JsonProperty]
+    public string SenderEmail
+    {
+        get => _senderEmail;
+        set => this.RaiseAndSetIfChanged(ref _senderEmail, value);
+    }
+
+    private string _senderEmail = "";
+
+    [JsonProperty]
+    public string SenderPassword
+    {
+        get => _senderPassword;
+        set => this.RaiseAndSetIfChanged(ref _senderPassword, value);
+    }
+
+    private string _senderPassword = "";
+
+    [JsonProperty]
+    public string SmtpHost
+    {
+        get => _smtpHost;
+        set => this.RaiseAndSetIfChanged(ref _smtpHost, value);
+    }
+
+    private string _smtpHost = "";
 
     #endregion
 
     #region Convert Settings
 
-    [Persisted]
-    [ObservableProperty] private string _outputFolder = "Output";
-    [Persisted]
-    [ObservableProperty] private bool _isDeleteAfterSent = false;
-    [ObservableProperty] private bool _isConvertOnly = false;
-    [Persisted]
-    [ObservableProperty] private bool _isSaveRawDoc = false;
-    [Persisted]
-    [ObservableProperty] private bool _isSaveHtml = false;
+    [JsonProperty]
+    public string OutputFolder
+    {
+        get => _outputFolder;
+        set => this.RaiseAndSetIfChanged(ref _outputFolder, value);
+    }
+
+    private string _outputFolder = "Output";
+
+    public bool IsDeleteAfterSent
+    {
+        get => _isDeleteAfterSent;
+        set => this.RaiseAndSetIfChanged(ref _isDeleteAfterSent, value);
+    }
+
+    private bool _isDeleteAfterSent = false;
+
+    public bool IsConvertOnly
+    {
+        get => _isConvertOnly;
+        set => this.RaiseAndSetIfChanged(ref _isConvertOnly, value);
+    }
+
+    private bool _isConvertOnly = false;
+
+    [JsonProperty]
+    public bool IsSaveRawDoc
+    {
+        get => _isSaveRawDoc;
+        set => this.RaiseAndSetIfChanged(ref _isSaveRawDoc, value);
+    }
+
+    private bool _isSaveRawDoc = false;
+
+    [JsonProperty]
+    public bool IsSaveHtml
+    {
+        get => _isSaveHtml;
+        set => this.RaiseAndSetIfChanged(ref _isSaveHtml, value);
+    }
+
+    private bool _isSaveHtml = false;
 
     #endregion
 
     #region Runtime Properties
 
-    [ObservableProperty]
-    ObservableCollection<TaskItemData> _tasks = [];
-    
-    [ObservableProperty]
-    int _progress = 0;
-    
-    [ObservableProperty]
-    string _consoleLog = "";
+    public ObservableCollection<TaskItemData> Tasks
+    {
+        get => _tasks;
+        set => this.RaiseAndSetIfChanged(ref _tasks, value);
+    }
+
+    private ObservableCollection<TaskItemData> _tasks = new();
+
+    public int Progress
+    {
+        get => _progress;
+        set => this.RaiseAndSetIfChanged(ref _progress, value);
+    }
+
+    private int _progress = 0;
+
+    public string ConsoleLog
+    {
+        get => _consoleLog;
+        set => this.RaiseAndSetIfChanged(ref _consoleLog, value);
+    }
+
+    private string _consoleLog = "";
 
     #endregion
 
     public MainWindowViewModel()
     {
-        (this as IPersistable).Load();
+        Load();
     }
 }

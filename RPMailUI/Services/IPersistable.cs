@@ -1,60 +1,54 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
 using Newtonsoft.Json;
-using RPMailUI.Services.Attribute;
-using RPMailUI.ViewModels;
 
 namespace RPMailUI.Services;
 
-public interface IPersistable
+public interface IPersistable<T>
 {
-    public Timer? SaveTimer { get; set; }
-    public bool IsDirty { get; set; }
+    public Timer SaveTimer { get; set; }
 
-    public HashSet<PropertyInfo>? PersistentProperties  { get; set; }
+    public bool IsDirty
+    {
+        set
+        {
+            if (value) Save();
+        }
+    }
+    
+    public T Data { get; set; }
 
-    public HashSet<PropertyInfo> Persistent
+    public Timer CreateTimer
     {
         get
         {
-            if (PersistentProperties == null)
+            Timer timer = new(500)
             {
-                var properties = GetType().GetProperties();
-                var fields = GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
-                HashSet<PropertyInfo> propertyInfos = [];
-        
-                foreach (var field in fields)
-                {
-                    if (field.GetCustomAttribute<Persisted>() == null) continue;
-                    var propertyName = field.Name.TrimStart('_');
-                    propertyName = char.ToUpper(propertyName[0]) + propertyName.Substring(1);
-
-                    var property = properties.FirstOrDefault(p => p.Name == propertyName);
-                    if (property == null) continue;
-                    propertyInfos.Add(property);
-                }
-        
-                foreach (var property in properties)
-                {
-                    if (property.GetCustomAttribute<Persisted>() == null) continue;
-                    propertyInfos.Add(property);
-                }
-                PersistentProperties = propertyInfos;
-            }
-            return PersistentProperties;
+                AutoReset = false
+            };
+            timer.Elapsed += (_, _) =>
+            {
+                SaveInstantly();
+                SaveTimer.Stop();
+            };
+            return timer;
         }
     }
-
+    
     public void Save()
     {
         PersistHelper.ScheduleSave(this);
+    }
+
+    public void SaveInstantly()
+    {
+        PersistHelper.SaveInstantly(this);
+    }
+    public async Task SaveInstantlyAsync()
+    {
+        await PersistHelper.SaveInner(this);
     }
 
     public void Load()
@@ -63,40 +57,47 @@ public interface IPersistable
     }
     public string SaveInner()
     {
-        Dictionary<string, object> data = [];
-        foreach (var property in Persistent)
-        {
-            data[property.Name] = property.GetValue(this) ?? "";
-        }
-
-        return JsonConvert.SerializeObject(data, Formatting.Indented);
+        return JsonConvert.SerializeObject(Data, Formatting.Indented);
     }
 
     public void LoadInner(string json)
     {
-        var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+        var data = JsonConvert.DeserializeObject<T>(json);
         if(data == null) return;
-        foreach (var property in Persistent)
-        {
-            if(data.TryGetValue(property.Name, out var value))
-            {
-                property.SetValue(this, value);
-            }
-        }
+        Data = data;
+        SaveTimer = CreateTimer;
     }
 
     public void Subscribe()
     {
-        if(this is not ViewModelBase vm) return;
-        
-        HashSet<string> propertyNames = new (Persistent.Select(p => p.Name));
-
-        vm.PropertyChanged += (_, args) =>
+        if(this is not INotifyPropertyChanged vm) return;
+        var properties = typeof(T).GetProperties();
+        HashSet<string> propertyNames = [];
+        foreach (var property in properties)
         {
-            if (args.PropertyName!=null && propertyNames.Contains(args.PropertyName))
+            propertyNames.Add(property.Name);
+        }
+        
+        // if (this is ReactiveObject reactiveObject)
+        // {
+        //     foreach(var propertyName in propertyNames)
+        //     {
+        //         var property = GetType().GetProperty(propertyName);
+        //         if (property == null) continue;
+        //         reactiveObject.WhenAnyValue(x=> property.GetValue(x))
+        //             .Throttle(TimeSpan.FromMicroseconds(500))
+        //             .Subscribe(_=>SaveInstantly());
+        //     }
+        // }
+        // else
+        {
+            vm.PropertyChanged += (_, args) =>
             {
-                Save();
-            }
-        };
+                if (args.PropertyName!=null && propertyNames.Contains(args.PropertyName))
+                {
+                    Save();
+                }
+            };
+        }
     }
 }

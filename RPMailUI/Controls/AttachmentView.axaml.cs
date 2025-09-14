@@ -3,12 +3,13 @@ using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using RPMailUI.Models;
 
 namespace RPMailUI.Controls;
 
-public partial class AttachmentView : UserControl
+public partial class AttachmentView : PersistedUserControl
 {
     public static readonly StyledProperty<ObservableCollection<AttachmentItemData>> AttachmentsProperty = AvaloniaProperty.Register<AttachmentView, ObservableCollection<AttachmentItemData>>(
         nameof(Attachments),[new()],defaultBindingMode:BindingMode.TwoWay);
@@ -20,7 +21,7 @@ public partial class AttachmentView : UserControl
     }
 
     public static readonly StyledProperty<ObservableCollection<string>> AvailableHeadersProperty = AvaloniaProperty.Register<AttachmentView, ObservableCollection<string>>(
-        nameof(AvailableHeaders),[]);
+        nameof(AvailableHeaders),[],defaultBindingMode:BindingMode.TwoWay);
 
     public ObservableCollection<string> AvailableHeaders
     {
@@ -47,9 +48,27 @@ public partial class AttachmentView : UserControl
     public AttachmentView()
     {
         InitializeComponent();
+        Attachments.CollectionChanged += OnAttachmentChanged;
         this.GetObservable(IsKeyboardFocusWithinProperty).Subscribe(hasFocus =>
         {
-            if (!hasFocus) AttachmentListBox.SelectedIndex = -1;
+            if (!hasFocus)
+            {
+                OnAttachmentChangedHard();
+            }
         });
+    }
+
+    private void OnLostFocus(object? sender, RoutedEventArgs e) =>
+        OnAttachmentChanged(sender);
+
+    //TODO: Implement persist
+    private void OnAttachmentChanged(object? sender = null, EventArgs? e = null)
+        => IsDirty = true;
+
+    private void OnAttachmentChangedHard(object? sender = null, EventArgs? e = null)
+    {
+        var value = Attachments;
+        Attachments = [];
+        Attachments = value;
     }
 }

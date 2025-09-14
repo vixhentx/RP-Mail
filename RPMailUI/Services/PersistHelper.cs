@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using MsBox.Avalonia;
-using Newtonsoft.Json;
-using RPMailUI.Services.Attribute;
 
 namespace RPMailUI.Services;
 
@@ -13,32 +9,13 @@ public static class PersistHelper
 {
     private const string SettingsPath = "RPMailUI-Persisted.json";
 
-    public static void ScheduleSave(IPersistable target)
+    public static void ScheduleSave<T>(IPersistable<T> target)
     {
-        target.IsDirty = true;
-        if (target.SaveTimer?.Interval > 0)
-        {
-            target.SaveTimer.Interval = 500;
-        }
-        else
-        {
-            target.SaveTimer = new(500)
-            {
-                AutoReset = false
-            };
-            target.SaveTimer.Elapsed += async (sender, args) =>
-            {
-                if (target.IsDirty)
-                {
-                    await SaveInner(target);
-                    target.IsDirty = false;
-                }
-                target.SaveTimer.Stop();
-            };
-        }
+        target.SaveTimer.Stop();
+        target.SaveTimer.Start();
     }
 
-    public static void SaveInstantly(IPersistable target)
+    public static void SaveInstantly<T>(IPersistable<T> target)
     {
         string json = target.SaveInner();
         try
@@ -51,7 +28,7 @@ public static class PersistHelper
         }
     }
     
-    public static void Load(IPersistable target)
+    public static void Load<T>(IPersistable<T> target)
     {
         if(File.Exists(SettingsPath))
             try
@@ -67,7 +44,7 @@ public static class PersistHelper
         target.Subscribe();
     }
     
-    private static async Task SaveInner(IPersistable target)
+    public static async Task SaveInner<T>(IPersistable<T> target)
     {
         string json = target.SaveInner();
         try
