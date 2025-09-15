@@ -6,7 +6,7 @@ namespace RPMailUI.Models;
 public class TaskItemData : ObservableObject
 {
     public Dictionary<string, string> Data { get; init; } = [];
-    private TaskStatus _status = TaskStatus.Pending;
+    private TaskStatus _status = TaskStatus.Ready;
     private string _tooltip = "Ready to send";
 
     public TaskStatus Status
@@ -18,6 +18,12 @@ public class TaskItemData : ObservableObject
     {
         get => _tooltip;
         set => SetProperty(ref _tooltip, value);
+    }
+
+    public string this[string key]
+    {
+        get => Data[key];
+        set => Data[key] = value;
     }
 
     public List<string> SearchTokens

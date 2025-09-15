@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -128,44 +127,50 @@ public partial class MainWindowViewModel
             SaveRawDocs = IsSaveRawDoc,
             SaveHtmlFile = IsConvertOnly
         };
-        _contentParser.OnBeforeParse += (sender, args) =>
-            Log($"Parsing Contents from {args.CsvPath} ");
-        _contentParser.OnParseReceiver += (sender, args) =>
-            Log($"Parsing Receiver: {args.receiver}");
-        _contentParser.OnParseFailed += (o, args) =>
-            Log($"Failed to parse content: {args.e.Message}");
-        _contentParser.OnParseRowFailed += (o, args) =>
+        _contentParser.OnBeforeLoad += (sender, args) => Dispatcher.UIThread.Post(() =>
+            Log($"Parsing Contents from {args.CsvPath} "));
+        _contentParser.OnParsePropertyCompleted += (sender, args) => Dispatcher.UIThread.Post(() =>
+        {
+            if(args.property!= "HtmlBody")
+                Log($"Parsing {args.property}: {args.value}");
+        });
+        _contentParser.OnParseFailed += (o, args) => Dispatcher.UIThread.Post(() =>
+            Log($"Failed to parse content: {args.e.Message}"));
+        _contentParser.OnParseRowFailed += (o, args) => Dispatcher.UIThread.Invoke(() =>
         {
             Error($"Failed to parse row {args.index + 1}: {args.e.Message}");
             var data = ((ContentParser)o!).GenCsvString([args.row]);
             Log("--- Data ---");
             Log(data[0]);
             Log(data[1]);
-        };
-        _contentParser.OnParseCompleted += (o, args) =>
-            Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} ");
-        _contentParser.OnWriteCsvCompleted += (o, args) =>
-            Log($"Written FailedList to CSV File: {args}");
-        _contentParser.OnWriteCsvFailed += (o, args) =>
-            Error($"Failed to write failed list to CSV file: {args.e.Message}");
+        });
+        _contentParser.OnParseCompleted += (o, args) => Dispatcher.UIThread.Post(() =>
+            Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} "));
+        _contentParser.OnWriteCsvCompleted += (o, args) => Dispatcher.UIThread.Post(() =>
+            Log($"Written FailedList to CSV File: {args}"));
+        _contentParser.OnWriteCsvFailed += (o, args) => Dispatcher.UIThread.Post(() =>
+            Error($"Failed to write failed list to CSV file: {args.e.Message}"));
         
-        //Task Update
-        // _contentParser.OnBeforeParse += (sender, args) => Dispatcher.UIThread.Post(() =>
-        //     Tasks.Clear());
-        // _contentParser.OnParseRowCompleted += (sender, args) => Dispatcher.UIThread.Post(() =>
-        // {
-        //     TaskItemData task = new()
-        //     {
-        //         Data = args.row
-        //     };
-        //     Tasks.Add(task);
-        // });
-        // _contentParser.OnParseRowFailed += (sender, args) => Dispatcher.UIThread.Post(() =>
-        // {
-        //     var failedTask = Tasks[args.index];
-        //     failedTask.Status = TaskStatus.Failed;
-        //     failedTask.Tooltip = args.e.Message;
-        // });
+         _contentParser.OnParseRowCompleted += (sender, args) => Dispatcher.UIThread.Post(() =>
+         {
+             var task = Tasks[args.index];
+             task.Status = TaskStatus.Pending;
+             task.Tooltip = "Pending...";
+         });
+         //load tasks
+         _contentParser.OnBeforeParse += (sender, args) =>
+         {
+             List<TaskItemData> tasks = args.rows
+                 .Select(row => new TaskItemData { Data = row })
+                 .ToList();
+             Dispatcher.UIThread.Post(() =>Tasks = new(tasks));
+         };
+         _contentParser.OnParseRowFailed += (sender, args) => Dispatcher.UIThread.Post(() =>
+         {
+             var task = Tasks[args.index];
+             task.Status = TaskStatus.Failed;
+             task.Tooltip = args.e.Message;
+         });
 
         #endregion
     }
@@ -180,22 +185,7 @@ public partial class MainWindowViewModel
             InitService();
             //parse
             ContentParsed[] parsedContents = null!;
-            await Task.Run(() =>
-                parsedContents = _contentParser.Parse(_contentTemplate));
-            //TODO: Task Display bug
-            {
-                List<TaskItemData> tasks = [];
-                foreach (var item in parsedContents)
-                {
-                    TaskItemData task = new()
-                    {
-                        Data = item.RawRow
-                    };
-                    tasks.Add(task);
-                }
-
-                Tasks = new(tasks);
-            }
+            parsedContents = await _contentParser.ParseAsync(_contentTemplate);
 
             if (!IsConvertOnly)
             {
@@ -214,7 +204,7 @@ public partial class MainWindowViewModel
             else
                 Log("All Done!");
         }
-        catch (ApplicationException)
+        catch (RPMailAbortException)
         {
             Log("Failed.");
         }

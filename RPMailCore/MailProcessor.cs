@@ -85,12 +85,14 @@ public class ContentParser
 
     private readonly string _realOutputDir;
     private DataParser? _dataParser;
-    
-    public event EventHandler<ContentTemplate>? OnBeforeParse;
-    public event EventHandler<(ContentTemplate template,string receiver)>? OnParseReceiver;
+
+    public event EventHandler<ContentTemplate>? OnBeforeLoad;
+    public event EventHandler<(ContentTemplate template,List<Dictionary<string,string>> rows)>? OnBeforeParse;
     public event EventHandler<(ContentTemplate template,Exception e)>? OnParseFailed;
     public event EventHandler<(ContentTemplate template,ContentParsed[] result)>? OnParseCompleted;
+    public event EventHandler<(int index, Dictionary<string, string> row)>? OnRowLoadCompleted;
     public event EventHandler<(int index,Dictionary<string,string> row)>? OnBeforeParseRow;
+    public event EventHandler<(ContentTemplate template,int index,string property,string value)>? OnParsePropertyCompleted;
     public event EventHandler<(int index,Dictionary<string,string> row)>? OnParseRowCompleted;
     public event EventHandler<(int index,Dictionary<string,string> row,Exception e)>? OnParseRowFailed;
     
@@ -103,26 +105,34 @@ public class ContentParser
         _realOutputDir = Path.Combine(OutputDir, $"{time:yyyy-MM-dd_HH-mm-ss}");
     }
     
-    public ContentParsed[] Parse(ContentTemplate template)
+    public async Task<ContentParsed[]> ParseAsync(ContentTemplate template) => await Task.Run(() =>
     {
-        OnBeforeParse?.Invoke(this, template);
         try
         {
             OutputHelper.CreateDirIfNotExist(_realOutputDir);
             _dataParser = new();
             List<ContentParsed> list = [];
-            _dataParser.Parse(InputHelper.CreateReader(template.CsvPath), arg =>
+            OnBeforeLoad?.Invoke(this, template);
+            _dataParser.Parse(InputHelper.CreateReader(template.CsvPath), arg => 
+                OnRowLoadCompleted?.Invoke(this, arg));
+            OnBeforeParse?.Invoke(this, (template, _dataParser.Rows));
+            for(int index = 0; index < _dataParser.Rows.Count; index++)
             {
-                OnBeforeParseRow?.Invoke(this, (arg.index, arg.row));
-                var index = arg.index;
-                var row = arg.row;
+                var row = _dataParser.Rows[index];
+                OnBeforeParseRow?.Invoke(this, (index, row));
                 try{
-                    OnBeforeParseRow?.Invoke(this, (index, row));
                     string receiver = row[template.Receiver];
-                    OnParseReceiver?.Invoke(this, (template, receiver));
+                    OnParsePropertyCompleted?.Invoke(this, (template,index,"Receiver", receiver));
+            
                     string subject = _dataParser.Parse(template.Subject, row);
+                    OnParsePropertyCompleted?.Invoke(this, (template,index,"Subject", subject));
+            
                     string htmlPath = _dataParser.Parse(template.HtmlPath, row);
+                    OnParsePropertyCompleted?.Invoke(this, (template,index,"HtmlPath", htmlPath));
+            
                     string htmlBody = _dataParser.Parse(InputHelper.Read(htmlPath), row);
+                    OnParsePropertyCompleted?.Invoke(this, (template,index,"HtmlBody",htmlBody));
+            
                     string outputDir = Path.Combine(_realOutputDir, receiver);
 
                     if (SaveHtmlFile)
@@ -148,8 +158,7 @@ public class ContentParser
                     OnParseRowFailed?.Invoke(this, (index, row, e));
                     throw;
                 }
-            });
-            
+            }
             var ret = list.ToArray();
             OnParseCompleted?.Invoke(this, (template, ret));
             return ret;
@@ -157,9 +166,9 @@ public class ContentParser
         catch (Exception e)
         {
             OnParseFailed?.Invoke(this, (template, e));
-            throw new ApplicationException();
+            throw new RPMailAbortException();
         }
-    }
+    });
 
 
     public void WriteCsv(List<Dictionary<string, string>> rows, string? outputPath = null)
@@ -173,7 +182,7 @@ public class ContentParser
             OutputHelper.Write(ret, outputPath);
             OnWriteCsvCompleted?.Invoke(this, outputPath);
         }
-        catch (ApplicationException)
+        catch (RPMailAbortException)
         {
             
         }
