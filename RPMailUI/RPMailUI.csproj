@@ -7,7 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <Company>RobotPilots Software Research &amp; Development Department</Company>
-        <AssemblyVersion>0.9.0</AssemblyVersion>
+        <AssemblyVersion>0.9.1</AssemblyVersion>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>RPSRDD.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
@@ -18,8 +18,6 @@
 
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.3.2" />
-        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.2" />
         <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.2" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.2" />

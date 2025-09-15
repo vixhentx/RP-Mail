@@ -276,6 +276,7 @@ public class Program
         }
     }
 
+    // ReSharper disable once InconsistentNaming
     private Action<string, ConsoleColor> Log = Info;
 
     private static void Info(string message, ConsoleColor color)

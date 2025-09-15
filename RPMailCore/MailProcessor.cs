@@ -109,6 +109,7 @@ public class ContentParser
     
     public async Task<ContentParsed[]> ParseAsync(ContentTemplate template) => await Task.Run(() =>
     {
+        CsvFailed = template.CsvPath;
         try
         {
             OutputHelper.CreateDirIfNotExist(RealOutputDir);
