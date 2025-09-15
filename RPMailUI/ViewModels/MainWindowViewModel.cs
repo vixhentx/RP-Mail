@@ -9,7 +9,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     #region Content Settings
 
-    [JsonProperty]
+    
     public string CsvFile
     {
         get => _csvFile;
@@ -18,7 +18,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _csvFile = "";
 
-    [JsonProperty]
+    
     public string HtmlFile
     {
         get => _htmlFile;
@@ -27,7 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _htmlFile = "";
 
-    [JsonProperty]
+    
     public string Subject
     {
         get => _subject;
@@ -36,7 +36,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _subject = "";
 
-    [JsonProperty]
+    
     public string CharSet
     {
         get => _charSet;
@@ -45,7 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _charSet = "utf-8";
 
-    [JsonProperty]
+    
     public string ReceiverHeader
     {
         get => _receiverHeader;
@@ -54,20 +54,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _receiverHeader = "Receiver";
 
-    [JsonProperty]
+    
     public ObservableCollection<AttachmentItemData> Attachments
     {
         get => _attachments;
         set => this.RaiseAndSetIfChanged(ref _attachments, value);
     }
 
-    private ObservableCollection<AttachmentItemData> _attachments = new();
+    private ObservableCollection<AttachmentItemData> _attachments = [new()];
 
     #endregion
 
     #region Sender Settings
 
-    [JsonProperty]
+    
     public string SenderEmail
     {
         get => _senderEmail;
@@ -76,7 +76,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _senderEmail = "";
 
-    [JsonProperty]
+    
     public string SenderPassword
     {
         get => _senderPassword;
@@ -85,7 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _senderPassword = "";
 
-    [JsonProperty]
+    
     public string SmtpHost
     {
         get => _smtpHost;
@@ -98,7 +98,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Convert Settings
 
-    [JsonProperty]
+    
     public string OutputFolder
     {
         get => _outputFolder;
@@ -123,7 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _isConvertOnly = false;
 
-    [JsonProperty]
+    
     public bool IsSaveRawDoc
     {
         get => _isSaveRawDoc;
@@ -132,7 +132,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _isSaveRawDoc = false;
 
-    [JsonProperty]
+    
     public bool IsSaveHtml
     {
         get => _isSaveHtml;

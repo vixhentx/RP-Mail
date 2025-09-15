@@ -9,7 +9,7 @@ namespace RPMailUI.ViewModels;
 
 public partial class MainWindowViewModel : IPersistable<MainWindowViewModel.PersistedData>
 {
-    public Timer SaveTimer { get; set; } = null!;
+    public Timer? SaveTimer { get; set; }
 
     public bool IsDirtySetter
     {
@@ -80,6 +80,7 @@ public partial class MainWindowViewModel : IPersistable<MainWindowViewModel.Pers
     public void Load()
     {
         PersistHelper.Load(this);
+        SaveTimer = (this as IPersistable<PersistedData>).CreateTimer;
         Attachments.CollectionChanged += (_,_) => PersistHelper.ScheduleSave(this);
     }
 

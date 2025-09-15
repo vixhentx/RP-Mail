@@ -8,7 +8,7 @@ namespace RPMailUI.Services;
 
 public interface IPersistable<T>
 {
-    public Timer SaveTimer { get; set; }
+    public Timer? SaveTimer { get; set; }
 
     public bool IsDirty
     {
@@ -31,7 +31,7 @@ public interface IPersistable<T>
             timer.Elapsed += (_, _) =>
             {
                 SaveInstantly();
-                SaveTimer.Stop();
+                timer.Stop();
             };
             return timer;
         }
@@ -65,7 +65,6 @@ public interface IPersistable<T>
         var data = JsonConvert.DeserializeObject<T>(json);
         if(data == null) return;
         Data = data;
-        SaveTimer = CreateTimer;
     }
 
     public void Subscribe()

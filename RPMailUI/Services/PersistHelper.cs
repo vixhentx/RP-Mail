@@ -10,8 +10,8 @@ public static class PersistHelper
 
     public static void ScheduleSave<T>(IPersistable<T> target)
     {
-        target.SaveTimer.Stop();
-        target.SaveTimer.Start();
+        target.SaveTimer?.Stop();
+        target.SaveTimer?.Start();
     }
 
     public static void SaveInstantly<T>(IPersistable<T> target)
