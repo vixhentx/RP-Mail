@@ -70,8 +70,6 @@ public partial class MainWindowViewModel
             Log($"Sending Email To: {parsed.Receiver}, Subject: {parsed.Subject}");
         _mailSender.OnSendFailed += (sender, args) =>
             Log($"Failed to send email to {args.content.Receiver}: {args.e.Message}");
-        _mailSender.OnSendCompleted += (sender, args) =>
-            Log("Email sent.");
         if (!IsConvertOnly && IsDeleteAfterSent)
             _mailSender.OnSendCompleted += (sender, args) =>
             {
@@ -180,12 +178,14 @@ public partial class MainWindowViewModel
     {
         Errors.Clear();
         Tasks.Clear();
+        ShouldRetry = false;
+        ShouldOpenOutputFolder = false;
         try
         {
             InitService();
             //parse
-            ContentParsed[] parsedContents = null!;
-            parsedContents = await _contentParser.ParseAsync(_contentTemplate);
+            _contentParser.OnBeforeParse += (_,_) => ShouldOpenOutputFolder = true;
+            var parsedContents = await _contentParser.ParseAsync(_contentTemplate);
 
             if (!IsConvertOnly)
             {
@@ -200,7 +200,10 @@ public partial class MainWindowViewModel
 
             var failList = Tasks.Where(x => x.Status == TaskStatus.Failed).ToList();
             if (failList.Count > 0)
+            {
                 _contentParser.WriteCsv(failList.Select(x => x.Data).ToList());
+                ShouldRetry = true;
+            }
             else
                 Log("All Done!");
         }
@@ -212,6 +215,18 @@ public partial class MainWindowViewModel
         {
             Error($"Unexpected Error: {e.Message}");
         }
+    }
+    
+    [RelayCommand]
+    private void OpenOutputFolder()
+    {
+        PathOpenHelper.OpenDirectory(_contentParser.RealOutputDir);
+    }
+
+    [RelayCommand]
+    private void Retry()
+    {
+        CsvFile = _contentParser.CsvFailed;
     }
 
     private void Log(string message)

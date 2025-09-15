@@ -8,7 +8,8 @@
         x:Class="RPMailUI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="RP-Mail UI">
+        Title="RP-Mail UI"
+        MinHeight="300" MinWidth="400">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -18,9 +19,15 @@
                             Errors="{Binding Errors}" HorizontalAlignment="Stretch" MaxHeight="55"/>
         <ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{Binding Progress}"/>
         <Panel DockPanel.Dock="Bottom">
-            <Button ZIndex="1"
-                    Content="Start!" Command="{Binding StartCommand}"
-                    FontSize="20" FontWeight="SemiBold" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0"/>
+            <StackPanel ZIndex="1" Spacing="10"
+                        Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0">
+                <Button Content="Open Output" IsVisible="{Binding ShouldOpenOutputFolder}" Command="{Binding OpenOutputFolderCommand}"
+                        FontSize="20"/>
+                <Button Content="Retry" IsVisible="{Binding ShouldRetry}" Command="{Binding RetryCommand}"
+                        FontSize="20"/>
+                <Button Content="Start!" Command="{Binding StartCommand}"
+                        FontSize="20" FontWeight="SemiBold"/>
+            </StackPanel>
             <TabControl MaxHeight="300">
                 <TabItem Header="Task List" FontSize="20" FontWeight="SemiBold">
                     <controls:TaskListView Tasks="{Binding Tasks}"/>

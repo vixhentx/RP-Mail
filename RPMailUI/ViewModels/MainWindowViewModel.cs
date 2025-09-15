@@ -153,6 +153,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<TaskItemData> _tasks = new();
 
+    
+    public bool ShouldRetry
+    {
+        get => _shouldRetry;
+        set => this.RaiseAndSetIfChanged(ref _shouldRetry, value);
+    }
+    private bool _shouldRetry;
+    
+    public bool ShouldOpenOutputFolder
+    {
+        get => _shouldOpenOutputFolder;
+        set => this.RaiseAndSetIfChanged(ref _shouldOpenOutputFolder, value);
+    }
+    private bool _shouldOpenOutputFolder;
+
     public double Progress
     {
         get => _progress;

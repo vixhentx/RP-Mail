@@ -26,18 +26,22 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="model:TaskItemData">
                             <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                    CornerRadius="5" BorderThickness="2" ToolTip.Tip="{Binding Tooltip}">
+                                    CornerRadius="5" BorderThickness="2">
                                 <Border.Background>
                                     <SolidColorBrush Color="{Binding Status.Color}"/>
                                 </Border.Background>
-                                <SelectableTextBlock FontSize="14" Margin="5">
-                                    <SelectableTextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource DictionaryValueConverter}">
-                                            <Binding Path="Data"/>
-                                            <Binding Path="#PropertyComboBox.SelectedItem"/>
-                                        </MultiBinding>
-                                    </SelectableTextBlock.Text>
-                                </SelectableTextBlock>
+                                <DockPanel>
+                                    <SelectableTextBlock DockPanel.Dock="Right" Margin="5"
+                                                         FontSize="14" Text="{Binding Tooltip}"/>
+                                    <SelectableTextBlock FontSize="14" Margin="5">
+                                        <SelectableTextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource DictionaryValueConverter}">
+                                                <Binding Path="Data"/>
+                                                <Binding Path="#PropertyComboBox.SelectedItem"/>
+                                            </MultiBinding>
+                                        </SelectableTextBlock.Text>
+                                    </SelectableTextBlock>
+                                </DockPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
