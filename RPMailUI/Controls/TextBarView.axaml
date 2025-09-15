@@ -8,6 +8,6 @@
         <Label DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0,5,0"
                Target="InputBox" Content="{Binding #Root.Caption}"/>
         <TextBox x:Name="InputBox" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,5,0"
-                 Text="{Binding #Root.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False" AcceptsTab="False"/>
+                 Text="{Binding #Root.Text, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
     </DockPanel>
 </UserControl>

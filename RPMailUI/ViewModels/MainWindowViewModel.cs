@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using ReactiveUI;
 using RPMailUI.Models;
+using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
 
@@ -9,7 +10,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     #region Content Settings
 
-    
+    [Persisted]
     public string CsvFile
     {
         get => _csvFile;
@@ -18,7 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _csvFile = "";
 
-    
+    [Persisted]
     public string HtmlFile
     {
         get => _htmlFile;
@@ -27,7 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _htmlFile = "";
 
-    
+    [Persisted]
     public string Subject
     {
         get => _subject;
@@ -36,7 +37,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _subject = "";
 
-    
+    [Persisted]
     public string CharSet
     {
         get => _charSet;
@@ -45,7 +46,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _charSet = "utf-8";
 
-    
+    [Persisted]
     public string ReceiverHeader
     {
         get => _receiverHeader;
@@ -54,7 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _receiverHeader = "Receiver";
 
-    
+    [Persisted]
     public ObservableCollection<AttachmentItemData> Attachments
     {
         get => _attachments;
@@ -67,7 +68,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Sender Settings
 
-    
+    [Persisted]
     public string SenderEmail
     {
         get => _senderEmail;
@@ -76,7 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _senderEmail = "";
 
-    
+    [Persisted]
     public string SenderPassword
     {
         get => _senderPassword;
@@ -85,7 +86,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string _senderPassword = "";
 
-    
+    [Persisted]
     public string SmtpHost
     {
         get => _smtpHost;
@@ -98,7 +99,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Convert Settings
 
-    
+    [Persisted]
     public string OutputFolder
     {
         get => _outputFolder;
@@ -106,7 +107,8 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     private string _outputFolder = "Output";
-
+    
+    [Persisted]
     public bool IsDeleteAfterSent
     {
         get => _isDeleteAfterSent;
@@ -115,6 +117,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _isDeleteAfterSent = false;
 
+    [Persisted]
     public bool IsConvertOnly
     {
         get => _isConvertOnly;
@@ -123,7 +126,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _isConvertOnly = false;
 
-    
+    [Persisted]
     public bool IsSaveRawDoc
     {
         get => _isSaveRawDoc;
@@ -132,7 +135,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private bool _isSaveRawDoc = false;
 
-    
+    [Persisted]
     public bool IsSaveHtml
     {
         get => _isSaveHtml;
@@ -193,9 +196,4 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     #endregion
-
-    public MainWindowViewModel()
-    {
-        Load();
-    }
 }

@@ -31,7 +31,6 @@ public partial class App : Application
             {
                 DataContext = vm
             };
-            window.Closing += vm.OnWindowClosing!;
             vm.Errors.CollectionChanged += window.ErrorView.OnCollectionChanged;
             MessageFlyout.Initialize(vm);
             desktop.MainWindow = window;

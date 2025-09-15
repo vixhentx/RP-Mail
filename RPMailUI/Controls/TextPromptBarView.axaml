@@ -11,7 +11,7 @@
         <Label DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0,5,0"
                Target="InputBox" Content="{Binding #Root.Caption}"/>
         <AutoCompleteBox x:Name="InputBox" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,5,0"
-                 Text="{Binding #Root.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Text="{Binding #Root.Text, Mode=TwoWay}"
                  ItemsSource="{Binding #Root.PromptsSource}" FilterMode="StartsWith"/>
     </DockPanel>
 </UserControl>
