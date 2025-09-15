@@ -7,6 +7,7 @@
         <Company>RobotPilots Software Research &amp; Development Department</Company>
         <SignAssembly>true</SignAssembly>
         <AssemblyOriginatorKeyFile>RPSRDD.snk</AssemblyOriginatorKeyFile>
+        <AssemblyVersion>0.9.0</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>

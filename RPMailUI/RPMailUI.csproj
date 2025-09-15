@@ -6,6 +6,10 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <Company>RobotPilots Software Research &amp; Development Department</Company>
+        <AssemblyVersion>0.9.0</AssemblyVersion>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>RPSRDD.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <ItemGroup>
