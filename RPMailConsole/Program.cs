@@ -213,9 +213,12 @@ public class Program
             SaveHtmlFile = ConvertOnly,
         };
         _contentParser.OnBeforeParse += (sender, args) =>
-            Log($"Parsing Contents from {args.CsvPath} ", ConsoleColor.Cyan);
-        _contentParser.OnParseReceiver += (sender, args) =>
-            Log($"Parsing Receiver: {args.receiver}", ConsoleColor.White);
+            Log($"Parsing Contents from {args.template.CsvPath} ", ConsoleColor.Cyan);
+        _contentParser.OnParsePropertyCompleted += (sender, args) =>
+        {
+            if (args.property == "Receiver")
+                Log($"Parsing Receiver: {args.value}", ConsoleColor.White);
+        };
         _contentParser.OnParseFailed += (o, args) =>
             Info($"Failed to parse content: {args.e.Message}", ConsoleColor.Red);
         _contentParser.OnParseRowFailed += (o, args) =>
@@ -246,11 +249,11 @@ public class Program
         InitServices();
         try
         {
-            var parsedContents = _contentParser.Parse(_contentTemplate);
+            var parsedContents = await _contentParser.ParseAsync(_contentTemplate);
             List<(ContentParsed content, string reason)> failList = [];
             _mailSender.OnSendFailed += (o, args) =>
                 failList.Add((args.content, args.e.Message));
-            if(!ConvertOnly)
+            if (!ConvertOnly)
             {
                 foreach (var content in parsedContents)
                 {
@@ -258,14 +261,18 @@ public class Program
                 }
             }
 
-            if(failList.Count > 0)
+            if (failList.Count > 0)
                 _contentParser.WriteCsv(failList.Select(x => x.content).ToList());
             else
                 Log("All Done!", ConsoleColor.White);
         }
-        catch (ApplicationException)
+        catch (RPMailAbortException)
         {
             Info("Failed.", ConsoleColor.DarkRed);
+        }
+        catch (Exception e)
+        {
+            Info($"Unexpected Error: {e.Message}", ConsoleColor.Red);
         }
     }
 
