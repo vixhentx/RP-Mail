@@ -29,7 +29,7 @@ public partial class ErrorView : UserControl
     }
 
     public static readonly StyledProperty<int> MaxErrorCountProperty = AvaloniaProperty.Register<ErrorView, int>(
-        nameof(MaxErrorCount));
+        nameof(MaxErrorCount),5);
 
     public int MaxErrorCount
     {
@@ -49,7 +49,7 @@ public partial class ErrorView : UserControl
     public void AfterAppend()
     {
         List<ErrorItemData> tmp = [];
-        for(int i = Errors.Count - MaxErrorCount; i < Errors.Count; i++)
+        for(int i = int.Max(0,Errors.Count - MaxErrorCount); i < Errors.Count; i++)
         {
             tmp.Add(Errors[i]);
         }

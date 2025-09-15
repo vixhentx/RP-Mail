@@ -1,6 +1,4 @@
-using System;
-using RPMailUI.Controls;
-using RPMailUI.Models;
+using Avalonia.Media;
 using RPMailUI.ViewModels;
 
 namespace RPMailUI.Services;
@@ -11,18 +9,18 @@ public static class MessageFlyout
 
     public static void Initialize(MainWindowViewModel vm) =>
         _vm = vm;
-    public static void ShowMessage(string caption, string message)
+    public static void ShowMessage(string caption, string message, Color? foregroundColor = null, Color? backgroundColor = null)
     {
-        _vm?.Errors.Add(new($"{caption}: {message}"));
+        _vm?.Errors.Add(new($"{caption}: {message}", foregroundColor, backgroundColor));
     }
 
-    public static void ShowError(string message)
+    public static void ShowError(string message, Color? foregroundColor = null, Color? backgroundColor = null)
     {
-        ShowMessage("Error", message);
+        ShowMessage("Error", message, foregroundColor, backgroundColor);
     }
 
-    public static void ShowInfo(string message)
+    public static void ShowInfo(string message, Color? foregroundColor = null, Color? backgroundColor = null)
     {
-        ShowMessage("Info", message);
+        ShowMessage("Info", message, foregroundColor, backgroundColor??Colors.DarkCyan);
     }
 }

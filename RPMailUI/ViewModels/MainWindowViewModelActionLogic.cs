@@ -133,7 +133,7 @@ public partial class MainWindowViewModel
                 Log($"Parsing {args.property}: {args.value}");
         });
         _contentParser.OnParseFailed += (o, args) => Dispatcher.UIThread.Post(() =>
-            Log($"Failed to parse content: {args.e.Message}"));
+            Error($"Failed to parse content: {args.e.Message}"));
         _contentParser.OnParseRowFailed += (o, args) => Dispatcher.UIThread.Invoke(() =>
         {
             Error($"Failed to parse row {args.index + 1}: {args.e.Message}");
@@ -145,7 +145,7 @@ public partial class MainWindowViewModel
         _contentParser.OnParseCompleted += (o, args) => Dispatcher.UIThread.Post(() =>
             Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} "));
         _contentParser.OnWriteCsvCompleted += (o, args) => Dispatcher.UIThread.Post(() =>
-            Log($"Written FailedList to CSV File: {args}"));
+            Info($"Written FailedList to CSV File: {args}"));
         _contentParser.OnWriteCsvFailed += (o, args) => Dispatcher.UIThread.Post(() =>
             Error($"Failed to write failed list to CSV file: {args.e.Message}"));
         
@@ -177,7 +177,7 @@ public partial class MainWindowViewModel
     private async Task Start()
     {
         Errors.Clear();
-        Tasks.Clear();
+        Tasks = [];
         ShouldRetry = false;
         ShouldOpenOutputFolder = false;
         try
@@ -241,5 +241,11 @@ public partial class MainWindowViewModel
     {
         Log(message);
         MessageFlyout.ShowError(message);
+    }
+
+    private void Info(string message)
+    {
+        Log(message);
+        MessageFlyout.ShowInfo(message);
     }
 }
