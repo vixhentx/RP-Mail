@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailConsole", "RPMailConsole\RPMailConsole.csproj", "{5DA9C604-5E80-4243-B942-16F4CD8731D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailUI", "RPMailUI\RPMailUI.csproj", "{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPMailCore", "RPMailCore\RPMailCore.csproj", "{0EB075A8-7C5A-4989-8823-1A9F0884036E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{5DA9C604-5E80-4243-B942-16F4CD8731D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DA9C604-5E80-4243-B942-16F4CD8731D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DA9C604-5E80-4243-B942-16F4CD8731D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC5B546-C31B-4FA2-9C4F-A4D65EF043AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EB075A8-7C5A-4989-8823-1A9F0884036E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

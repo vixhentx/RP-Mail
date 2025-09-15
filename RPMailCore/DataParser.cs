@@ -3,22 +3,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CsvHelper;
 
-namespace RPMailConsole;
+namespace RPMailCore;
 
 public class DataParser
 {
-    readonly String[] _headers;
-    readonly List<Dictionary<string,string>> _rows = [];
-    readonly Encoding _encoding;
+    private string[] _headers = [];
     public string[] Headers => _headers;
-    public List<Dictionary<string,string>> Rows => _rows;
-    
-    public DataParser(string dataFilePath, Encoding encoding)
+
+    public List<Dictionary<string,string>> Rows { get; } = [];
+
+    public void Parse(StreamReader reader, Action<(int index,Dictionary<string, string> row)>? rowHandler = null)
     {
-        _encoding = encoding;
         //parse csv data file
-        
-        using StreamReader reader = new (dataFilePath, encoding, true);
         using CsvReader csv = new(reader, CultureInfo.InvariantCulture);
         
         if(!csv.Read()) throw new InvalidDataException("Incorrect data format");
@@ -28,15 +24,18 @@ public class DataParser
         
         var headers = csv.HeaderRecord;
         _headers = headers ?? throw new InvalidDataException("Header row is null");
-        
+
+        int index = 0;
         while (csv.Read())
         {
             var obj = new Dictionary<string,string>();
             foreach(var header in headers)
             {
-                obj[header] = csv.GetField(header);
+                obj[header] = csv.GetField(header)??"";
             }
-            _rows.Add(obj);
+            rowHandler?.Invoke((index,obj));
+            Rows.Add(obj);
+            index++;
         }
 
     }
@@ -61,7 +60,7 @@ public class DataParser
         return properties;
     }
     
-    public string Parse(string pattern, int index)
+    public string Parse(string pattern, Dictionary<string,string> row)
     {
         List<string> properties = ParseProperties(pattern);
         
@@ -69,40 +68,24 @@ public class DataParser
         string parsed = pattern;
         foreach (var property in properties)
         {
-            parsed = parsed.Replace(Format(property), _rows[index][property]);
+            parsed = parsed.Replace(Format(property), row[property]);
         }
         
         return parsed;
     }
 
-    public void AbstractParse(string pattern, int index, Action<string,string> replacer)
+    public void AbstractParse(string pattern, Dictionary<string,string> row, Action<string,string> replacer)
     {
         List<string> properties = ParseProperties(pattern);
         
         //Action
         foreach (var property in properties)
         {
-            replacer(Format(property), _rows[index][property]);
+            replacer(Format(property), row[property]);
         }
     }
 
-    public List<string> GetPropertiesOf(int index) => _headers.Select(header => _rows[index][header]).ToList();
-    public Dictionary<string,string> GetRow(int index) => _rows[index];
-
-    public void HandleFailed(List<int> failedIndices, string outputPath)
-    {
-        using Stream fileStream = File.Create(outputPath);
-        using StreamWriter sw = new(fileStream, _encoding);
-        StringBuilder sb = new();
-        sb.AppendJoin(",", _headers);
-        sw.WriteLine(sb.ToString());
-        foreach (int index in failedIndices)
-        {
-            sb.Clear();
-            sb.AppendJoin(",", GetPropertiesOf(index));
-            sw.WriteLine(sb.ToString());
-        }
-    }
-    
-    public List<string> GetProperties(string header) =>_rows.Select(row => row[header]).ToList();
+    public List<string> GetPropertiesOf(Dictionary<string,string> row) => Headers.Select(header => row[header]).ToList();
+    public Dictionary<string,string>? FindRow(string property, string value) => Rows.Find(row => row[property] == value);
+    public List<string> GetProperties(string header) =>Rows.Select(row => row[header]).ToList();
 }

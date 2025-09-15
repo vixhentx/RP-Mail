@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:local="clr-namespace:RPMailUI.Controls"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="RPMailUI.Controls.FileBarView"
+                x:Name="Root">
+    <Design.Width>400</Design.Width>
+    <Design.Height>60</Design.Height>
+    <DockPanel>
+        <Label DockPanel.Dock="Left" Content="{Binding #Root.Caption}" Target="FilePathBox" VerticalAlignment="Center" Margin="5,0,5,0"/>
+        <Button DockPanel.Dock="Right" Content="..." Command="{Binding #Root.BrowseCommand}"
+                VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0,5,0"/>
+        <Button DockPanel.Dock="Right" Content="Open" Command="{Binding #Root.OpenCommand}"
+                VerticalAlignment="Center" Margin="5,0,5,0"/>
+        <TextBox x:Name="FilePathBox" Text="{Binding #Root.FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="5"/>
+    </DockPanel>
+</UserControl>

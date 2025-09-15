@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RPMailUI.Controls.TextPromptBarView"
+             x:Name="Root">
+    <Design.Height>40</Design.Height>
+    <Design.Width>300</Design.Width>
+    <DockPanel>
+        <Label DockPanel.Dock="Left" VerticalAlignment="Center" Margin="5,0,5,0"
+               Target="InputBox" Content="{Binding #Root.Caption}"/>
+        <AutoCompleteBox x:Name="InputBox" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,5,0"
+                 Text="{Binding #Root.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 ItemsSource="{Binding #Root.PromptsSource}" FilterMode="StartsWith"/>
+    </DockPanel>
+</UserControl>

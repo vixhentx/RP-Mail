@@ -1,42 +1,38 @@
-
-using System.Text;
 using Spire.Doc;
 
-namespace RPMailConsole;
+namespace RPMailCore;
 
-public class PDFParser(DataParser dataParser)
+public class DocConverter(DataParser dataParser,bool saveRawDoc)
 {
-    public bool SaveRawDoc { get; set; } = false;
-
-    public void Parse(string patternPath, string outputPath, int index)
+    public void Parse(string patternPath, string outputPath, Dictionary<string, string> row)
     {
         string ext = Path.GetExtension(patternPath).ToLower();
         switch (ext)
         {
             case ".pdf":
-                ParseFromPDF(patternPath, outputPath, index);
+                ParseFromPDF(patternPath, outputPath, row);
                 break;
             default:
-                ParseAutoMatically(patternPath, outputPath, index);
+                ParseAutomatically(patternPath, outputPath, row);
                 break;
         };
     }
 
-    private void ParseFromPDF(string patternPath, string outputPath, int index)
+    private void ParseFromPDF(string patternPath, string outputPath, Dictionary<string, string> row)
     {
         throw new NotImplementedException("ParseFromPDF is not implemented yet.");
     }
 
-    private void ParseAutoMatically(string patternPath, string outputPath, int index)
+    private void ParseAutomatically(string patternPath, string outputPath, Dictionary<string, string> row)
     {
-        using Document doc = new Document();
+        Document doc = new ();
         doc.LoadFromFile(patternPath, FileFormat.Auto);
 
-        dataParser.AbstractParse(doc.GetText(), index, (f, r) =>
+        dataParser.AbstractParse(doc.GetText(), row, (f, r) =>
             doc.Replace(f, r, true, true));
 
         doc.SaveToFile(outputPath, FileFormat.PDF);
-        if (SaveRawDoc)
+        if (saveRawDoc)
         {
             string ext = Path.GetExtension(patternPath);
             doc.SaveToFile(outputPath + $".{ext}", doc.DetectedFormatType);
