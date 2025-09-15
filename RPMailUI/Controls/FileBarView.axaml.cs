@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
 using RPMailUI.Services;
@@ -47,6 +48,19 @@ public partial class FileBarView : UserControl
         get => GetValue(IsDirectoryProperty);
         set => SetValue(IsDirectoryProperty, value);
     }
+    
+    public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
+        RoutedEvent.Register<TextBox, TextChangedEventArgs>(
+            nameof(TextChanged), RoutingStrategies.Bubble);
+    
+    public event EventHandler<TextChangedEventArgs>? TextChanged
+    {
+        add => AddHandler(TextChangedEvent, value);
+        remove => RemoveHandler(TextChangedEvent, value);
+    }
+
+    protected void OnTextChanged(object? sender,TextChangedEventArgs e) =>
+        RaiseEvent(e);
 
     public FileBarView()
     {

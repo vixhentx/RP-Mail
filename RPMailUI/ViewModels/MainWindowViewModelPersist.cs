@@ -11,11 +11,6 @@ public partial class MainWindowViewModel : IPersistable<MainWindowViewModel.Pers
 {
     public Timer? SaveTimer { get; set; }
 
-    public bool IsDirtySetter
-    {
-        set => (this as IPersistable<PersistedData>).IsDirty = value;
-    }
-
     public PersistedData Data
     {
         get => new()
@@ -81,7 +76,6 @@ public partial class MainWindowViewModel : IPersistable<MainWindowViewModel.Pers
     {
         PersistHelper.Load(this);
         SaveTimer = (this as IPersistable<PersistedData>).CreateTimer;
-        Attachments.CollectionChanged += (_,_) => PersistHelper.ScheduleSave(this);
     }
 
 }

@@ -47,7 +47,7 @@
                         <controls:TextBarView Caption="Subject:" Text="{Binding Subject}"/>
                         <controls:TextBarView Caption="Receiver Header:" Text="{Binding ReceiverHeader}"/>
                         <controls:TextPromptBarView Caption="CharSet:" PromptsSource="{StaticResource AllCharSets}" Text="{Binding CharSet}"/>
-                        <controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView" IsDirty="{Binding IsDirtySetter}"
+                        <controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView"
                                                  Attachments="{Binding Attachments}"/>
                     </StackPanel>
                 </Expander>

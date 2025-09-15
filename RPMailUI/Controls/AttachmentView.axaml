@@ -1,4 +1,4 @@
-<local:PersistedUserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,9 +19,9 @@
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
-                        <local:FileBarView Grid.Column="0" LostFocus="OnLostFocus" Caption=""
+                        <local:FileBarView Grid.Column="0" Caption=""
                                      FilePath="{Binding SourceText, Mode=TwoWay}"/>
-                        <Label Grid.Column="1" LostFocus="OnLostFocus"
+                        <Label Grid.Column="1"
                                 Content=" ==> " VerticalAlignment="Center"/>
                         <TextBox Grid.Column="2" Margin="5"
                                  Text="{Binding DestinationText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
@@ -30,4 +30,4 @@
             </ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>
-</local:PersistedUserControl>
+</UserControl>

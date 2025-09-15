@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Timers;
@@ -69,34 +72,55 @@ public interface IPersistable<T>
 
     public void Subscribe()
     {
-        if(this is not INotifyPropertyChanged vm) return;
+        if (this is not INotifyPropertyChanged vm) return;
         var properties = typeof(T).GetProperties();
         HashSet<string> propertyNames = [];
-        foreach (var property in properties)
+        foreach (var dataProperty in properties)
         {
-            propertyNames.Add(property.Name);
-        }
-        
-        // if (this is ReactiveObject reactiveObject)
-        // {
-        //     foreach(var propertyName in propertyNames)
-        //     {
-        //         var property = GetType().GetProperty(propertyName);
-        //         if (property == null) continue;
-        //         reactiveObject.WhenAnyValue(x=> property.GetValue(x))
-        //             .Throttle(TimeSpan.FromMicroseconds(500))
-        //             .Subscribe(_=>SaveInstantly());
-        //     }
-        // }
-        // else
-        {
-            vm.PropertyChanged += (_, args) =>
+            var name =  dataProperty.Name;
+            propertyNames.Add(name);
+            var property = GetType().GetProperty(name)!;
+            var type = property.PropertyType;
+            //For collection
+            if (typeof(INotifyCollectionChanged).IsAssignableFrom(type) &&
+                property.GetValue(this) is INotifyCollectionChanged coll)
             {
-                if (args.PropertyName!=null && propertyNames.Contains(args.PropertyName))
+                coll.CollectionChanged += (s, e) =>
                 {
-                    Save();
+                    if (e.NewItems != null)
+                    {
+                        foreach (var item in e.NewItems)
+                        {
+                            if (item is INotifyPropertyChanged inpc)
+                                inpc.PropertyChanged += SaveHandler;
+                        }
+                    }
+
+                    if (e.OldItems != null)
+                    {
+                        foreach (var item in e.OldItems)
+                        {
+                            if (item is INotifyPropertyChanged inpc)
+                                inpc.PropertyChanged -= SaveHandler;
+                        }
+                    }
+                };
+
+                foreach (var item in (IEnumerable)coll)
+                {
+                    if (item is INotifyPropertyChanged inpc)
+                        inpc.PropertyChanged += (_, _) => Save();
                 }
-            };
+            }
         }
+        vm.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName != null && propertyNames.Contains(args.PropertyName))
+            {
+                Save();
+            }
+        };
     }
+    private void SaveHandler(object? sender, EventArgs e) =>
+        Save();
 }
