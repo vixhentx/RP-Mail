@@ -4,7 +4,8 @@
   {
     devShells.default = pkgs.mkShell {
       buildInputs = [
-        pkgs.dotnet-sdk_9
+        pkgs.dotnet-sdk_10
+        pkgs.chromium
       ];
     };
   };

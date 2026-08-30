@@ -1,7 +1,8 @@
-using System.Collections.Immutable;
 using System.Text;
-using MailKit;
-using MailKitSimplified.Sender.Services;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+using RPMailCore.Processors;
 
 namespace RPMailCore;
 
@@ -34,18 +35,34 @@ public abstract class MailSender
 }
 public class SmtpMailSender(string host, string senderEmail, string smtpPassword) : MailSender
 {
-    readonly SmtpSender _smtpSender = SmtpSender
-        .Create(host)
-        .SetCredential(senderEmail, smtpPassword);
+    protected override async Task SendAsyncInner(ContentParsed content, CancellationToken cancellationToken = default)
+    {
+        var (smtpHost, port) = ParseHost(host);
+        using var client = new SmtpClient();
+        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.Auto, cancellationToken);
+        await client.AuthenticateAsync(senderEmail, smtpPassword, cancellationToken);
 
-    protected override Task SendAsyncInner(ContentParsed content, CancellationToken cancellationToken = default) =>
-         _smtpSender.WriteEmail
-                        .From(senderEmail)
-                        .To(content.Receiver)
-                        .Subject(content.Subject)
-                        .BodyHtml(content.HtmlBody)
-                        .Attach(content.Attachments)
-                        .SendAsync(cancellationToken);
+        var message = new MimeMessage();
+        message.From.Add(MailboxAddress.Parse(senderEmail));
+        message.To.Add(MailboxAddress.Parse(content.Receiver));
+        message.Subject = content.Subject;
+
+        var body = new BodyBuilder { HtmlBody = content.HtmlBody };
+        foreach (var attachment in content.Attachments)
+            body.Attachments.Add(attachment);
+
+        message.Body = body.ToMessageBody();
+        await client.SendAsync(message, cancellationToken);
+        await client.DisconnectAsync(true, cancellationToken);
+    }
+
+    private static (string host, int port) ParseHost(string host)
+    {
+        int idx = host.LastIndexOf(':');
+        if (idx >= 0 && int.TryParse(host.AsSpan(idx + 1), out int port))
+            return (host[..idx], port);
+        return (host, 587);
+    }
 }
 #endregion
 
@@ -107,9 +124,12 @@ public class ContentParser
         RealOutputDir = Path.Combine(OutputDir, $"{time:yyyy-MM-dd_HH-mm-ss}");
     }
     
-    public async Task<ContentParsed[]> ParseAsync(ContentTemplate template) => await Task.Run(() =>
+    private HtmlToPdfProcessor? _pdfProcessor;
+
+    public async Task<ContentParsed[]> ParseAsync(ContentTemplate template) => await Task.Run(async () =>
     {
         CsvFailed = template.CsvPath;
+        _pdfProcessor = new HtmlToPdfProcessor(SaveRawDocs);
         try
         {
             OutputHelper.CreateDirIfNotExist(RealOutputDir);
@@ -143,7 +163,7 @@ public class ContentParser
                         OutputHelper.Write(htmlBody, Path.Combine(outputDir, "body.html"));
                     }
 
-                    var attachments = BuildAttachments(template.AttachmentMap, _dataParser, outputDir, row);
+                    var attachments = await BuildAttachments(template.AttachmentMap, _dataParser, outputDir, row);
                     list.Add(new ContentParsed
                     {
                         Receiver = receiver,
@@ -170,6 +190,11 @@ public class ContentParser
         {
             OnParseFailed?.Invoke(this, (template, e));
             throw new RPMailAbortException();
+        }
+        finally
+        {
+            if (_pdfProcessor is not null)
+                await _pdfProcessor.DisposeAsync();
         }
     });
 
@@ -212,12 +237,11 @@ public class ContentParser
         }
         return ret.ToArray();
     }
-    private string[] BuildAttachments(Dictionary<string,string>? attachmentMap,DataParser dataParser,string outputDir, Dictionary<string,string> row)
+    private async Task<string[]> BuildAttachments(Dictionary<string,string>? attachmentMap,DataParser dataParser,string outputDir, Dictionary<string,string> row)
     {
         if (attachmentMap is null) return [];
 
         List<string> ret = [];
-        DocConverter docConverter = new(dataParser, SaveRawDocs);
 
         foreach (var attachment in attachmentMap)
         {
@@ -234,17 +258,9 @@ public class ContentParser
 
             string outputPath = Path.Combine(outputDir, targetFile);
 
-            //write the file
-            if (Path.GetExtension(targetFile) == ".pdf")
-            {
-                //parse attachment
-                docConverter.Parse(patternPath, outputPath, row);
-            }
-            else
-            {
-                //simply copy attachment
-                OutputHelper.Copy(patternPath, outputPath);
-            }
+            //render html template with row data, then convert into pdf
+            string renderedHtml = dataParser.Parse(InputHelper.Read(patternPath), row);
+            await _pdfProcessor!.ConvertAsync(renderedHtml, outputPath, OutputHelper.Encoding);
             ret.Add(outputPath);
         }
         return ret.ToArray();

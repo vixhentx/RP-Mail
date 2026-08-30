@@ -77,7 +77,7 @@ public class Program
 
     #region excution
 
-    private string GetDefaultPattern(int index) => $"{DataParser.Format(ReceiverHeader)}_attachment_{index + 1}.pdf";
+    private string GetDefaultPattern(int index) => $"{{{{ {ReceiverHeader} }}}}_attachment_{index + 1}.pdf";
 
     private Encoding _encoding;
     
