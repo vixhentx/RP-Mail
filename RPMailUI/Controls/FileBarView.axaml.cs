@@ -1,20 +1,21 @@
-using System;
+using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.Input;
+using R3;
 using RPMailUI.Services;
 
 namespace RPMailUI.Controls;
 
 public partial class FileBarView : UserControl
 {
+    private readonly DisposableBag _disposables = new();
+
     public static readonly StyledProperty<string> FilePathProperty = AvaloniaProperty.Register<FileBarView, string>(
-        nameof(FilePath),defaultBindingMode:BindingMode.TwoWay);
+        nameof(FilePath), defaultBindingMode: BindingMode.TwoWay);
 
     public string FilePath
     {
@@ -23,7 +24,7 @@ public partial class FileBarView : UserControl
     }
 
     public static readonly StyledProperty<string> CaptionProperty = AvaloniaProperty.Register<FileBarView, string>(
-        nameof(Caption),"Caption");
+        nameof(Caption), "Caption");
 
     public string Caption
     {
@@ -32,7 +33,7 @@ public partial class FileBarView : UserControl
     }
 
     public static readonly StyledProperty<string> FileTypeProperty = AvaloniaProperty.Register<FileBarView, string>(
-        nameof(FileType),"");
+        nameof(FileType), "");
 
     public string FileType
     {
@@ -48,37 +49,41 @@ public partial class FileBarView : UserControl
         get => GetValue(IsDirectoryProperty);
         set => SetValue(IsDirectoryProperty, value);
     }
-    
+
     public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
         RoutedEvent.Register<TextBox, TextChangedEventArgs>(
             nameof(TextChanged), RoutingStrategies.Bubble);
-    
+
     public event EventHandler<TextChangedEventArgs>? TextChanged
     {
         add => AddHandler(TextChangedEvent, value);
         remove => RemoveHandler(TextChangedEvent, value);
     }
 
-    protected void OnTextChanged(object? sender,TextChangedEventArgs e) =>
+    protected void OnTextChanged(object? sender, TextChangedEventArgs e) =>
         RaiseEvent(e);
+
+    public ReactiveCommand BrowseCommand { get; } = new();
+    public ReactiveCommand OpenCommand { get; } = new();
 
     public FileBarView()
     {
         InitializeComponent();
+        BrowseCommand.SubscribeAwait(async (_, _) => await BrowseAsync()).AddTo(ref _disposables);
+        OpenCommand.Subscribe(_ => Open()).AddTo(ref _disposables);
     }
 
-    [RelayCommand]
-    private async Task Browse()
+    private async Task BrowseAsync()
     {
         var topLevel = TopLevel.GetTopLevel(this)!;
         var provider = topLevel.StorageProvider;
 
-        string selectedPath="";
+        string selectedPath = "";
         if (!IsDirectory)
         {
             var fileTypeExt = string.IsNullOrWhiteSpace(FileType) ? "*" : FileType.ToLower();
             var fileTypeName = $"{(string.IsNullOrWhiteSpace(FileType) ? "Any" : FileType)} File";
-            var files = await provider.OpenFilePickerAsync(new ()
+            var files = await provider.OpenFilePickerAsync(new()
             {
                 Title = $"Open {FileType} File",
                 AllowMultiple = false,
@@ -87,7 +92,7 @@ public partial class FileBarView : UserControl
                     Patterns = [$"*.{fileTypeExt}"]
                 }]
             });
-        
+
             if (files.Count > 0)
             {
                 selectedPath = files[0].TryGetLocalPath() ?? "";
@@ -120,7 +125,6 @@ public partial class FileBarView : UserControl
         FilePath = filePath;
     }
 
-    [RelayCommand]
     private void Open()
     {
         try
@@ -136,10 +140,10 @@ public partial class FileBarView : UserControl
         }
         catch (Exception ex)
         {
-            MessageFlyout.ShowError($"Cannot open {FilePath}: {ex.Message}");
+            Trace.WriteLine($"Cannot open {FilePath}: {ex.Message}");
         }
     }
-    
+
     //Utils
     static string GetRelativePath(string basePath, string targetPath)
     {
@@ -153,7 +157,7 @@ public partial class FileBarView : UserControl
     static int GetPathLayerCount(string path)
     {
         char separator = Path.DirectorySeparatorChar;
-        
+
         string[] parts = path.Split(separator, StringSplitOptions.RemoveEmptyEntries);
 
         return parts.Length;

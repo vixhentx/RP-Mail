@@ -1,55 +1,46 @@
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using Avalonia.Threading;
-using CommunityToolkit.Mvvm.Input;
+using ObservableCollections;
+using R3;
 using RPMailUI.Models;
 
 namespace RPMailUI.Controls;
 
 public partial class AttachmentView : UserControl
 {
-    public static readonly StyledProperty<ObservableCollection<AttachmentItemData>> AttachmentsProperty = AvaloniaProperty.Register<AttachmentView, ObservableCollection<AttachmentItemData>>(
-        nameof(Attachments),[new()],defaultBindingMode:BindingMode.TwoWay);
+    private readonly DisposableBag _disposables = new();
 
-    public ObservableCollection<AttachmentItemData> Attachments
+    public static readonly StyledProperty<ObservableList<AttachmentItemData>> AttachmentsProperty = AvaloniaProperty.Register<AttachmentView, ObservableList<AttachmentItemData>>(
+        nameof(Attachments), [], defaultBindingMode: BindingMode.TwoWay);
+
+    public ObservableList<AttachmentItemData> Attachments
     {
         get => GetValue(AttachmentsProperty);
         set => SetValue(AttachmentsProperty, value);
     }
 
-    public static readonly StyledProperty<ObservableCollection<string>> AvailableHeadersProperty = AvaloniaProperty.Register<AttachmentView, ObservableCollection<string>>(
-        nameof(AvailableHeaders),[],defaultBindingMode:BindingMode.TwoWay);
+    public ReactiveCommand AppendCommand { get; } = new();
+    public ReactiveCommand RemoveCommand { get; } = new();
 
-    public ObservableCollection<string> AvailableHeaders
-    {
-        get => GetValue(AvailableHeadersProperty);
-        set => SetValue(AvailableHeadersProperty, value);
-    }
-
-    [RelayCommand]
-    private async Task AppendAttachment()
-    {
-        await Dispatcher.UIThread.InvokeAsync(() =>
-            Attachments.Add(new()));
-    }
-
-    [RelayCommand]
-    private async Task RemoveAttachment()
-    {
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var selectedIndex = AttachmentListBox.SelectedIndex;
-            if (selectedIndex >= 0)
-                Attachments.RemoveAt(selectedIndex);
-        });
-    }
-
+    public IReadOnlyBindableReactiveProperty<NotifyCollectionChangedSynchronizedViewList<AttachmentItemData>> AttachmentsView { get; }
 
     public AttachmentView()
     {
         InitializeComponent();
+
+        AttachmentsView = this.GetObservable(AttachmentsProperty)
+            .ToObservable()
+            .Select(x => x.ToNotifyCollectionChangedSlim())
+            .ToReadOnlyBindableReactiveProperty(Attachments!.ToNotifyCollectionChangedSlim())
+            .AddTo(ref _disposables);
+
+        AppendCommand.Subscribe(_ => Attachments!.Add(new AttachmentItemData())).AddTo(ref _disposables);
+        RemoveCommand.Subscribe(_ =>
+        {
+            var selectedIndex = AttachmentListBox!.SelectedIndex;
+            if (selectedIndex >= 0)
+                Attachments!.RemoveAt(selectedIndex);
+        }).AddTo(ref _disposables);
     }
 }

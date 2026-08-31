@@ -1,7 +1,5 @@
-﻿using Avalonia;
-using System;
+using Avalonia;
 using System.Text;
-using Avalonia.ReactiveUI;
 
 namespace RPMailUI;
 
@@ -11,10 +9,11 @@ sealed class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args) {
+    public static void Main(string[] args)
+    {
         //Add Chinese Encoding
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        
+
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
@@ -25,5 +24,5 @@ sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
-            .UseReactiveUI();
+            .UseR3();
 }

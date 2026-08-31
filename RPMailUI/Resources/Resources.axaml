@@ -3,4 +3,25 @@
                     xmlns:system="clr-namespace:System;assembly=System.Runtime"
                     xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections">
     <generic:List x:TypeArguments="system:String" x:Key="AllCharSets"/>
+
+    <!-- Task status colors and display text (localized via resource lookup) -->
+    <Color x:Key="TaskStatus.Ready">White</Color>
+    <Color x:Key="TaskStatus.Pending">LightGray</Color>
+    <Color x:Key="TaskStatus.Running">Cyan</Color>
+    <Color x:Key="TaskStatus.Success">Green</Color>
+    <Color x:Key="TaskStatus.Failed">Red</Color>
+
+    <x:String x:Key="TaskStatus.Ready.Text">Ready</x:String>
+    <x:String x:Key="TaskStatus.Pending.Text">Pending</x:String>
+    <x:String x:Key="TaskStatus.Running.Text">Running</x:String>
+    <x:String x:Key="TaskStatus.Success.Text">Success</x:String>
+    <x:String x:Key="TaskStatus.Failed.Text">Failed</x:String>
+
+    <!-- Flyout severity colors -->
+    <Color x:Key="Flyout.Error.Foreground">LightYellow</Color>
+    <Color x:Key="Flyout.Error.Background">Crimson</Color>
+    <Color x:Key="Flyout.Warning.Foreground">LightYellow</Color>
+    <Color x:Key="Flyout.Warning.Background">DarkOrange</Color>
+    <Color x:Key="Flyout.Info.Foreground">LightYellow</Color>
+    <Color x:Key="Flyout.Info.Background">DarkCyan</Color>
 </ResourceDictionary>

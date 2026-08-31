@@ -1,88 +1,69 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Threading;
+using ObservableCollections;
+using R3;
 using RPMailUI.Models;
 
 namespace RPMailUI.Controls;
 
 public partial class ErrorView : UserControl
 {
+    private readonly DisposableBag _disposables = new();
 
-    public static readonly StyledProperty<ObservableCollection<ErrorItemData>> ErrorsProperty = AvaloniaProperty.Register<ErrorView, ObservableCollection<ErrorItemData>>(
-        nameof(Errors),[], defaultBindingMode:BindingMode.TwoWay);
+    public static readonly StyledProperty<ObservableList<ErrorItemData>> ErrorsProperty = AvaloniaProperty.Register<ErrorView, ObservableList<ErrorItemData>>(
+        nameof(Errors), [], defaultBindingMode: BindingMode.TwoWay);
 
-    public ObservableCollection<ErrorItemData> Errors
+    public ObservableList<ErrorItemData> Errors
     {
         get => GetValue(ErrorsProperty);
         set => SetValue(ErrorsProperty, value);
     }
-    
-    public ErrorView()
-    {
-        InitializeComponent();
-    }
-
-    public static readonly StyledProperty<int> MaxErrorCountProperty = AvaloniaProperty.Register<ErrorView, int>(
-        nameof(MaxErrorCount),5);
-
-    public int MaxErrorCount
-    {
-        get => GetValue(MaxErrorCountProperty);
-        set => SetValue(MaxErrorCountProperty, value);
-    }
 
     public static readonly StyledProperty<int> CellHeightProperty = AvaloniaProperty.Register<ErrorView, int>(
-        nameof(CellHeight),50);
+        nameof(CellHeight), 50);
 
     public int CellHeight
     {
         get => GetValue(CellHeightProperty);
         set => SetValue(CellHeightProperty, value);
     }
-    
-    public void AfterAppend()
+
+    public IReadOnlyBindableReactiveProperty<NotifyCollectionChangedSynchronizedViewList<ErrorItemData>> ErrorsView { get; }
+
+    public ErrorView()
     {
-        List<ErrorItemData> tmp = [];
-        for(int i = int.Max(0,Errors.Count - MaxErrorCount); i < Errors.Count; i++)
-        {
-            tmp.Add(Errors[i]);
-        }
-        Errors = new(tmp);
-        //Update View
-        {
-            Timer timer = new(500)
+        InitializeComponent();
+
+        ErrorsView = this.GetObservable(ErrorsProperty)
+            .ToObservable()
+            .Select(x => x.ToNotifyCollectionChangedSlim())
+            .ToReadOnlyBindableReactiveProperty(Errors!.ToNotifyCollectionChangedSlim())
+            .AddTo(ref _disposables);
+
+        this.GetObservable(ErrorsProperty)
+            .ToObservable()
+            .Select(errors => errors.ObserveChanged())
+            .Switch()
+            .Subscribe(e =>
             {
-                AutoReset = false
-            };
-            timer.Elapsed += (_,_) => 
-                Dispatcher.UIThread.Post(() =>ScrollView.ScrollToEnd());
-            timer.Start();
-        }
-        IsVisible = true;
+                if (e.Action == NotifyCollectionChangedAction.Add)
+                    AfterAppend();
+            }).AddTo(ref _disposables);
     }
-    
-    public void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+
+    private void AfterAppend()
     {
-        switch (e.Action)
+        System.Timers.Timer timer = new(500)
         {
-            case NotifyCollectionChangedAction.Add:
-                AfterAppend();
-                break;
-            case NotifyCollectionChangedAction.Remove:
-                break;
-            case NotifyCollectionChangedAction.Reset:
-                break;
-            case NotifyCollectionChangedAction.Move:
-            case NotifyCollectionChangedAction.Replace:
-            default:
-                throw new ArgumentOutOfRangeException($"ErrorView Unsupported Collection Action : {nameof(e.Action)}");
-                
-        }
+            AutoReset = false
+        };
+        timer.Elapsed += (_, _) =>
+            Dispatcher.UIThread.Post(() => ScrollView.ScrollToEnd());
+        timer.Start();
+        IsVisible = true;
     }
 }

@@ -1,39 +1,10 @@
-using System.Collections.Generic;
-using CommunityToolkit.Mvvm.ComponentModel;
+using RPMailCore.Models;
 
 namespace RPMailUI.Models;
 
-public class TaskItemData : ObservableObject
+public sealed record TaskItemData(IReadOnlyDictionary<string, string> Data, MailTaskStatus Status, string Tooltip)
 {
-    public Dictionary<string, string> Data { get; init; } = [];
-    private TaskStatus _status = TaskStatus.Ready;
-    private string _tooltip = "Ready to send";
+    public string this[string key] => Data[key];
 
-    public TaskStatus Status
-    {
-        get => _status;
-        set => SetProperty(ref _status, value);
-    }
-    public string? Tooltip
-    {
-        get => _tooltip;
-        set => SetProperty(ref _tooltip, value);
-    }
-
-    public string this[string key]
-    {
-        get => Data[key];
-        set => Data[key] = value;
-    }
-
-    public List<string> SearchTokens
-    {
-        get
-        {
-            List<string> tokens = [];
-            tokens.AddRange(Data.Values);
-            tokens.Add(Status.Text);
-            return tokens;
-        }
-    }
+    public List<string> SearchTokens => [.. Data.Values, Status.Text];
 }

@@ -10,21 +10,21 @@
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button Content="Append" Command="{Binding #Root.AppendAttachmentCommand}"/>
-                <Button Content="Remove" Command="{Binding #Root.RemoveAttachmentCommand}"/>
+                <Button Content="Append" Command="{Binding #Root.AppendCommand}"/>
+                <Button Content="Remove" Command="{Binding #Root.RemoveCommand}"/>
             </StackPanel>
             <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Attachments" Margin="5"/>
         </DockPanel>
-        <ListBox x:Name="AttachmentListBox" ItemsSource="{Binding #Root.Attachments}" SelectionMode="Single">
+        <ListBox x:Name="AttachmentListBox" ItemsSource="{Binding #Root.AttachmentsView.Value}" SelectionMode="Single">
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
                         <local:FileBarView Grid.Column="0" Caption=""
-                                     FilePath="{Binding SourceText, Mode=TwoWay}"/>
+                                     FilePath="{Binding SourceText.Value, Mode=TwoWay}"/>
                         <Label Grid.Column="1"
-                                Content=" ==> " VerticalAlignment="Center"/>
+                                Content=" ==&gt; " VerticalAlignment="Center"/>
                         <TextBox Grid.Column="2" Margin="5"
-                                 Text="{Binding DestinationText, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
+                                 Text="{Binding DestinationText.Value, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

@@ -1,19 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using R3;
 
 namespace RPMailUI.Models;
 
-public class AttachmentItemData : ObservableObject
+public sealed class AttachmentItemData
 {
-    private string _sourceText = "";
-    public string SourceText
-    {
-        get => _sourceText;
-        set => SetProperty(ref _sourceText, value);
-    }
-    private string _destinationText = "";
-    public string DestinationText
-    {
-        get => _destinationText;
-        set => SetProperty(ref _destinationText, value);
-    }
+    public BindableReactiveProperty<string> SourceText { get; } = new("");
+    public BindableReactiveProperty<string> DestinationText { get; } = new("");
 }

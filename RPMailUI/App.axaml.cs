@@ -1,11 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
 using RPMailUI.Resources;
-using RPMailUI.Services;
 using RPMailUI.ViewModels;
 using RPMailUI.Views;
 
@@ -23,32 +19,15 @@ public partial class App : Application
         ResourcesEntry.Load();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
             MainWindowViewModel vm = new();
-            MainWindow window = new ()
+            MainWindow window = new()
             {
                 DataContext = vm
             };
-            vm.Errors.CollectionChanged += window.ErrorView.OnCollectionChanged;
-            MessageFlyout.Initialize(vm);
+            window.Closed += (_, _) => vm.Dispose();
             desktop.MainWindow = window;
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private void DisableAvaloniaDataAnnotationValidation()
-    {
-        // Get an array of plugins to remove
-        var dataValidationPluginsToRemove =
-            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-        // remove each entry found
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
     }
 }

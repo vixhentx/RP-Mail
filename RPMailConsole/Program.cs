@@ -1,291 +1,113 @@
-using System.ComponentModel.DataAnnotations;
+using System.CommandLine;
 using System.Text;
-using McMaster.Extensions.CommandLineUtils;
-using RPMailCore;
-
-// ReSharper disable UnusedMember.Local
-// ReSharper disable UnassignedGetOnlyAutoProperty
-// ReSharper disable ReplaceAutoPropertyWithComputedProperty
-#pragma warning disable CS8618
+using Microsoft.Extensions.Logging;
+using RPMailCore.Models;
+using RPMailCore.ViewModels;
 
 namespace RPMailConsole;
 
-public class Program
+public static class Program
 {
-    public static void Main(string[] args) => CommandLineApplication.Execute<Program>(args);
-    
-    #region sender settings
-    [Required]
-    [Option(Template = "-s|--sender", Description = "Sender email address")]
-    public string Sender { get;}
-    
-    [Required]
-    [Option(Template = "-h|--host", Description = "SMTP Host & Port")]
-    public string Host { get;}
-    
-    [Required]
-    [Option(Template = "-p|--pwd|--password", Description = "Password")]
-    public string Password { get;}
-    
-    //parse settings
-    [Option(Template = "-r|--receiver-header", Description = "Receiver header in CSV file")]
-    public string ReceiverHeader { get;} = "Receiver";
-    
-    #endregion
-    
-    #region content settings
-    
-    [Required]
-    [Option(Template = "-d|--csv|--data", Description = "CSV Data File Path")]
-    public string DataFile { get;}
-    
-    [Required]
-    [Option(Template = "-t|--title|--subject", Description = "Email Subject Pattern")]
-    public string SubjectPattern { get;}
-    
-    [Required]
-    [Option(Template = "-m|-b|--html|--body|--message", Description = "HTML Email Body Pattern File Path")]
-    public string BodyPattern { get;}
-    
-    [Option(Template = "-a|--attachment", Description = "PDF Attachment Pattern File Path")]
-    public string[]? AttachmentPatterns { get;} = null;
-    
-    [Option(Template = "-n|--attachment-name", Description = "Attachment Name Pattern File Path")]
-    public string[]? AttachmentNamePattern { set; get;}
-    
-    [Option(Template = "-c|--charset", Description = "All Files Encoding if BOM absent")]
-    public string CharSet { get; } = "utf-8";
-    
-    #endregion
-    
-    #region misc
-    
-    [Option(Template = "-o|--output", Description = "Attachment Convert File Directory")]
-    public string OutputFileDir { get; } = "Output";
-    
-    [Option(Template = "--delete-after-convert", Description = "Delete Attachment Output after convert")]
-    public bool DeleteAfterConvert { get; } = false;
-    
-    [Option]
-    public bool Quiet { get; } = false;
-    [Option(Template = "--convert-only", Description = "Only Convert Attachments and Exit")]
-    public bool ConvertOnly { get; } = false;
-    [Option(Template = "--save-raw-doc", Description = "Save Raw Document in Output Directory")]
-    public bool SaveRawDoc { get; } = false;
-    
-    #endregion
-
-    #region excution
-
-    private string GetDefaultPattern(int index) => $"{{{{ {ReceiverHeader} }}}}_attachment_{index + 1}.pdf";
-
-    private Encoding _encoding;
-    
-    private void InitArgs()
+    public static async Task<int> Main(string[] args)
     {
-        //Logger
-        if (Quiet) Log = (s, c) => { };
-        
-        //GB2312
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        
-        if (AttachmentPatterns is not null)
-        {
-            var newNamePatterns = new string[AttachmentPatterns.Length];
-            int nameLength = 0;
-            if (AttachmentNamePattern is not null)
-            {
-                for (int i = 0; i < AttachmentNamePattern.Length; i++)
-                {
-                    newNamePatterns[i] = AttachmentNamePattern[i];
-                }
-                nameLength = AttachmentNamePattern.Length;
-            }
-            for (int i = nameLength; i < AttachmentPatterns.Length; i++)
-            {
-                newNamePatterns[i] = GetDefaultPattern(i);
-            }
-            AttachmentNamePattern = newNamePatterns;
-        }
 
-        if(string.IsNullOrWhiteSpace(CharSet))
-            _encoding = Encoding.Default;
-        else
+        var root = new RootCommand("A console application to send EMail automatically, with Scriban templates like \"{{ Text }}\" and HTML attachment rendered into PDF.");
+
+        var senderOpt = new Option<string>("sender", ["-s", "--sender"]) { Description = "Sender email address", Required = true };
+        var hostOpt = new Option<string>("host", ["--host"]) { Description = "SMTP Host & Port", Required = true };
+        var passwordOpt = new Option<string>("password", ["-p", "--pwd", "--password"]) { Description = "Password", Required = true };
+        var receiverHeaderOpt = new Option<string>("receiver-header", ["-r", "--receiver-header"]) { Description = "Receiver header in CSV file" };
+        var csvOpt = new Option<string>("csv", ["-d", "--csv", "--data"]) { Description = "CSV Data File Path", Required = true };
+        var subjectOpt = new Option<string>("subject", ["-t", "--title", "--subject"]) { Description = "Email Subject Pattern", Required = true };
+        var bodyOpt = new Option<string>("body", ["-m", "-b", "--html", "--body", "--message"]) { Description = "HTML Email Body Pattern File Path", Required = true };
+        var attachmentOpt = new Option<string[]>("attachment", ["-a", "--attachment"]) { Description = "HTML Attachment Pattern File Path", AllowMultipleArgumentsPerToken = true };
+        var attachmentNameOpt = new Option<string[]>("attachment-name", ["-n", "--attachment-name"]) { Description = "Attachment Name Pattern", AllowMultipleArgumentsPerToken = true };
+        var charsetOpt = new Option<string>("charset", ["-c", "--charset"]) { Description = "All Files Encoding if BOM absent" };
+        var outputOpt = new Option<string>("output", ["-o", "--output"]) { Description = "Attachment Convert File Directory" };
+        var deleteAfterConvertOpt = new Option<bool>("delete-after-convert", ["--delete-after-convert"]) { Description = "Delete Attachment Output after convert" };
+        var quietOpt = new Option<bool>("quiet", ["-q", "--quiet"]) { Description = "Quiet mode" };
+        var convertOnlyOpt = new Option<bool>("convert-only", ["--convert-only"]) { Description = "Only Convert Attachments and Exit" };
+        var saveRawDocOpt = new Option<bool>("save-raw-doc", ["--save-raw-doc"]) { Description = "Save Rendered HTML in Output Directory" };
+        var saveHtmlOpt = new Option<bool>("save-html", ["--save-html"]) { Description = "Save Rendered Email Body HTML in Output Directory" };
+        var versionOpt = new Option<bool>("version", ["--version"]) { Description = "Show version information" };
+
+        root.Options.Add(senderOpt);
+        root.Options.Add(hostOpt);
+        root.Options.Add(passwordOpt);
+        root.Options.Add(receiverHeaderOpt);
+        root.Options.Add(csvOpt);
+        root.Options.Add(subjectOpt);
+        root.Options.Add(bodyOpt);
+        root.Options.Add(attachmentOpt);
+        root.Options.Add(attachmentNameOpt);
+        root.Options.Add(charsetOpt);
+        root.Options.Add(outputOpt);
+        root.Options.Add(deleteAfterConvertOpt);
+        root.Options.Add(quietOpt);
+        root.Options.Add(convertOnlyOpt);
+        root.Options.Add(saveRawDocOpt);
+        root.Options.Add(saveHtmlOpt);
+        root.Options.Add(versionOpt);
+
+        root.SetAction(async (ParseResult pr, CancellationToken ct) =>
         {
+            if (pr.GetValue(versionOpt))
+            {
+                Console.WriteLine(typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown");
+                return 0;
+            }
+
+            bool quiet = pr.GetValue(quietOpt);
+            using var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.SetMinimumLevel(quiet ? LogLevel.None : LogLevel.Information);
+                if (!quiet)
+                    builder.AddSimpleConsole();
+            });
+
+            var vm = new MailViewModel(loggerFactory.CreateLogger("RPMail"));
+            vm.CsvPath.Value = pr.GetValue(csvOpt)!;
+            vm.HtmlPath.Value = pr.GetValue(bodyOpt)!;
+            vm.Subject.Value = pr.GetValue(subjectOpt)!;
+            vm.ReceiverHeader.Value = pr.GetValue(receiverHeaderOpt) is { Length: > 0 } header ? header : "Receiver";
+            vm.CharSet.Value = pr.GetValue(charsetOpt) is { Length: > 0 } charset ? charset : "utf-8";
+            vm.SmtpHost.Value = pr.GetValue(hostOpt)!;
+            vm.SenderEmail.Value = pr.GetValue(senderOpt)!;
+            vm.SenderPassword.Value = pr.GetValue(passwordOpt)!;
+            vm.OutputDir.Value = pr.GetValue(outputOpt) is { Length: > 0 } output ? output : "Output";
+            vm.SaveHtmlFile.Value = pr.GetValue(saveHtmlOpt);
+            vm.SaveRawDocs.Value = pr.GetValue(saveRawDocOpt);
+            vm.ConvertOnly.Value = pr.GetValue(convertOnlyOpt);
+            vm.DeleteAfterSent.Value = pr.GetValue(deleteAfterConvertOpt);
+
+            var attachments = pr.GetValue(attachmentOpt) ?? [];
+            var names = pr.GetValue(attachmentNameOpt) ?? [];
+            for (int i = 0; i < attachments.Length; i++)
+            {
+                string name = i < names.Length
+                    ? names[i]
+                    : $"{{{{ {vm.ReceiverHeader.Value} }}}}_attachment_{i + 1}.pdf";
+                vm.AttachmentPatterns.Add(new AttachmentPattern(attachments[i], name));
+            }
+
             try
             {
-                _encoding = Encoding.GetEncoding(CharSet);
-            }
-            catch (ArgumentException)
-            {
-                Log($"Invalid CharSet: {CharSet}, using default encoding", ConsoleColor.Yellow);
-                _encoding = Encoding.Default;
-            }
-        }
-    }
-
-    #region Services
-    private InputFileHelper _inputFileHelper;
-    private OutputFileHelper _outputFileHelper;
-    private MailSender _mailSender;
-    private ContentTemplate _contentTemplate;
-    private ContentParser _contentParser;
-    private void InitServices()
-    {
-        #region InputFileHelper
-
-        _inputFileHelper = new InputFileHelper
-        {
-            Encoding = _encoding
-        };
-        _inputFileHelper.OnReadFileFailed += (o, args) =>
-            Info($"Failed to read file: {args.file}: {args.e.Message}", ConsoleColor.Red);
-
-        #endregion
-
-        #region OutputFileHelper
-
-        _outputFileHelper = new OutputFileHelper
-        {
-            Encoding = _encoding
-        };
-        _outputFileHelper.OnWriteFileFailed += (o, args) =>
-            Info($"Failed to write file: {args.file}: {args.e.Message}", ConsoleColor.Red);
-        _outputFileHelper.OnCopyFileFailed += (o, args) =>
-            Info($"Failed to copy {args.source} to {args.destination}: {args.e.Message}", ConsoleColor.Red);
-        _outputFileHelper.OnDeleteFileFailed += (o, args) =>
-            Info($"Failed to delete file: {args.file}: {args.e.Message}", ConsoleColor.Red);
-        _outputFileHelper.OnMoveFileFailed += (o, args) =>
-            Info($"Failed to move file: {args.source} to {args.destination}: {args.e.Message}", ConsoleColor.Red);
-        _outputFileHelper.OnCreateDirFailed += (o, args) =>
-            Info($"Failed to create directory: {args.path}: {args.e.Message}", ConsoleColor.Red);
-
-        #endregion
-
-        #region MailSender
-
-        _mailSender = new SmtpMailSender(Host, Sender, Password);
-        _mailSender.OnBeforeSend += (sender, parsed) => 
-            Log($"Sending Email To: {parsed.Receiver}, Subject: {parsed.Subject}", ConsoleColor.Cyan);
-        _mailSender.OnSendFailed += (sender, args) =>
-            Info($"Failed to send email to {args.content.Receiver}: {args.e.Message}", ConsoleColor.Red);
-        _mailSender.OnSendCompleted += (sender, args) =>
-            Log("Email sent.", ConsoleColor.Green);
-        if (!ConvertOnly && DeleteAfterConvert)
-            _mailSender.OnSendCompleted += (sender, args) =>
-            {
-                foreach (var attachment in args.Attachments)
-                    _outputFileHelper.Delete(attachment);
-            };
-            
-
-        #endregion
-        
-        #region ContentTemplate
-
-        Dictionary<string, string> attachmentMap = [];
-        for (int i = 0; i < AttachmentPatterns?.Length; i++)
-        {
-            var key  = AttachmentPatterns[i];
-            var value = AttachmentNamePattern![i];
-            attachmentMap[key] = value;
-        }
-        
-        _contentTemplate = new ContentTemplate
-        {
-            Receiver = ReceiverHeader,
-            Subject = SubjectPattern,
-            CsvPath = DataFile,
-            HtmlPath = BodyPattern,
-            AttachmentMap = attachmentMap,
-        };
-
-        #endregion
-        
-        #region ContentParser
-
-        _contentParser = new(DateTime.Now)
-        {
-            InputHelper = _inputFileHelper,
-            OutputHelper = _outputFileHelper,
-            OutputDir = OutputFileDir,
-            SaveRawDocs = SaveRawDoc,
-            SaveHtmlFile = ConvertOnly,
-        };
-        _contentParser.OnBeforeParse += (sender, args) =>
-            Log($"Parsing Contents from {args.template.CsvPath} ", ConsoleColor.Cyan);
-        _contentParser.OnParsePropertyCompleted += (sender, args) =>
-        {
-            if (args.property == "Receiver")
-                Log($"Parsing Receiver: {args.value}", ConsoleColor.White);
-        };
-        _contentParser.OnParseFailed += (o, args) =>
-            Info($"Failed to parse content: {args.e.Message}", ConsoleColor.Red);
-        _contentParser.OnParseRowFailed += (o, args) =>
-        {
-            Info($"Failed to parse row {args.index+1}: {args.e.Message}", ConsoleColor.Red);
-            string[] data = ((ContentParser) o!).GenCsvString([args.row]);
-            Info("--- Data ---",ConsoleColor.Red);
-            Info(data[0],ConsoleColor.Yellow);
-            Info(data[1],ConsoleColor.Yellow);
-        };
-        _contentParser.OnParseCompleted += (o, args) =>
-            Log($"Parsed {args.result.Length} contents from {args.template.CsvPath} ", ConsoleColor.Green);
-        _contentParser.OnWriteCsvCompleted += (o, args) =>
-            Info($"Written FailedList to CSV File: {args}", ConsoleColor.Yellow);
-        _contentParser.OnWriteCsvFailed += (o, args) =>
-            Info($"Failed to write failed list to CSV file: {args.e.Message}", ConsoleColor.Red);
-            
-
-        #endregion
-        
-
-    }
-    #endregion
-
-    private async Task OnExecute()
-    {
-        InitArgs();
-        InitServices();
-        try
-        {
-            var parsedContents = await _contentParser.ParseAsync(_contentTemplate);
-            List<(ContentParsed content, string reason)> failList = [];
-            _mailSender.OnSendFailed += (o, args) =>
-                failList.Add((args.content, args.e.Message));
-            if (!ConvertOnly)
-            {
-                foreach (var content in parsedContents)
+                var result = await vm.RunAsync(ct);
+                if (!result.Success)
                 {
-                    await _mailSender.SendAsync(content);
+                    Console.Error.WriteLine(result.FatalException?.Message);
+                    return 2;
                 }
+                return result.FailedRows > 0 ? 1 : 0;
             }
+            finally
+            {
+                vm.Dispose();
+            }
+        });
 
-            if (failList.Count > 0)
-                _contentParser.WriteCsv(failList.Select(x => x.content).ToList());
-            else
-                Log("All Done!", ConsoleColor.White);
-        }
-        catch (RPMailAbortException)
-        {
-            Info("Failed.", ConsoleColor.DarkRed);
-        }
-        catch (Exception e)
-        {
-            Info($"Unexpected Error: {e.Message}", ConsoleColor.Red);
-        }
+        var parseResult = root.Parse(args, new ParserConfiguration());
+        return await parseResult.InvokeAsync(new InvocationConfiguration());
     }
-
-    // ReSharper disable once InconsistentNaming
-    private Action<string, ConsoleColor> Log = Info;
-
-    private static void Info(string message, ConsoleColor color)
-    {
-        Console.ForegroundColor = color;
-        Console.WriteLine(message);
-        Console.ResetColor();
-    }
-    
-    
-    #endregion
 }
