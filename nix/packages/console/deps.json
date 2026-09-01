@@ -1,0 +1,127 @@
+[
+  {
+    "pname": "BouncyCastle.Cryptography",
+    "version": "2.6.2",
+    "hash": "sha256-Yjk2+x/RcVeccGOQOQcRKCiYzyx1mlFnhS5auCII+Ms="
+  },
+  {
+    "pname": "CsvHelper",
+    "version": "33.1.0",
+    "hash": "sha256-pEfX4o63xupI7uuwe6qa05One0pJ7UbzzJqLh4Shju8="
+  },
+  {
+    "pname": "MailKit",
+    "version": "4.17.0",
+    "hash": "sha256-LGruedMrHrI0AXHcXOFxsYP2awwPbrC9Q41AeQk4+9U="
+  },
+  {
+    "pname": "Microsoft.Extensions.Configuration",
+    "version": "10.0.0",
+    "hash": "sha256-MsLskVPpkCvov5+DWIaALCt1qfRRX4u228eHxvpE0dg="
+  },
+  {
+    "pname": "Microsoft.Extensions.Configuration.Abstractions",
+    "version": "10.0.0",
+    "hash": "sha256-GcgrnTAieCV7AVT13zyOjfwwL86e99iiO/MiMOxPGG0="
+  },
+  {
+    "pname": "Microsoft.Extensions.Configuration.Binder",
+    "version": "10.0.0",
+    "hash": "sha256-YSiWoA3VQR22k6+bSEAUqeG7UDzZlJfHWDTubUO5V8U="
+  },
+  {
+    "pname": "Microsoft.Extensions.DependencyInjection",
+    "version": "10.0.0",
+    "hash": "sha256-LYm9hVlo/R9c2aAKHsDYJ5vY9U0+3Jvclme3ou3BtvQ="
+  },
+  {
+    "pname": "Microsoft.Extensions.DependencyInjection.Abstractions",
+    "version": "10.0.0",
+    "hash": "sha256-9iodXP39YqgxomnOPOxd/mzbG0JfOSXzFoNU3omT2Ps="
+  },
+  {
+    "pname": "Microsoft.Extensions.Logging",
+    "version": "10.0.0",
+    "hash": "sha256-P+zPAadLL63k/GqK34/qChqQjY9aIRxZfxlB9lqsSrs="
+  },
+  {
+    "pname": "Microsoft.Extensions.Logging",
+    "version": "8.0.0",
+    "hash": "sha256-Meh0Z0X7KyOEG4l0RWBcuHHihcABcvCyfUXgasmQ91o="
+  },
+  {
+    "pname": "Microsoft.Extensions.Logging.Abstractions",
+    "version": "10.0.0",
+    "hash": "sha256-BnhgGZc01HwTSxogavq7Ueq4V7iMA3wPnbfRwQ4RhGk="
+  },
+  {
+    "pname": "Microsoft.Extensions.Logging.Configuration",
+    "version": "10.0.0",
+    "hash": "sha256-7/TWO1aq8hdgbcTEKDBWIjgSC9KpFN3kRnMX+12bOkU="
+  },
+  {
+    "pname": "Microsoft.Extensions.Logging.Console",
+    "version": "10.0.0",
+    "hash": "sha256-Rsblo7GSMTOr43876KkdvqS6wU9Typ1yoFK3tL50CBk="
+  },
+  {
+    "pname": "Microsoft.Extensions.Options",
+    "version": "10.0.0",
+    "hash": "sha256-j5MOqZSKeUtxxzmZjzZMGy0vELHdvPraqwTQQQNVsYA="
+  },
+  {
+    "pname": "Microsoft.Extensions.Options.ConfigurationExtensions",
+    "version": "10.0.0",
+    "hash": "sha256-XGAs5DxMvWnmjX8dqRwKY0vsuS40SHvsfJqB1rO4L7k="
+  },
+  {
+    "pname": "Microsoft.Extensions.Primitives",
+    "version": "10.0.0",
+    "hash": "sha256-Dup08KcptLjlnpN5t5//+p4n8FUTgRAq4n/w1s6us+I="
+  },
+  {
+    "pname": "Microsoft.IO.RecyclableMemoryStream",
+    "version": "3.0.1",
+    "hash": "sha256-unFg/5EcU/XKJbob4GtQC43Ydgi5VjeBGs7hfhj4EYo="
+  },
+  {
+    "pname": "MimeKit",
+    "version": "4.17.0",
+    "hash": "sha256-GpWv+8shoprshuPNB+H+C5saffiKQ6Pek3zhLUGklRo="
+  },
+  {
+    "pname": "PuppeteerSharp",
+    "version": "25.8.0",
+    "hash": "sha256-/pot9bXC8pOBOU3gLA7KzkzxhJd3mM+y9l/WjwEt098="
+  },
+  {
+    "pname": "R3",
+    "version": "1.3.1",
+    "hash": "sha256-G/wFTLFuhueMhHrQ75FUwoWpv7FTMdnC+p52q1jT+po="
+  },
+  {
+    "pname": "ReactiveExtensionsSharp",
+    "version": "0.3.0",
+    "hash": "sha256-7JXwNTvG3ntvI5UEwdY3AdL1zUb6fbGOcyn4LVHtLHc="
+  },
+  {
+    "pname": "Scriban",
+    "version": "7.2.6",
+    "hash": "sha256-HpDJGu+9Wj5f3IrF6GL5Xk5HDKAh+NphwmkkAGwDrF8="
+  },
+  {
+    "pname": "System.CommandLine",
+    "version": "2.0.9",
+    "hash": "sha256-3v9Man1oj9kOhDwm1+9VWseFEL5Zkrtzcw9WuKt2vwE="
+  },
+  {
+    "pname": "System.Security.Cryptography.Pkcs",
+    "version": "10.0.0",
+    "hash": "sha256-d3sLG+LZ3+N/h/6gdJcVKOgbBO6wYb66NfXalAEDqnE="
+  },
+  {
+    "pname": "WebDriverBiDi",
+    "version": "0.0.54",
+    "hash": "sha256-jOKRR4GJACDOKq2P7nAgZr4iAYoJ8ZDtYsbr02ll9ZU="
+  }
+]

@@ -1,6 +1,8 @@
 {
   buildDotnetModule,
   dotnetCorePackages,
+  lib,
+  chromium,
   src
 }:
 buildDotnetModule {
@@ -10,5 +12,10 @@ buildDotnetModule {
   projectFile = "RPMailConsole/RPMailConsole.csproj";
   dotnet-sdk = dotnetCorePackages.sdk_10_0;
   dotnet-runtime = dotnetCorePackages.runtime_10_0;
-  nugetDeps = ./nuget-deps.json;
+  nugetDeps = ./deps.json;
+
+  # PuppeteerSharp resolves "chromium" from PATH at runtime.
+  makeWrapperArgs = [
+    "--prefix" "PATH" ":" (lib.makeBinPath [ chromium ])
+  ];
 }
