@@ -167,7 +167,7 @@ public class MainWindowViewModel : IDisposable
     {
         Core.AttachmentPatterns.Clear();
         foreach (var item in Attachments)
-            Core.AttachmentPatterns.Add(new AttachmentPattern(item.SourceText.Value, item.DestinationText.Value));
+            Core.AttachmentPatterns.Add(new() { Source = item.SourceText.Value, Name = item.DestinationText.Value });
     }
 
     private void LoadSettings()

@@ -42,21 +42,68 @@ public sealed record ContentParsed
     public required ImmutableDictionary<string, string> RawRow { get; init; }
 }
 
-public sealed record SenderConfig(string SmtpHost, string SenderEmail, string SenderPassword);
+public sealed class SenderConfig
+{
+    public required string SmtpHost { get; set; }
+    public required string SenderEmail { get; set; }
+    public required string SenderPassword { get; set; }
+}
 
-public sealed record TemplateConfig(string CsvPath, string HtmlPath, string Subject, string ReceiverHeader, string CharSet);
+public sealed class TemplateConfig
+{
+    public required string CsvPath { get; set; }
+    public required string HtmlPath { get; set; }
+    public required string Subject { get; set; }
+    public string ReceiverHeader { get; set; } = "Receiver";
+    public string CharSet { get; set; } = "utf-8";
+}
 
-public sealed record AttachmentPattern(string Source, string Name);
+public sealed class AttachmentPattern
+{
+    public required string Source { get; set; }
+    public required string Name { get; set; }
+}
 
-public sealed record OutputConfig(
-    string OutputDir,
-    bool SaveHtmlFile,
-    bool SaveRawDocs,
-    bool ConvertOnly,
-    bool DeleteAfterSent,
-    ImmutableArray<AttachmentPattern> Attachments);
+public sealed class OutputConfig
+{
+    public string OutputDir { get; set; } = "Output";
+    public bool SaveHtmlFile { get; set; }
+    public bool SaveRawDocs { get; set; }
+    public bool ConvertOnly { get; set; }
+    public bool DeleteAfterSent { get; set; }
+    public ImmutableArray<AttachmentPattern> Attachments { get; set; } = [];
+}
 
-public sealed record MailConfig(SenderConfig Sender, TemplateConfig Template, OutputConfig Output);
+public sealed class MailConfig
+{
+    public SenderConfig? Sender { get; set; }
+    public required TemplateConfig Template { get; set; }
+    public OutputConfig Output { get; set; } = new();
+
+    public static MailConfig CreateTemplate() => new()
+    {
+        Sender = new()
+        {
+            SmtpHost = "smtp.example.com:465",
+            SenderEmail = "sender@example.com",
+            SenderPassword = "your-password",
+        },
+        Template = new()
+        {
+            CsvPath = "samples/sample.csv",
+            HtmlPath = "samples/template.html",
+            Subject = "{{ Title }}",
+        },
+        Output = new()
+        {
+            OutputDir = "Output",
+            Attachments =
+            [
+                new() { Source = "samples/attachment.html", Name = "{{ Name }}_attachment_1.pdf" },
+            ],
+        },
+    };
+}
 
 public sealed record RunResult(
     bool Success,

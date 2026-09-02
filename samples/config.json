@@ -1,0 +1,21 @@
+{
+  "sender": {
+    "smtpHost": "smtp.example.com:465",
+    "senderEmail": "sender@example.com",
+    "senderPassword": "your-password"
+  },
+  "template": {
+    "csvPath": "samples/sample.csv",
+    "htmlPath": "samples/template.html",
+    "subject": "{{ Title }}"
+  },
+  "output": {
+    "outputDir": "Output",
+    "attachments": [
+      {
+        "source": "samples/attachment.html",
+        "name": "{{ Name }}_attachment_1.pdf"
+      }
+    ]
+  }
+}

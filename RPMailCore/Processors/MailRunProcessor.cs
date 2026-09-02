@@ -25,6 +25,13 @@ public class MailRunProcessor : IDisposable
 
     public async Task<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
     {
+        if (!config.Output.ConvertOnly && config.Sender is null)
+        {
+            const string message = "Sender config is required unless Output.ConvertOnly is enabled.";
+            _logger.LogError(message);
+            return new RunResult(false, 0, 0, 0, "", null, new InvalidDataException(message));
+        }
+
         var encoding = EncodingResolver.Resolve(config.Template.CharSet);
         string realOutputDir = Path.Combine(config.Output.OutputDir, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
         int sentCount = 0;
@@ -90,7 +97,7 @@ public class MailRunProcessor : IDisposable
 
             if (!config.Output.ConvertOnly)
             {
-                var mailSender = _mailSender ?? new MailSendProcessor(config.Sender.SmtpHost, config.Sender.SenderEmail, config.Sender.SenderPassword);
+                var mailSender = _mailSender ?? new MailSendProcessor(config.Sender!.SmtpHost, config.Sender.SenderEmail, config.Sender.SenderPassword);
                 double progress = 0;
                 double step = contents.Count > 0 ? 100.0 / contents.Count : 0;
 

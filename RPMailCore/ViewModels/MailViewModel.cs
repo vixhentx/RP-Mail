@@ -42,17 +42,17 @@ public class MailViewModel : IDisposable
         StartCommand = new ReactiveCommand<Unit, RunResult>(
             IsRunning.AsObservable().Select(x => !x),
             true,
-            async (_, ct) => await RunAsync(ct));
+            async (_, ct) => await RunAsync(BuildConfig(), ct));
     }
 
-    public async Task<RunResult> RunAsync(CancellationToken ct = default)
+    public async Task<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
     {
         if (IsRunning.Value)
             throw new InvalidOperationException("Mail run is already in progress.");
         IsRunning.Value = true;
         try
         {
-            LastResult = await Task.Run(() => _processor.RunAsync(BuildConfig(), ct), ct);
+            LastResult = await Task.Run(() => _processor.RunAsync(config, ct), ct);
             return LastResult;
         }
         finally
@@ -61,16 +61,32 @@ public class MailViewModel : IDisposable
         }
     }
 
-    private MailConfig BuildConfig() => new(
-        new SenderConfig(SmtpHost.Value, SenderEmail.Value, SenderPassword.Value),
-        new TemplateConfig(CsvPath.Value, HtmlPath.Value, Subject.Value, ReceiverHeader.Value, CharSet.Value),
-        new OutputConfig(
-            OutputDir.Value,
-            SaveHtmlFile.Value,
-            SaveRawDocs.Value,
-            ConvertOnly.Value,
-            DeleteAfterSent.Value,
-            AttachmentPatterns.ToImmutableArray()));
+    private MailConfig BuildConfig() => new()
+    {
+        Sender = new()
+        {
+            SmtpHost = SmtpHost.Value,
+            SenderEmail = SenderEmail.Value,
+            SenderPassword = SenderPassword.Value,
+        },
+        Template = new()
+        {
+            CsvPath = CsvPath.Value,
+            HtmlPath = HtmlPath.Value,
+            Subject = Subject.Value,
+            ReceiverHeader = ReceiverHeader.Value,
+            CharSet = CharSet.Value,
+        },
+        Output = new()
+        {
+            OutputDir = OutputDir.Value,
+            SaveHtmlFile = SaveHtmlFile.Value,
+            SaveRawDocs = SaveRawDocs.Value,
+            ConvertOnly = ConvertOnly.Value,
+            DeleteAfterSent = DeleteAfterSent.Value,
+            Attachments = AttachmentPatterns.ToImmutableArray(),
+        },
+    };
 
     public void Dispose()
     {
