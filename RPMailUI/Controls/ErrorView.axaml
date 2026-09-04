@@ -11,7 +11,7 @@
         <converter:ResourceColorConverter x:Key="ResourceColorConverter"/>
     </UserControl.Resources>
     <ScrollViewer HorizontalAlignment="Stretch" x:Name="ScrollView">
-            <ItemsControl ItemsSource="{Binding #Root.ErrorsView.Value}">
+            <ItemsControl x:Name="ErrorsControl">
                 <ItemsControl.DataTemplates>
                     <DataTemplate x:DataType="models:ErrorItemData">
                         <Border x:Name="BorderFrame"

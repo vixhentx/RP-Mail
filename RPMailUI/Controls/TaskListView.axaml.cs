@@ -13,7 +13,7 @@ public partial class TaskListView : UserControl
     private readonly DisposableBag _disposables = new();
 
     public static readonly StyledProperty<ObservableList<TaskItemData>> TasksProperty = AvaloniaProperty.Register<TaskListView, ObservableList<TaskItemData>>(
-        nameof(Tasks), [], defaultBindingMode: BindingMode.TwoWay);
+        nameof(Tasks), [], defaultBindingMode: BindingMode.OneWay);
 
     public ObservableList<TaskItemData> Tasks
     {

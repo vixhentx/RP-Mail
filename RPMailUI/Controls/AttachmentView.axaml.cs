@@ -12,7 +12,7 @@ public partial class AttachmentView : UserControl
     private readonly DisposableBag _disposables = new();
 
     public static readonly StyledProperty<ObservableList<AttachmentItemData>> AttachmentsProperty = AvaloniaProperty.Register<AttachmentView, ObservableList<AttachmentItemData>>(
-        nameof(Attachments), [], defaultBindingMode: BindingMode.TwoWay);
+        nameof(Attachments), [], defaultBindingMode: BindingMode.OneWay);
 
     public ObservableList<AttachmentItemData> Attachments
     {
@@ -23,24 +23,23 @@ public partial class AttachmentView : UserControl
     public ReactiveCommand AppendCommand { get; } = new();
     public ReactiveCommand RemoveCommand { get; } = new();
 
-    public IReadOnlyBindableReactiveProperty<NotifyCollectionChangedSynchronizedViewList<AttachmentItemData>> AttachmentsView { get; }
-
     public AttachmentView()
     {
         InitializeComponent();
 
-        AttachmentsView = this.GetObservable(AttachmentsProperty)
-            .ToObservable()
-            .Select(x => x.ToNotifyCollectionChangedSlim())
-            .ToReadOnlyBindableReactiveProperty(Attachments!.ToNotifyCollectionChangedSlim())
-            .AddTo(ref _disposables);
-
-        AppendCommand.Subscribe(_ => Attachments!.Add(new AttachmentItemData())).AddTo(ref _disposables);
+        AppendCommand.Subscribe(_ => Attachments.Add(new AttachmentItemData())).AddTo(ref _disposables);
         RemoveCommand.Subscribe(_ =>
         {
-            var selectedIndex = AttachmentListBox!.SelectedIndex;
+            var selectedIndex = AttachmentListBox.SelectedIndex;
             if (selectedIndex >= 0)
-                Attachments!.RemoveAt(selectedIndex);
+                Attachments.RemoveAt(selectedIndex);
         }).AddTo(ref _disposables);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == AttachmentsProperty)
+            AttachmentListBox.ItemsSource = Attachments.ToNotifyCollectionChangedSlim();
     }
 }

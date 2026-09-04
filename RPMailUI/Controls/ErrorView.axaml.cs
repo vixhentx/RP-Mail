@@ -1,5 +1,4 @@
 using System.Collections.Specialized;
-using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -12,10 +11,10 @@ namespace RPMailUI.Controls;
 
 public partial class ErrorView : UserControl
 {
-    private readonly DisposableBag _disposables = new();
+    private DisposableBag _disposables = new();
 
     public static readonly StyledProperty<ObservableList<ErrorItemData>> ErrorsProperty = AvaloniaProperty.Register<ErrorView, ObservableList<ErrorItemData>>(
-        nameof(Errors), [], defaultBindingMode: BindingMode.TwoWay);
+        nameof(Errors), [], defaultBindingMode: BindingMode.OneWay);
 
     public ObservableList<ErrorItemData> Errors
     {
@@ -32,27 +31,24 @@ public partial class ErrorView : UserControl
         set => SetValue(CellHeightProperty, value);
     }
 
-    public IReadOnlyBindableReactiveProperty<NotifyCollectionChangedSynchronizedViewList<ErrorItemData>> ErrorsView { get; }
-
     public ErrorView()
     {
         InitializeComponent();
+    }
 
-        ErrorsView = this.GetObservable(ErrorsProperty)
-            .ToObservable()
-            .Select(x => x.ToNotifyCollectionChangedSlim())
-            .ToReadOnlyBindableReactiveProperty(Errors!.ToNotifyCollectionChangedSlim())
-            .AddTo(ref _disposables);
-
-        this.GetObservable(ErrorsProperty)
-            .ToObservable()
-            .Select(errors => errors.ObserveChanged())
-            .Switch()
-            .Subscribe(e =>
-            {
-                if (e.Action == NotifyCollectionChangedAction.Add)
-                    AfterAppend();
-            }).AddTo(ref _disposables);
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ErrorsProperty)
+        {
+            ErrorsControl.ItemsSource = Errors.ToNotifyCollectionChangedSlim();
+            Errors.ObserveChanged()
+                .Subscribe(e =>
+                {
+                    if (e.Action == NotifyCollectionChangedAction.Add)
+                        AfterAppend();
+                }).AddTo(ref _disposables);
+        }
     }
 
     private void AfterAppend()

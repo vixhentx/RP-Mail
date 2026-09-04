@@ -58,7 +58,7 @@ public class MainWindowViewModel : IDisposable
     private void WireCoreStreams()
     {
         Core.RowsLoaded
-            .ObserveOnCurrentSynchronizationContext()
+            .ObserveOnUIThreadDispatcher()
             .Subscribe(rows =>
             {
                 Tasks.Clear();
@@ -67,7 +67,7 @@ public class MainWindowViewModel : IDisposable
             }).AddTo(ref _disposables);
 
         Core.TaskStateChanged
-            .ObserveOnCurrentSynchronizationContext()
+            .ObserveOnUIThreadDispatcher()
             .Subscribe(e =>
             {
                 if (e.Index >= Tasks.Count) return;
@@ -80,11 +80,11 @@ public class MainWindowViewModel : IDisposable
             }).AddTo(ref _disposables);
 
         Core.ProgressChanged
-            .ObserveOnCurrentSynchronizationContext()
+            .ObserveOnUIThreadDispatcher()
             .Subscribe(p => Progress.Value = p).AddTo(ref _disposables);
 
         Core.IsRunning.AsObservable()
-            .ObserveOnCurrentSynchronizationContext()
+            .ObserveOnUIThreadDispatcher()
             .Where(running => running)
             .Subscribe(_ =>
             {
@@ -94,7 +94,7 @@ public class MainWindowViewModel : IDisposable
             }).AddTo(ref _disposables);
 
         Core.IsRunning.AsObservable()
-            .ObserveOnCurrentSynchronizationContext()
+            .ObserveOnUIThreadDispatcher()
             .Where(running => !running)
             .Skip(1)
             .Subscribe(_ =>

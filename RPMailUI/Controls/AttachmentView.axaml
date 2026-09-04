@@ -15,7 +15,7 @@
             </StackPanel>
             <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Attachments" Margin="5"/>
         </DockPanel>
-        <ListBox x:Name="AttachmentListBox" ItemsSource="{Binding #Root.AttachmentsView.Value}" SelectionMode="Single">
+        <ListBox x:Name="AttachmentListBox" SelectionMode="Single">
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
