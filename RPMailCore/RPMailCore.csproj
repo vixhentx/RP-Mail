@@ -19,4 +19,15 @@
       <PackageReference Include="Scriban" Version="7.2.6" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Update="Resources/Strings.resx">
+        <Generator>MSBuild:Compile</Generator>
+        <StronglyTypedFileName>$(IntermediateOutputPath)Strings.g.cs</StronglyTypedFileName>
+        <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+        <StronglyTypedNamespace>RPMailCore.Resources</StronglyTypedNamespace>
+        <StronglyTypedClassName>Strings</StronglyTypedClassName>
+        <PublicClass>true</PublicClass>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>

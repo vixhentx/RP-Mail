@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RootDescription" xml:space="preserve">
+    <value>一个用于自动发送电子邮件的控制台应用，支持 Scriban 模板（如 "{{ Text }}"）并将 HTML 附件渲染为 PDF。</value>
+  </data>
+  <data name="ConfigOptionDescription" xml:space="preserve">
+    <value>JSON 配置文件路径（'-' 表示从标准输入读取）</value>
+  </data>
+  <data name="TemplateOptionDescription" xml:space="preserve">
+    <value>将配置模板打印到标准输出并退出</value>
+  </data>
+  <data name="QuietOptionDescription" xml:space="preserve">
+    <value>安静模式</value>
+  </data>
+  <data name="VersionOptionDescription" xml:space="preserve">
+    <value>显示版本信息</value>
+  </data>
+  <data name="MissingConfigOption" xml:space="preserve">
+    <value>缺少必需选项：-c/--config（或使用 -t/--template 生成配置模板）。</value>
+  </data>
+  <data name="ConfigNull" xml:space="preserve">
+    <value>JSON 配置为空。</value>
+  </data>
+  <data name="FailedToLoadConfig" xml:space="preserve">
+    <value>加载配置失败：{0}</value>
+  </data>
+</root>

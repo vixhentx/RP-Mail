@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="IncorrectDataFormat" xml:space="preserve">
+    <value>Incorrect data format</value>
+  </data>
+  <data name="CannotReadHeaderRow" xml:space="preserve">
+    <value>Cannot read header row</value>
+  </data>
+  <data name="HeaderRowIsNull" xml:space="preserve">
+    <value>Header row is null</value>
+  </data>
+  <data name="MailRunAlreadyInProgress" xml:space="preserve">
+    <value>Mail run is already in progress.</value>
+  </data>
+  <data name="SenderConfigRequired" xml:space="preserve">
+    <value>Sender config is required unless Output.ConvertOnly is enabled.</value>
+  </data>
+  <data name="ParsingContents" xml:space="preserve">
+    <value>Parsing Contents from {CsvPath}</value>
+  </data>
+  <data name="ParsingReceiver" xml:space="preserve">
+    <value>Parsing Receiver: {Receiver}</value>
+  </data>
+  <data name="StatusPending" xml:space="preserve">
+    <value>Pending...</value>
+  </data>
+  <data name="FailedToParseRow" xml:space="preserve">
+    <value>Failed to parse row {Index}</value>
+  </data>
+  <data name="ParsedContents" xml:space="preserve">
+    <value>Parsed {Count} contents from {CsvPath}</value>
+  </data>
+  <data name="StatusSending" xml:space="preserve">
+    <value>Sending email...</value>
+  </data>
+  <data name="SendingEmailTo" xml:space="preserve">
+    <value>Sending Email To: {Receiver}, Subject: {Subject}</value>
+  </data>
+  <data name="EmailSent" xml:space="preserve">
+    <value>Email sent.</value>
+  </data>
+  <data name="FailedToSendEmail" xml:space="preserve">
+    <value>Failed to send email to {Receiver}</value>
+  </data>
+  <data name="WrittenFailedList" xml:space="preserve">
+    <value>Written FailedList to CSV File: {FailedCsvPath}</value>
+  </data>
+  <data name="AllDone" xml:space="preserve">
+    <value>All Done!</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Unexpected Error</value>
+  </data>
+</root>

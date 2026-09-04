@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="OpenOutput" xml:space="preserve">
+    <value>Open Output</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start!</value>
+  </data>
+  <data name="TaskList" xml:space="preserve">
+    <value>Task List</value>
+  </data>
+  <data name="Console" xml:space="preserve">
+    <value>Console</value>
+  </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="ContentSettings" xml:space="preserve">
+    <value>Content Settings</value>
+  </data>
+  <data name="CsvFile" xml:space="preserve">
+    <value>CSV File</value>
+  </data>
+  <data name="HtmlFile" xml:space="preserve">
+    <value>HTML File</value>
+  </data>
+  <data name="SubjectCaption" xml:space="preserve">
+    <value>Subject:</value>
+  </data>
+  <data name="ReceiverHeaderCaption" xml:space="preserve">
+    <value>Receiver Header:</value>
+  </data>
+  <data name="CharSetCaption" xml:space="preserve">
+    <value>CharSet:</value>
+  </data>
+  <data name="SenderSettings" xml:space="preserve">
+    <value>Sender Settings</value>
+  </data>
+  <data name="SenderEmailCaption" xml:space="preserve">
+    <value>Sender Email:</value>
+  </data>
+  <data name="PasswordCaption" xml:space="preserve">
+    <value>Password:</value>
+  </data>
+  <data name="SmtpHostCaption" xml:space="preserve">
+    <value>SMTP Host:</value>
+  </data>
+  <data name="ConvertSettings" xml:space="preserve">
+    <value>Convert Settings</value>
+  </data>
+  <data name="OutputFolderCaption" xml:space="preserve">
+    <value>Output Folder:</value>
+  </data>
+  <data name="DeleteAfterSent" xml:space="preserve">
+    <value>Delete After Sent</value>
+  </data>
+  <data name="ConvertOnly" xml:space="preserve">
+    <value>Convert Only</value>
+  </data>
+  <data name="SaveRawDoc" xml:space="preserve">
+    <value>Save Raw Doc</value>
+  </data>
+  <data name="SaveHtml" xml:space="preserve">
+    <value>Save HTML</value>
+  </data>
+  <data name="PropertyShown" xml:space="preserve">
+    <value>Property Shown:</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search:</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="OpenFilePickerTitle" xml:space="preserve">
+    <value>Open {0} File</value>
+  </data>
+  <data name="FileTypeName" xml:space="preserve">
+    <value>{0} File</value>
+  </data>
+  <data name="AnyFile" xml:space="preserve">
+    <value>Any File</value>
+  </data>
+  <data name="SelectDirectory" xml:space="preserve">
+    <value>Select Directory</value>
+  </data>
+  <data name="CannotOpen" xml:space="preserve">
+    <value>Cannot open {0}: {1}</value>
+  </data>
+  <data name="Append" xml:space="preserve">
+    <value>Append</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Attachments" xml:space="preserve">
+    <value>Attachments</value>
+  </data>
+  <data name="ReadyToSend" xml:space="preserve">
+    <value>Ready to send</value>
+  </data>
+  <data name="NoProperty" xml:space="preserve">
+    <value>No Property</value>
+  </data>
+  <data name="TaskStatusReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="TaskStatusPending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="TaskStatusRunning" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="TaskStatusSuccess" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="TaskStatusFailed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+</root>

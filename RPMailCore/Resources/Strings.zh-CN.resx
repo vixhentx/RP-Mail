@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="IncorrectDataFormat" xml:space="preserve">
+    <value>数据格式不正确</value>
+  </data>
+  <data name="CannotReadHeaderRow" xml:space="preserve">
+    <value>无法读取表头行</value>
+  </data>
+  <data name="HeaderRowIsNull" xml:space="preserve">
+    <value>表头行为空</value>
+  </data>
+  <data name="MailRunAlreadyInProgress" xml:space="preserve">
+    <value>邮件任务已在进行中。</value>
+  </data>
+  <data name="SenderConfigRequired" xml:space="preserve">
+    <value>除非启用 Output.ConvertOnly，否则必须提供发件人配置。</value>
+  </data>
+  <data name="ParsingContents" xml:space="preserve">
+    <value>正在从 {CsvPath} 解析内容</value>
+  </data>
+  <data name="ParsingReceiver" xml:space="preserve">
+    <value>正在解析收件人：{Receiver}</value>
+  </data>
+  <data name="StatusPending" xml:space="preserve">
+    <value>待发送…</value>
+  </data>
+  <data name="FailedToParseRow" xml:space="preserve">
+    <value>解析第 {Index} 行失败</value>
+  </data>
+  <data name="ParsedContents" xml:space="preserve">
+    <value>已从 {CsvPath} 解析 {Count} 条内容</value>
+  </data>
+  <data name="StatusSending" xml:space="preserve">
+    <value>正在发送邮件…</value>
+  </data>
+  <data name="SendingEmailTo" xml:space="preserve">
+    <value>正在发送邮件至：{Receiver}，主题：{Subject}</value>
+  </data>
+  <data name="EmailSent" xml:space="preserve">
+    <value>邮件已发送。</value>
+  </data>
+  <data name="FailedToSendEmail" xml:space="preserve">
+    <value>发送邮件至 {Receiver} 失败</value>
+  </data>
+  <data name="WrittenFailedList" xml:space="preserve">
+    <value>已将失败列表写入 CSV 文件：{FailedCsvPath}</value>
+  </data>
+  <data name="AllDone" xml:space="preserve">
+    <value>全部完成！</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>发生意外错误</value>
+  </data>
+</root>

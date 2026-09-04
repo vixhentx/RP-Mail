@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using R3;
 using RPMailCore.Models;
+using RPMailCore.Resources;
 using RPMailCore.Services;
 
 namespace RPMailCore.Processors;
@@ -27,7 +28,7 @@ public class MailRunProcessor : IDisposable
     {
         if (!config.Output.ConvertOnly && config.Sender is null)
         {
-            const string message = "Sender config is required unless Output.ConvertOnly is enabled.";
+            string message = Strings.SenderConfigRequired;
             _logger.LogError(message);
             return new RunResult(false, 0, 0, 0, "", null, new InvalidDataException(message));
         }
@@ -39,7 +40,7 @@ public class MailRunProcessor : IDisposable
         HtmlToPdfProcessor? pdfProcessor = null;
         try
         {
-            _logger.LogInformation("Parsing Contents from {CsvPath}", config.Template.CsvPath);
+            _logger.LogInformation(Strings.ParsingContents, config.Template.CsvPath);
             FileIo.CreateDirectory(realOutputDir);
 
             var csv = CsvProcessor.Read(config.Template.CsvPath, encoding);
@@ -56,7 +57,7 @@ public class MailRunProcessor : IDisposable
                 try
                 {
                     string receiver = row[config.Template.ReceiverHeader];
-                    _logger.LogInformation("Parsing Receiver: {Receiver}", receiver);
+                    _logger.LogInformation(Strings.ParsingReceiver, receiver);
 
                     string subject = engine.Render(config.Template.Subject, row);
                     string htmlPath = engine.Render(config.Template.HtmlPath, row);
@@ -79,7 +80,7 @@ public class MailRunProcessor : IDisposable
                         OutputDir = outputDir,
                         RawRow = row,
                     });
-                    TaskStateChanged.OnNext(new(index, MailTaskStatus.Pending, "Pending..."));
+                    TaskStateChanged.OnNext(new(index, MailTaskStatus.Pending, Strings.StatusPending));
                 }
                 catch (OperationCanceledException)
                 {
@@ -89,11 +90,11 @@ public class MailRunProcessor : IDisposable
                 {
                     failedRows.Add(new(row, e.Message));
                     TaskStateChanged.OnNext(new(index, MailTaskStatus.Failed, e.Message));
-                    _logger.LogError(e, "Failed to parse row {Index}", index + 1);
+                    _logger.LogError(e, Strings.FailedToParseRow, index + 1);
                 }
             }
 
-            _logger.LogInformation("Parsed {Count} contents from {CsvPath}", contents.Count, config.Template.CsvPath);
+            _logger.LogInformation(Strings.ParsedContents, contents.Count, config.Template.CsvPath);
 
             if (!config.Output.ConvertOnly)
             {
@@ -104,13 +105,13 @@ public class MailRunProcessor : IDisposable
                 foreach (var content in contents)
                 {
                     ct.ThrowIfCancellationRequested();
-                    TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Running, "Sending email..."));
-                    _logger.LogInformation("Sending Email To: {Receiver}, Subject: {Subject}", content.Receiver, content.Subject);
+                    TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Running, Strings.StatusSending));
+                    _logger.LogInformation(Strings.SendingEmailTo, content.Receiver, content.Subject);
                     try
                     {
                         await mailSender.SendAsync(content, ct);
-                        TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Success, "Email sent."));
-                        _logger.LogInformation("Email sent.");
+                        TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Success, Strings.EmailSent));
+                        _logger.LogInformation(Strings.EmailSent);
                         if (config.Output.DeleteAfterSent)
                         {
                             foreach (var attachment in content.Attachments)
@@ -126,7 +127,7 @@ public class MailRunProcessor : IDisposable
                     {
                         failedRows.Add(new(content.RawRow, e.Message));
                         TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Failed, e.Message));
-                        _logger.LogError(e, "Failed to send email to {Receiver}", content.Receiver);
+                        _logger.LogError(e, Strings.FailedToSendEmail, content.Receiver);
                     }
                     progress += step;
                     ProgressChanged.OnNext(Math.Min(progress, 100));
@@ -138,11 +139,11 @@ public class MailRunProcessor : IDisposable
             {
                 failedCsvPath = Path.Combine(realOutputDir, "data_failed.csv");
                 FileIo.WriteCsv(failedCsvPath, csv.Headers, failedRows.Select(f => f.Row), encoding);
-                _logger.LogWarning("Written FailedList to CSV File: {FailedCsvPath}", failedCsvPath);
+                _logger.LogWarning(Strings.WrittenFailedList, failedCsvPath);
             }
             else
             {
-                _logger.LogInformation("All Done!");
+                _logger.LogInformation(Strings.AllDone);
             }
 
             return new RunResult(true, csv.Rows.Length, failedRows.Count, sentCount, realOutputDir, failedCsvPath, null);
@@ -153,7 +154,7 @@ public class MailRunProcessor : IDisposable
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Unexpected Error");
+            _logger.LogError(e, Strings.UnexpectedError);
             return new RunResult(false, 0, 0, 0, realOutputDir, null, e);
         }
         finally

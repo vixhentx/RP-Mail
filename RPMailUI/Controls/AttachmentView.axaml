@@ -4,16 +4,17 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:local="clr-namespace:RPMailUI.Controls"
                       xmlns:models="clr-namespace:RPMailUI.Models"
+                      xmlns:res="using:RPMailUI.Resources"
                       mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                       x:Class="RPMailUI.Controls.AttachmentView"
                       x:Name="Root">
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button Content="Append" Command="{Binding #Root.AppendCommand}"/>
-                <Button Content="Remove" Command="{Binding #Root.RemoveCommand}"/>
+                <Button Content="{x:Static res:Strings.Append}" Command="{Binding #Root.AppendCommand}"/>
+                <Button Content="{x:Static res:Strings.Remove}" Command="{Binding #Root.RemoveCommand}"/>
             </StackPanel>
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="Attachments" Margin="5"/>
+            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{x:Static res:Strings.Attachments}" Margin="5"/>
         </DockPanel>
         <ListBox x:Name="AttachmentListBox" SelectionMode="Single">
             <ListBox.ItemTemplate>

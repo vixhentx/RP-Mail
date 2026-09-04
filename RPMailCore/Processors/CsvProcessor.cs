@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 using CsvHelper;
+using RPMailCore.Resources;
 
 namespace RPMailCore.Processors;
 
@@ -14,9 +15,9 @@ public static class CsvProcessor
         using var reader = new StreamReader(path, encoding, true);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
-        if (!csv.Read()) throw new InvalidDataException("Incorrect data format");
-        if (!csv.ReadHeader()) throw new InvalidDataException("Cannot read header row");
-        var headers = csv.HeaderRecord ?? throw new InvalidDataException("Header row is null");
+        if (!csv.Read()) throw new InvalidDataException(Strings.IncorrectDataFormat);
+        if (!csv.ReadHeader()) throw new InvalidDataException(Strings.CannotReadHeaderRow);
+        var headers = csv.HeaderRecord ?? throw new InvalidDataException(Strings.HeaderRowIsNull);
 
         var rows = ImmutableArray.CreateBuilder<ImmutableDictionary<string, string>>();
         while (csv.Read())

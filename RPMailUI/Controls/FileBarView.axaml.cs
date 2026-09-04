@@ -6,6 +6,7 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using R3;
+using RPMailUI.Resources;
 using RPMailUI.Services;
 
 namespace RPMailUI.Controls;
@@ -82,10 +83,10 @@ public partial class FileBarView : UserControl
         if (!IsDirectory)
         {
             var fileTypeExt = string.IsNullOrWhiteSpace(FileType) ? "*" : FileType.ToLower();
-            var fileTypeName = $"{(string.IsNullOrWhiteSpace(FileType) ? "Any" : FileType)} File";
+            var fileTypeName = string.IsNullOrWhiteSpace(FileType) ? Strings.AnyFile : string.Format(Strings.FileTypeName, FileType);
             var files = await provider.OpenFilePickerAsync(new()
             {
-                Title = $"Open {FileType} File",
+                Title = string.Format(Strings.OpenFilePickerTitle, FileType),
                 AllowMultiple = false,
                 FileTypeFilter = [new(fileTypeName)
                 {
@@ -102,7 +103,7 @@ public partial class FileBarView : UserControl
         {
             var directories = await provider.OpenFolderPickerAsync(new()
             {
-                Title = "Select Directory",
+                Title = Strings.SelectDirectory,
                 AllowMultiple = false,
                 SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(AppContext.BaseDirectory)
             });
@@ -140,7 +141,7 @@ public partial class FileBarView : UserControl
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Cannot open {FilePath}: {ex.Message}");
+            Trace.WriteLine(string.Format(Strings.CannotOpen, FilePath, ex.Message));
         }
     }
 

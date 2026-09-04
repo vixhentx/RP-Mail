@@ -4,6 +4,7 @@
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                 xmlns:converter="clr-namespace:RPMailUI.Converter"
                 xmlns:model="clr-namespace:RPMailUI.Models"
+                xmlns:res="using:RPMailUI.Resources"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="RPMailUI.Controls.TaskListView"
                 x:Name="Root">
@@ -17,10 +18,10 @@
             <DockPanel>
                 <Grid DockPanel.Dock="Top"
                       ColumnDefinitions="Auto,Auto,Auto,*">
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Property Shown:"/>
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Static res:Strings.PropertyShown}"/>
                     <ComboBox Grid.Column="1" x:Name="PropertyComboBox" HorizontalAlignment="Stretch" Margin="5"
                               ItemsSource="{Binding #Root.AvailableHeaders.Value}"/>
-                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Search:"/>
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Static res:Strings.Search}"/>
                     <TextBox Grid.Column="3" Text="{Binding #Root.SearchText}" HorizontalAlignment="Stretch" Margin="5"/>
                 </Grid>
                 <ItemsControl ItemsSource="{Binding #Root.TasksView.Value}">

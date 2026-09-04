@@ -2,9 +2,10 @@ using System.CommandLine;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using RPMailConsole.Resources;
+using RPMailCore.Coordination;
 using RPMailCore.Models;
 using RPMailCore.Serialization;
-using RPMailCore.ViewModels;
 
 namespace RPMailConsole;
 
@@ -14,12 +15,12 @@ public static class Program
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        var root = new RootCommand("A console application to send EMail automatically, with Scriban templates like \"{{ Text }}\" and HTML attachment rendered into PDF.");
+        var root = new RootCommand(Strings.RootDescription);
 
-        var configOpt = new Option<string>("config", ["-c", "--config"]) { Description = "Path to the JSON config file ('-' to read from stdin)" };
-        var templateOpt = new Option<bool>("template", ["-t", "--template"]) { Description = "Print a config template to stdout and exit" };
-        var quietOpt = new Option<bool>("quiet", ["-q", "--quiet"]) { Description = "Quiet mode" };
-        var versionOpt = new Option<bool>("version", ["--version"]) { Description = "Show version information" };
+        var configOpt = new Option<string>("config", ["-c", "--config"]) { Description = Strings.ConfigOptionDescription };
+        var templateOpt = new Option<bool>("template", ["-t", "--template"]) { Description = Strings.TemplateOptionDescription };
+        var quietOpt = new Option<bool>("quiet", ["-q", "--quiet"]) { Description = Strings.QuietOptionDescription };
+        var versionOpt = new Option<bool>("version", ["--version"]) { Description = Strings.VersionOptionDescription };
 
         root.Options.Add(configOpt);
         root.Options.Add(templateOpt);
@@ -50,7 +51,7 @@ public static class Program
 
             if (pr.GetValue(configOpt) is not { Length: > 0 } configPath)
             {
-                Console.Error.WriteLine("Missing required option: -c/--config (or use -t/--template to generate a config template).");
+                Console.Error.WriteLine(Strings.MissingConfigOption);
                 return 2;
             }
 
@@ -61,9 +62,9 @@ public static class Program
                     : await File.ReadAllTextAsync(configPath, ct);
 
                 var config = JsonSerializer.Deserialize(json, RPMailJsonContext.Default.MailConfig)
-                    ?? throw new JsonException("JSON config is null or empty.");
+                    ?? throw new JsonException(Strings.ConfigNull);
 
-                var vm = new MailViewModel(loggerFactory.CreateLogger("RPMail"));
+                var vm = new MailRunCoordinator(loggerFactory.CreateLogger("RPMail"));
                 try
                 {
                     var result = await vm.RunAsync(config, ct);
@@ -85,7 +86,7 @@ public static class Program
             }
             catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
             {
-                Console.Error.WriteLine($"Failed to load config: {e.Message}");
+                Console.Error.WriteLine(string.Format(Strings.FailedToLoadConfig, e.Message));
                 return 2;
             }
         });

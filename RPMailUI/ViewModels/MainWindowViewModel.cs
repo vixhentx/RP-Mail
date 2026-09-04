@@ -4,9 +4,10 @@ using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using ObservableCollections;
 using R3;
+using RPMailCore.Coordination;
 using RPMailCore.Models;
-using RPMailCore.ViewModels;
 using RPMailUI.Models;
+using RPMailUI.Resources;
 using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
@@ -20,7 +21,7 @@ public class MainWindowViewModel : IDisposable
     private DisposableBag _disposables = new();
     private readonly Dictionary<AttachmentItemData, IDisposable> _attachmentSubscriptions = [];
 
-    public MailViewModel Core { get; }
+    public MailRunCoordinator Core { get; }
 
     public ObservableList<TaskItemData> Tasks { get; } = [];
     public ObservableList<AttachmentItemData> Attachments { get; } = [new()];
@@ -36,7 +37,7 @@ public class MainWindowViewModel : IDisposable
 
     public MainWindowViewModel()
     {
-        Core = new MailViewModel(new UiLogger(this));
+        Core = new MailRunCoordinator(new UiLogger(this));
 
         OpenOutputFolderCommand.Subscribe(_ =>
         {
@@ -63,7 +64,7 @@ public class MainWindowViewModel : IDisposable
             {
                 Tasks.Clear();
                 foreach (var row in rows)
-                    Tasks.Add(new TaskItemData(row, MailTaskStatus.Ready, "Ready to send"));
+                    Tasks.Add(new TaskItemData(row, MailTaskStatus.Ready, Strings.ReadyToSend));
             }).AddTo(ref _disposables);
 
         Core.TaskStateChanged

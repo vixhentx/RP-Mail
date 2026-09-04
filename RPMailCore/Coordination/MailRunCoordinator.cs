@@ -3,10 +3,11 @@ using Microsoft.Extensions.Logging;
 using R3;
 using RPMailCore.Models;
 using RPMailCore.Processors;
+using RPMailCore.Resources;
 
-namespace RPMailCore.ViewModels;
+namespace RPMailCore.Coordination;
 
-public class MailViewModel : IDisposable
+public class MailRunCoordinator : IDisposable
 {
     private readonly MailRunProcessor _processor;
 
@@ -36,7 +37,7 @@ public class MailViewModel : IDisposable
     public Observable<TaskStateChanged> TaskStateChanged => _processor.TaskStateChanged;
     public Observable<double> ProgressChanged => _processor.ProgressChanged;
 
-    public MailViewModel(ILogger? logger = null)
+    public MailRunCoordinator(ILogger? logger = null)
     {
         _processor = new MailRunProcessor(logger);
         StartCommand = new ReactiveCommand<Unit, RunResult>(
@@ -48,7 +49,7 @@ public class MailViewModel : IDisposable
     public async Task<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
     {
         if (IsRunning.Value)
-            throw new InvalidOperationException("Mail run is already in progress.");
+            throw new InvalidOperationException(Strings.MailRunAlreadyInProgress);
         IsRunning.Value = true;
         try
         {

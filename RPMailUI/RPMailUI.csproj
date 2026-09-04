@@ -32,6 +32,17 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Update="Resources/Strings.resx">
+        <Generator>MSBuild:Compile</Generator>
+        <StronglyTypedFileName>$(IntermediateOutputPath)Strings.g.cs</StronglyTypedFileName>
+        <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+        <StronglyTypedNamespace>RPMailUI.Resources</StronglyTypedNamespace>
+        <StronglyTypedClassName>Strings</StronglyTypedClassName>
+        <PublicClass>true</PublicClass>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
       <Compile Update="Controls\FileBarView.axaml.cs">
         <DependentUpon>FileBarView.axaml</DependentUpon>
         <SubType>Code</SubType>

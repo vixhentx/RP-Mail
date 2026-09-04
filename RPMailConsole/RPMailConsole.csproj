@@ -22,4 +22,15 @@
       <ProjectReference Include="..\RPMailCore\RPMailCore.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Update="Resources/Strings.resx">
+        <Generator>MSBuild:Compile</Generator>
+        <StronglyTypedFileName>$(IntermediateOutputPath)Strings.g.cs</StronglyTypedFileName>
+        <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+        <StronglyTypedNamespace>RPMailConsole.Resources</StronglyTypedNamespace>
+        <StronglyTypedClassName>Strings</StronglyTypedClassName>
+        <PublicClass>true</PublicClass>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>
