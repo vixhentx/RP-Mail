@@ -13,7 +13,7 @@
     "outputDir": "Output",
     "attachments": [
       {
-        "source": "samples/attachment.html",
+        "source": "samples/attachment.typ",
         "name": "{{ Name }}_attachment_1.pdf"
       }
     ]

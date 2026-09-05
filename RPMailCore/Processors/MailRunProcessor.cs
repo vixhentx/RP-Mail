@@ -37,7 +37,7 @@ public class MailRunProcessor : IDisposable
         string realOutputDir = Path.Combine(config.Output.OutputDir, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
         int sentCount = 0;
         List<FailedRow> failedRows = [];
-        HtmlToPdfProcessor? pdfProcessor = null;
+        TypstPdfProcessor? pdfProcessor = null;
         try
         {
             _logger.LogInformation(Strings.ParsingContents, config.Template.CsvPath);
@@ -48,7 +48,7 @@ public class MailRunProcessor : IDisposable
 
             var engine = new TemplateEngine();
             var contents = new List<ContentParsed>();
-            pdfProcessor = new HtmlToPdfProcessor(config.Output.SaveRawDocs);
+            pdfProcessor = new TypstPdfProcessor();
 
             for (int index = 0; index < csv.Rows.Length; index++)
             {
@@ -67,7 +67,7 @@ public class MailRunProcessor : IDisposable
                     if (config.Output.SaveHtmlFile || config.Output.ConvertOnly)
                         FileIo.WriteAllText(Path.Combine(outputDir, "body.html"), htmlBody, encoding);
 
-                    var attachments = await BuildAttachments(engine, pdfProcessor, config.Output.Attachments, outputDir, row, encoding);
+                    var attachments = BuildAttachments(engine, pdfProcessor, config.Output.Attachments, outputDir, row, encoding);
 
                     contents.Add(new ContentParsed
                     {
@@ -159,12 +159,11 @@ public class MailRunProcessor : IDisposable
         }
         finally
         {
-            if (pdfProcessor is not null)
-                await pdfProcessor.DisposeAsync();
+            pdfProcessor?.Dispose();
         }
     }
 
-    private async Task<ImmutableArray<string>> BuildAttachments(TemplateEngine engine, HtmlToPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> row, Encoding encoding)
+    private ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> row, Encoding encoding)
     {
         var ret = ImmutableArray.CreateBuilder<string>();
         foreach (var attachment in attachmentPatterns)
@@ -179,8 +178,8 @@ public class MailRunProcessor : IDisposable
                 targetFile = Path.ChangeExtension(targetFile, ".pdf");
 
             string outputPath = Path.Combine(outputDir, targetFile);
-            string renderedHtml = engine.Render(FileIo.ReadAllText(patternPath, encoding), row);
-            await pdfProcessor.ConvertAsync(renderedHtml, outputPath, encoding);
+            string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), row);
+            pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
             ret.Add(outputPath);
         }
         return ret.ToImmutable();

@@ -45,11 +45,6 @@
     "hash": "sha256-P+zPAadLL63k/GqK34/qChqQjY9aIRxZfxlB9lqsSrs="
   },
   {
-    "pname": "Microsoft.Extensions.Logging",
-    "version": "8.0.0",
-    "hash": "sha256-Meh0Z0X7KyOEG4l0RWBcuHHihcABcvCyfUXgasmQ91o="
-  },
-  {
     "pname": "Microsoft.Extensions.Logging.Abstractions",
     "version": "10.0.0",
     "hash": "sha256-BnhgGZc01HwTSxogavq7Ueq4V7iMA3wPnbfRwQ4RhGk="
@@ -80,29 +75,14 @@
     "hash": "sha256-Dup08KcptLjlnpN5t5//+p4n8FUTgRAq4n/w1s6us+I="
   },
   {
-    "pname": "Microsoft.IO.RecyclableMemoryStream",
-    "version": "3.0.1",
-    "hash": "sha256-unFg/5EcU/XKJbob4GtQC43Ydgi5VjeBGs7hfhj4EYo="
-  },
-  {
     "pname": "MimeKit",
     "version": "4.17.0",
     "hash": "sha256-GpWv+8shoprshuPNB+H+C5saffiKQ6Pek3zhLUGklRo="
   },
   {
-    "pname": "PuppeteerSharp",
-    "version": "25.8.0",
-    "hash": "sha256-/pot9bXC8pOBOU3gLA7KzkzxhJd3mM+y9l/WjwEt098="
-  },
-  {
     "pname": "R3",
     "version": "1.3.1",
     "hash": "sha256-G/wFTLFuhueMhHrQ75FUwoWpv7FTMdnC+p52q1jT+po="
-  },
-  {
-    "pname": "ReactiveExtensionsSharp",
-    "version": "0.3.0",
-    "hash": "sha256-7JXwNTvG3ntvI5UEwdY3AdL1zUb6fbGOcyn4LVHtLHc="
   },
   {
     "pname": "Scriban",
@@ -120,8 +100,13 @@
     "hash": "sha256-d3sLG+LZ3+N/h/6gdJcVKOgbBO6wYb66NfXalAEDqnE="
   },
   {
-    "pname": "WebDriverBiDi",
-    "version": "0.0.54",
-    "hash": "sha256-jOKRR4GJACDOKq2P7nAgZr4iAYoJ8ZDtYsbr02ll9ZU="
+    "pname": "Typst.Native",
+    "version": "0.15.0",
+    "hash": "sha256-JxuubApg11O22WLiWuJMSM+KGG62Je7TUikR0BGZqXY="
+  },
+  {
+    "pname": "Typst.Native.Runtime",
+    "version": "0.15.0",
+    "hash": "sha256-qkQ6g7O/cCONh/p7/lqrrumQip6Ygc/XuWE3Zzwwjms="
   }
 ]

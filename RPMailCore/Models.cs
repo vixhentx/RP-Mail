@@ -99,7 +99,7 @@ public sealed class MailConfig
             OutputDir = "Output",
             Attachments =
             [
-                new() { Source = "samples/attachment.html", Name = "{{ Name }}_attachment_1.pdf" },
+                new() { Source = "samples/attachment.typ", Name = "{{ Name }}_attachment_1.pdf" },
             ],
         },
     };

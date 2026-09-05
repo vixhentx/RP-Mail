@@ -1,9 +1,7 @@
 {
   buildDotnetModule,
   dotnetCorePackages,
-  lib,
   src,
-  chromium,
   fontconfig,
   freetype,
   libx11,
@@ -38,8 +36,4 @@ buildDotnetModule {
     libxkbcommon
   ];
 
-  # PuppeteerSharp resolves "chromium" from PATH at runtime.
-  makeWrapperArgs = [
-    "--prefix" "PATH" ":" (lib.makeBinPath [ chromium ])
-  ];
 }

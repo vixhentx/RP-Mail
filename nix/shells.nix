@@ -5,7 +5,6 @@
     devShells.default = pkgs.mkShell {
       buildInputs = [
         pkgs.dotnet-sdk_10
-        pkgs.chromium
       ];
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
         pkgs.fontconfig
