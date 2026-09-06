@@ -20,11 +20,13 @@ public class MainWindowViewModel : IDisposable
     private readonly Subject<Unit> _dirty = new();
     private DisposableBag _disposables = new();
     private readonly Dictionary<AttachmentItemData, IDisposable> _attachmentSubscriptions = [];
+    private readonly Dictionary<ExtraAttributeItemData, IDisposable> _extraAttributeSubscriptions = [];
 
     public MailRunCoordinator Core { get; }
 
     public ObservableList<TaskItemData> Tasks { get; } = [];
     public ObservableList<AttachmentItemData> Attachments { get; } = [new()];
+    public ObservableList<ExtraAttributeItemData> ExtraAttributes { get; } = [new()];
     public ObservableList<ErrorItemData> Errors { get; } = [];
 
     public BindableReactiveProperty<string> ConsoleLog { get; } = new("");
@@ -90,6 +92,7 @@ public class MainWindowViewModel : IDisposable
             .Subscribe(_ =>
             {
                 SyncAttachmentPatterns();
+                SyncExtraAttributes();
                 Errors.Clear();
                 Progress.Value = 0;
             }).AddTo(ref _disposables);
@@ -109,9 +112,8 @@ public class MainWindowViewModel : IDisposable
     private void WirePersistence()
     {
         Watch(Core.CsvPath);
-        Watch(Core.HtmlPath);
+        Watch(Core.BodyHtmlPath);
         Watch(Core.Subject);
-        Watch(Core.ReceiverHeader);
         Watch(Core.CharSet);
         Watch(Core.SmtpHost);
         Watch(Core.SenderEmail);
@@ -147,6 +149,31 @@ public class MainWindowViewModel : IDisposable
         foreach (var item in Attachments)
             SubscribeAttachment(item);
 
+        ExtraAttributes.ObserveChanged().Subscribe(e =>
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    SubscribeExtraAttribute(e.NewItem);
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    if (_extraAttributeSubscriptions.Remove(e.OldItem, out var removedExtra))
+                        removedExtra.Dispose();
+                    break;
+                case NotifyCollectionChangedAction.Reset:
+                    foreach (var sub in _extraAttributeSubscriptions.Values)
+                        sub.Dispose();
+                    _extraAttributeSubscriptions.Clear();
+                    foreach (var item in ExtraAttributes)
+                        SubscribeExtraAttribute(item);
+                    break;
+            }
+            MarkDirty();
+        }).AddTo(ref _disposables);
+
+        foreach (var item in ExtraAttributes)
+            SubscribeExtraAttribute(item);
+
         _dirty.ThrottleLast(TimeSpan.FromMilliseconds(500))
             .SubscribeAwait(async (_, _) => await SaveSettingsAsync())
             .AddTo(ref _disposables);
@@ -162,6 +189,13 @@ public class MainWindowViewModel : IDisposable
         _attachmentSubscriptions[item] = Disposable.Combine(d1, d2);
     }
 
+    private void SubscribeExtraAttribute(ExtraAttributeItemData item)
+    {
+        var d1 = item.Key.AsObservable().Subscribe(_ => MarkDirty());
+        var d2 = item.Value.AsObservable().Subscribe(_ => MarkDirty());
+        _extraAttributeSubscriptions[item] = Disposable.Combine(d1, d2);
+    }
+
     private void MarkDirty() => _dirty.OnNext(Unit.Default);
 
     private void SyncAttachmentPatterns()
@@ -169,6 +203,16 @@ public class MainWindowViewModel : IDisposable
         Core.AttachmentPatterns.Clear();
         foreach (var item in Attachments)
             Core.AttachmentPatterns.Add(new() { Source = item.SourceText.Value, Name = item.DestinationText.Value });
+    }
+
+    private void SyncExtraAttributes()
+    {
+        Core.ExtraAttributes.Clear();
+        foreach (var item in ExtraAttributes)
+        {
+            if (string.IsNullOrWhiteSpace(item.Key.Value)) continue;
+            Core.ExtraAttributes[item.Key.Value] = item.Value.Value;
+        }
     }
 
     private void LoadSettings()
@@ -180,9 +224,8 @@ public class MainWindowViewModel : IDisposable
             if (settings is null) return;
 
             Core.CsvPath.Value = settings.CsvFile;
-            Core.HtmlPath.Value = settings.HtmlFile;
+            Core.BodyHtmlPath.Value = settings.BodyHtmlPath;
             Core.Subject.Value = settings.Subject;
-            Core.ReceiverHeader.Value = settings.ReceiverHeader;
             Core.CharSet.Value = settings.CharSet;
             Core.SmtpHost.Value = settings.SmtpHost;
             Core.SenderEmail.Value = settings.SenderEmail;
@@ -201,6 +244,15 @@ public class MainWindowViewModel : IDisposable
                 item.DestinationText.Value = attachment.DestinationText;
                 Attachments.Add(item);
             }
+
+            ExtraAttributes.Clear();
+            foreach (var attr in settings.ExtraAttributes)
+            {
+                var item = new ExtraAttributeItemData();
+                item.Key.Value = attr.Key;
+                item.Value.Value = attr.Value;
+                ExtraAttributes.Add(item);
+            }
         }
         catch
         {
@@ -215,9 +267,8 @@ public class MainWindowViewModel : IDisposable
             var settings = new PersistedSettings
             {
                 CsvFile = Core.CsvPath.Value,
-                HtmlFile = Core.HtmlPath.Value,
+                BodyHtmlPath = Core.BodyHtmlPath.Value,
                 Subject = Core.Subject.Value,
-                ReceiverHeader = Core.ReceiverHeader.Value,
                 CharSet = Core.CharSet.Value,
                 SmtpHost = Core.SmtpHost.Value,
                 SenderEmail = Core.SenderEmail.Value,
@@ -228,6 +279,7 @@ public class MainWindowViewModel : IDisposable
                 IsSaveRawDoc = Core.SaveRawDocs.Value,
                 IsSaveHtml = Core.SaveHtmlFile.Value,
                 Attachments = Attachments.Select(a => new PersistedAttachment(a.SourceText.Value, a.DestinationText.Value)).ToList(),
+                ExtraAttributes = ExtraAttributes.Select(e => new PersistedExtraAttribute(e.Key.Value, e.Value.Value)).ToList(),
             };
             await File.WriteAllTextAsync(SettingsPath, JsonSerializer.Serialize(settings, PersistedSettingsContext.Default.PersistedSettings));
         }
@@ -250,6 +302,11 @@ public class MainWindowViewModel : IDisposable
         foreach (var sub in _attachmentSubscriptions.Values)
             sub.Dispose();
         _attachmentSubscriptions.Clear();
+
+        foreach (var sub in _extraAttributeSubscriptions.Values)
+            sub.Dispose();
+        _extraAttributeSubscriptions.Clear();
+
         _disposables.Dispose();
         _dirty.Dispose();
         Core.Dispose();

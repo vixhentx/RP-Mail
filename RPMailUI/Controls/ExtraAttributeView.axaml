@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:RPMailUI.Models"
+             xmlns:res="using:RPMailUI.Resources"
+             x:Class="RPMailUI.Controls.ExtraAttributeView"
+             x:Name="Root">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                <Button Content="{x:Static res:Strings.Append}" Command="{Binding #Root.AppendCommand}"/>
+                <Button Content="{x:Static res:Strings.Remove}" Command="{Binding #Root.RemoveCommand}"/>
+            </StackPanel>
+            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{x:Static res:Strings.ExtraAttributes}" Margin="5"/>
+        </DockPanel>
+        <ListBox x:Name="ExtraAttributeListBox" SelectionMode="Single">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="models:ExtraAttributeItemData">
+                    <Grid ColumnDefinitions="*,Auto,*">
+                        <TextBox Grid.Column="0" Text="{Binding Key.Value, Mode=TwoWay}" PlaceholderText="{x:Static res:Strings.ExtraAttributeKey}"/>
+                        <Label Grid.Column="1" Content=" ==&gt; " VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="2" Text="{Binding Value.Value, Mode=TwoWay}" PlaceholderText="{x:Static res:Strings.ExtraAttributeValue}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

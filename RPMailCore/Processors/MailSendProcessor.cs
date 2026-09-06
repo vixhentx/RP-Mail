@@ -16,10 +16,10 @@ public class MailSendProcessor(string host, string senderEmail, string smtpPassw
 
         var message = new MimeMessage();
         message.From.Add(MailboxAddress.Parse(senderEmail));
-        message.To.Add(MailboxAddress.Parse(content.Receiver));
+        message.To.Add(MailboxAddress.Parse(content.Email));
         message.Subject = content.Subject;
 
-        var body = new BodyBuilder { HtmlBody = content.HtmlBody };
+        var body = new BodyBuilder { HtmlBody = content.BodyHtml };
         foreach (var attachment in content.Attachments)
             body.Attachments.Add(attachment);
 

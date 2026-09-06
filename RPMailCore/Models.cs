@@ -33,13 +33,14 @@ public sealed record FailedRow(ImmutableDictionary<string, string> Row, string R
 public sealed record ContentParsed
 {
     public required int RowIndex { get; init; }
-    public required string Receiver { get; init; }
+    public required string Email { get; init; }
     public required string Subject { get; init; }
-    public required string HtmlBody { get; init; }
+    public required string BodyHtml { get; init; }
     public required ImmutableArray<string> Attachments { get; init; }
-    public required string HtmlPath { get; init; }
+    public required string BodyHtmlPath { get; init; }
     public required string OutputDir { get; init; }
-    public required ImmutableDictionary<string, string> RawRow { get; init; }
+    public required ImmutableDictionary<string, string> UserAttributes { get; init; }
+    public required ImmutableDictionary<string, string> ExtraAttributes { get; init; }
 }
 
 public sealed class SenderConfig
@@ -52,10 +53,11 @@ public sealed class SenderConfig
 public sealed class TemplateConfig
 {
     public required string CsvPath { get; set; }
-    public required string HtmlPath { get; set; }
+    public required string BodyHtmlPath { get; set; }
     public required string Subject { get; set; }
-    public string ReceiverHeader { get; set; } = "Receiver";
     public string CharSet { get; set; } = "utf-8";
+    public Dictionary<string, string> ExtraAttributes { get; set; } = [];
+    public ImmutableArray<AttachmentPattern> Attachments { get; set; } = [];
 }
 
 public sealed class AttachmentPattern
@@ -71,7 +73,6 @@ public sealed class OutputConfig
     public bool SaveRawDocs { get; set; }
     public bool ConvertOnly { get; set; }
     public bool DeleteAfterSent { get; set; }
-    public ImmutableArray<AttachmentPattern> Attachments { get; set; } = [];
 }
 
 public sealed class MailConfig
@@ -91,16 +92,17 @@ public sealed class MailConfig
         Template = new()
         {
             CsvPath = "samples/sample.csv",
-            HtmlPath = "samples/template.html",
-            Subject = "{{ Title }}",
+            BodyHtmlPath = "samples/template.html",
+            Subject = "{{ user.title }}",
+            ExtraAttributes = new Dictionary<string, string> { ["company"] = "ACME Inc." },
+            Attachments =
+            [
+                new() { Source = "samples/attachment.typ", Name = "{{ user.name }}_attachment_1.pdf" },
+            ],
         },
         Output = new()
         {
             OutputDir = "Output",
-            Attachments =
-            [
-                new() { Source = "samples/attachment.typ", Name = "{{ Name }}_attachment_1.pdf" },
-            ],
         },
     };
 }

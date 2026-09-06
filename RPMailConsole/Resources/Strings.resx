@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="RootDescription" xml:space="preserve">
-    <value>A console application to send EMail automatically, with Scriban templates like "{{ Text }}" and HTML attachment rendered into PDF.</value>
+    <value>A console application to send EMail automatically, with Scriban templates like "{{ user.Text }}" and Typst attachment rendered into PDF.</value>
   </data>
   <data name="ConfigOptionDescription" xml:space="preserve">
     <value>Path to the JSON config file ('-' to read from stdin)</value>

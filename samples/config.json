@@ -6,16 +6,19 @@
   },
   "template": {
     "csvPath": "samples/sample.csv",
-    "htmlPath": "samples/template.html",
-    "subject": "{{ Title }}"
-  },
-  "output": {
-    "outputDir": "Output",
+    "bodyHtmlPath": "samples/template.html",
+    "subject": "{{ user.title }}",
+    "extraAttributes": {
+      "company": "ACME Inc."
+    },
     "attachments": [
       {
         "source": "samples/attachment.typ",
-        "name": "{{ Name }}_attachment_1.pdf"
+        "name": "{{ user.name }}_attachment_1.pdf"
       }
     ]
+  },
+  "output": {
+    "outputDir": "Output"
   }
 }

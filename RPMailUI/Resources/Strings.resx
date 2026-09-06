@@ -36,17 +36,23 @@
   <data name="CsvFile" xml:space="preserve">
     <value>CSV File</value>
   </data>
-  <data name="HtmlFile" xml:space="preserve">
-    <value>HTML File</value>
+  <data name="BodyHtmlFile" xml:space="preserve">
+    <value>Body HTML File</value>
   </data>
   <data name="SubjectCaption" xml:space="preserve">
     <value>Subject:</value>
   </data>
-  <data name="ReceiverHeaderCaption" xml:space="preserve">
-    <value>Receiver Header:</value>
-  </data>
   <data name="CharSetCaption" xml:space="preserve">
     <value>CharSet:</value>
+  </data>
+  <data name="ExtraAttributes" xml:space="preserve">
+    <value>Extra Attributes</value>
+  </data>
+  <data name="ExtraAttributeKey" xml:space="preserve">
+    <value>Key</value>
+  </data>
+  <data name="ExtraAttributeValue" xml:space="preserve">
+    <value>Value</value>
   </data>
   <data name="SenderSettings" xml:space="preserve">
     <value>Sender Settings</value>

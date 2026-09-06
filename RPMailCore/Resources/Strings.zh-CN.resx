@@ -30,8 +30,8 @@
   <data name="ParsingContents" xml:space="preserve">
     <value>正在从 {CsvPath} 解析内容</value>
   </data>
-  <data name="ParsingReceiver" xml:space="preserve">
-    <value>正在解析收件人：{Receiver}</value>
+  <data name="ParsingEmail" xml:space="preserve">
+    <value>正在解析邮箱：{Email}</value>
   </data>
   <data name="StatusPending" xml:space="preserve">
     <value>待发送…</value>
@@ -46,13 +46,13 @@
     <value>正在发送邮件…</value>
   </data>
   <data name="SendingEmailTo" xml:space="preserve">
-    <value>正在发送邮件至：{Receiver}，主题：{Subject}</value>
+    <value>正在发送邮件至：{Email}，主题：{Subject}</value>
   </data>
   <data name="EmailSent" xml:space="preserve">
     <value>邮件已发送。</value>
   </data>
   <data name="FailedToSendEmail" xml:space="preserve">
-    <value>发送邮件至 {Receiver} 失败</value>
+    <value>发送邮件至 {Email} 失败</value>
   </data>
   <data name="WrittenFailedList" xml:space="preserve">
     <value>已将失败列表写入 CSV 文件：{FailedCsvPath}</value>

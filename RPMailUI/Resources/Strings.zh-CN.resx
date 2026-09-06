@@ -36,17 +36,23 @@
   <data name="CsvFile" xml:space="preserve">
     <value>CSV 文件</value>
   </data>
-  <data name="HtmlFile" xml:space="preserve">
-    <value>HTML 文件</value>
+  <data name="BodyHtmlFile" xml:space="preserve">
+    <value>正文 HTML 文件</value>
   </data>
   <data name="SubjectCaption" xml:space="preserve">
     <value>主题：</value>
   </data>
-  <data name="ReceiverHeaderCaption" xml:space="preserve">
-    <value>收件人表头：</value>
-  </data>
   <data name="CharSetCaption" xml:space="preserve">
     <value>字符集：</value>
+  </data>
+  <data name="ExtraAttributes" xml:space="preserve">
+    <value>额外属性</value>
+  </data>
+  <data name="ExtraAttributeKey" xml:space="preserve">
+    <value>键</value>
+  </data>
+  <data name="ExtraAttributeValue" xml:space="preserve">
+    <value>值</value>
   </data>
   <data name="SenderSettings" xml:space="preserve">
     <value>发件人设置</value>

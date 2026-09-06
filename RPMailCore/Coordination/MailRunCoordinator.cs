@@ -12,9 +12,8 @@ public class MailRunCoordinator : IDisposable
     private readonly MailRunProcessor _processor;
 
     public BindableReactiveProperty<string> CsvPath { get; } = new("");
-    public BindableReactiveProperty<string> HtmlPath { get; } = new("");
+    public BindableReactiveProperty<string> BodyHtmlPath { get; } = new("");
     public BindableReactiveProperty<string> Subject { get; } = new("");
-    public BindableReactiveProperty<string> ReceiverHeader { get; } = new("Receiver");
     public BindableReactiveProperty<string> CharSet { get; } = new("utf-8");
     public BindableReactiveProperty<string> SmtpHost { get; } = new("");
     public BindableReactiveProperty<string> SenderEmail { get; } = new("");
@@ -26,6 +25,7 @@ public class MailRunCoordinator : IDisposable
     public BindableReactiveProperty<bool> DeleteAfterSent { get; } = new(false);
 
     public List<AttachmentPattern> AttachmentPatterns { get; } = [];
+    public Dictionary<string, string> ExtraAttributes { get; } = [];
 
     public BindableReactiveProperty<bool> IsRunning { get; } = new(false);
 
@@ -73,10 +73,11 @@ public class MailRunCoordinator : IDisposable
         Template = new()
         {
             CsvPath = CsvPath.Value,
-            HtmlPath = HtmlPath.Value,
+            BodyHtmlPath = BodyHtmlPath.Value,
             Subject = Subject.Value,
-            ReceiverHeader = ReceiverHeader.Value,
             CharSet = CharSet.Value,
+            ExtraAttributes = ExtraAttributes.ToDictionary(e => e.Key, e => e.Value),
+            Attachments = AttachmentPatterns.ToImmutableArray(),
         },
         Output = new()
         {
@@ -85,7 +86,6 @@ public class MailRunCoordinator : IDisposable
             SaveRawDocs = SaveRawDocs.Value,
             ConvertOnly = ConvertOnly.Value,
             DeleteAfterSent = DeleteAfterSent.Value,
-            Attachments = AttachmentPatterns.ToImmutableArray(),
         },
     };
 

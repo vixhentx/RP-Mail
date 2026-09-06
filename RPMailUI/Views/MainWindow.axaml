@@ -44,12 +44,12 @@
                 <Expander Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
                         <controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{Binding Core.CsvPath.Value}"/>
-                        <controls:FileBarView Caption="{x:Static res:Strings.HtmlFile}" FileType="HTML" FilePath="{Binding Core.HtmlPath.Value}"/>
+                        <controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{Binding Core.BodyHtmlPath.Value}"/>
                         <controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{Binding Core.Subject.Value}"/>
-                        <controls:TextBarView Caption="{x:Static res:Strings.ReceiverHeaderCaption}" Text="{Binding Core.ReceiverHeader.Value}"/>
                         <controls:TextPromptBarView Caption="{x:Static res:Strings.CharSetCaption}" PromptsSource="{StaticResource AllCharSets}" Text="{Binding Core.CharSet.Value}"/>
                         <controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView"
                                                  Attachments="{Binding Attachments, Mode=OneWay}"/>
+                        <controls:ExtraAttributeView ExtraAttributes="{Binding ExtraAttributes, Mode=OneWay}"/>
                     </StackPanel>
                 </Expander>
                 <Expander Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">

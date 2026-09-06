@@ -30,8 +30,8 @@
   <data name="ParsingContents" xml:space="preserve">
     <value>Parsing Contents from {CsvPath}</value>
   </data>
-  <data name="ParsingReceiver" xml:space="preserve">
-    <value>Parsing Receiver: {Receiver}</value>
+  <data name="ParsingEmail" xml:space="preserve">
+    <value>Parsing Email: {Email}</value>
   </data>
   <data name="StatusPending" xml:space="preserve">
     <value>Pending...</value>
@@ -46,13 +46,13 @@
     <value>Sending email...</value>
   </data>
   <data name="SendingEmailTo" xml:space="preserve">
-    <value>Sending Email To: {Receiver}, Subject: {Subject}</value>
+    <value>Sending Email To: {Email}, Subject: {Subject}</value>
   </data>
   <data name="EmailSent" xml:space="preserve">
     <value>Email sent.</value>
   </data>
   <data name="FailedToSendEmail" xml:space="preserve">
-    <value>Failed to send email to {Receiver}</value>
+    <value>Failed to send email to {Email}</value>
   </data>
   <data name="WrittenFailedList" xml:space="preserve">
     <value>Written FailedList to CSV File: {FailedCsvPath}</value>

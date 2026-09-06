@@ -11,6 +11,7 @@ namespace RPMailCore.Processors;
 
 public class MailRunProcessor : IDisposable
 {
+    private const string EmailColumn = "email";
     private readonly ILogger _logger;
     private readonly MailSendProcessor? _mailSender;
 
@@ -56,29 +57,30 @@ public class MailRunProcessor : IDisposable
                 var row = csv.Rows[index];
                 try
                 {
-                    string receiver = row[config.Template.ReceiverHeader];
-                    _logger.LogInformation(Strings.ParsingReceiver, receiver);
+                    string email = row[EmailColumn];
+                    _logger.LogInformation(Strings.ParsingEmail, email);
 
-                    string subject = engine.Render(config.Template.Subject, row);
-                    string htmlPath = engine.Render(config.Template.HtmlPath, row);
-                    string htmlBody = engine.Render(FileIo.ReadAllText(htmlPath, encoding), row);
+                    string subject = engine.Render(config.Template.Subject, row, config.Template.ExtraAttributes);
+                    string bodyHtmlPath = engine.Render(config.Template.BodyHtmlPath, row, config.Template.ExtraAttributes);
+                    string htmlBody = engine.Render(FileIo.ReadAllText(bodyHtmlPath, encoding), row, config.Template.ExtraAttributes);
 
-                    string outputDir = Path.Combine(realOutputDir, receiver);
+                    string outputDir = Path.Combine(realOutputDir, email);
                     if (config.Output.SaveHtmlFile || config.Output.ConvertOnly)
                         FileIo.WriteAllText(Path.Combine(outputDir, "body.html"), htmlBody, encoding);
 
-                    var attachments = BuildAttachments(engine, pdfProcessor, config.Output.Attachments, outputDir, row, encoding);
+                    var attachments = BuildAttachments(engine, pdfProcessor, config.Template.Attachments, outputDir, row, encoding, config.Template.ExtraAttributes);
 
                     contents.Add(new ContentParsed
                     {
                         RowIndex = index,
-                        Receiver = receiver,
+                        Email = email,
                         Subject = subject,
-                        HtmlBody = htmlBody,
+                        BodyHtml = htmlBody,
                         Attachments = attachments,
-                        HtmlPath = htmlPath,
+                        BodyHtmlPath = bodyHtmlPath,
                         OutputDir = outputDir,
-                        RawRow = row,
+                        UserAttributes = row,
+                        ExtraAttributes = config.Template.ExtraAttributes.ToImmutableDictionary(),
                     });
                     TaskStateChanged.OnNext(new(index, MailTaskStatus.Pending, Strings.StatusPending));
                 }
@@ -106,7 +108,7 @@ public class MailRunProcessor : IDisposable
                 {
                     ct.ThrowIfCancellationRequested();
                     TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Running, Strings.StatusSending));
-                    _logger.LogInformation(Strings.SendingEmailTo, content.Receiver, content.Subject);
+                    _logger.LogInformation(Strings.SendingEmailTo, content.Email, content.Subject);
                     try
                     {
                         await mailSender.SendAsync(content, ct);
@@ -125,9 +127,9 @@ public class MailRunProcessor : IDisposable
                     }
                     catch (Exception e)
                     {
-                        failedRows.Add(new(content.RawRow, e.Message));
+                        failedRows.Add(new(content.UserAttributes, e.Message));
                         TaskStateChanged.OnNext(new(content.RowIndex, MailTaskStatus.Failed, e.Message));
-                        _logger.LogError(e, Strings.FailedToSendEmail, content.Receiver);
+                        _logger.LogError(e, Strings.FailedToSendEmail, content.Email);
                     }
                     progress += step;
                     ProgressChanged.OnNext(Math.Min(progress, 100));
@@ -163,22 +165,22 @@ public class MailRunProcessor : IDisposable
         }
     }
 
-    private ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> row, Encoding encoding)
+    private ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> user, Encoding encoding, IReadOnlyDictionary<string, string> extraAttributes)
     {
         var ret = ImmutableArray.CreateBuilder<string>();
         foreach (var attachment in attachmentPatterns)
         {
-            string patternPath = engine.Render(attachment.Source, row);
+            string patternPath = engine.Render(attachment.Source, user, extraAttributes);
             if (string.IsNullOrWhiteSpace(patternPath)) continue;
 
-            string targetFile = engine.Render(attachment.Name, row);
+            string targetFile = engine.Render(attachment.Name, user, extraAttributes);
             if (string.IsNullOrWhiteSpace(targetFile)) continue;
 
             if (string.IsNullOrWhiteSpace(Path.GetExtension(targetFile)))
                 targetFile = Path.ChangeExtension(targetFile, ".pdf");
 
             string outputPath = Path.Combine(outputDir, targetFile);
-            string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), row);
+            string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), user, extraAttributes);
             pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
             ret.Add(outputPath);
         }

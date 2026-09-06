@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="RootDescription" xml:space="preserve">
-    <value>一个用于自动发送电子邮件的控制台应用，支持 Scriban 模板（如 "{{ Text }}"）并将 HTML 附件渲染为 PDF。</value>
+    <value>一个用于自动发送电子邮件的控制台应用，支持 Scriban 模板（如 "{{ user.Text }}"）并将 Typst 附件渲染为 PDF。</value>
   </data>
   <data name="ConfigOptionDescription" xml:space="preserve">
     <value>JSON 配置文件路径（'-' 表示从标准输入读取）</value>
