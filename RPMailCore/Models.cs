@@ -2,28 +2,30 @@ using System.Collections.Immutable;
 
 namespace RPMailCore.Models;
 
-[AttributeUsage(AttributeTargets.Field)]
-public sealed class TaskStatusMetaAttribute(int ordinal) : Attribute
-{
-    public int Ordinal { get; } = ordinal;
-}
-
 public enum MailTaskStatus
 {
-    [TaskStatusMeta(2)]
     Ready,
-
-    [TaskStatusMeta(1)]
     Pending,
-
-    [TaskStatusMeta(0)]
     Running,
-
-    [TaskStatusMeta(3)]
     Success,
-
-    [TaskStatusMeta(4)]
     Failed,
+}
+
+public static class MailTaskStatusExtensions
+{
+    extension(MailTaskStatus status)
+    {
+        public int Ordinal => status switch
+		{
+			MailTaskStatus.Ready => 2,
+			MailTaskStatus.Pending => 1,
+			MailTaskStatus.Running => 0,
+			MailTaskStatus.Success => 3,
+			MailTaskStatus.Failed => 4,
+			_ => throw new ArgumentException($"Status {status} is invalid")
+		};
+        public string Key => $"TaskStatus.{status}";
+    }
 }
 
 public readonly record struct TaskStateChanged(int Index, MailTaskStatus Status, string? Message);
