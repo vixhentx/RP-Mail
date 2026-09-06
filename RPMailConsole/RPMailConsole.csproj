@@ -11,6 +11,7 @@
         <Authors>RobotPilot Software R&amp;D Department</Authors>
         <Description>A console application to send EMail automatically, with Scriban templates like "{{ Text }}" and HTML attachment rendered into PDF.</Description>
         <RepositoryUrl>https://github.com/vixhentx/RP-Mail</RepositoryUrl>
+		<PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
