@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using ObservableCollections;
@@ -37,6 +41,15 @@ public class MainWindowViewModel : IDisposable
     public ReactiveCommand OpenOutputFolderCommand { get; } = new();
     public ReactiveCommand RetryCommand { get; } = new();
 
+    public ReactiveCommand ImportContentCommand { get; } = new();
+    public ReactiveCommand ExportContentCommand { get; } = new();
+    public ReactiveCommand ImportSenderCommand { get; } = new();
+    public ReactiveCommand ExportSenderCommand { get; } = new();
+    public ReactiveCommand ImportConvertCommand { get; } = new();
+    public ReactiveCommand ExportConvertCommand { get; } = new();
+
+    public IStorageProvider? StorageProvider { get; set; }
+
     public MainWindowViewModel()
     {
         Core = new MailRunCoordinator(new UiLogger(this));
@@ -52,6 +65,13 @@ public class MainWindowViewModel : IDisposable
             if (Core.LastResult?.FailedCsvPath is { } failedCsv)
                 Core.CsvPath.Value = failedCsv;
         }).AddTo(ref _disposables);
+
+        ImportContentCommand.Subscribe(async _ => await ImportContentAsync()).AddTo(ref _disposables);
+        ExportContentCommand.Subscribe(async _ => await ExportContentAsync()).AddTo(ref _disposables);
+        ImportSenderCommand.Subscribe(async _ => await ImportSenderAsync()).AddTo(ref _disposables);
+        ExportSenderCommand.Subscribe(async _ => await ExportSenderAsync()).AddTo(ref _disposables);
+        ImportConvertCommand.Subscribe(async _ => await ImportConvertAsync()).AddTo(ref _disposables);
+        ExportConvertCommand.Subscribe(async _ => await ExportConvertAsync()).AddTo(ref _disposables);
 
         LoadSettings();
         WirePersistence();
@@ -295,6 +315,218 @@ public class MainWindowViewModel : IDisposable
         Errors.Add(new ErrorItemData(message, key));
         if (Errors.Count > MaxErrorCount)
             Errors.RemoveAt(0);
+    }
+
+    private async Task<string?> PickOpenJsonAsync(string title)
+    {
+        if (StorageProvider is not { } provider)
+        {
+            AddError(LogLevel.Error, "Storage provider unavailable.");
+            return null;
+        }
+
+        IReadOnlyList<IStorageFile> files;
+        try
+        {
+            files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                FileTypeFilter = new[] { new FilePickerFileType("JSON") { Patterns = new[] { "*.json" } } },
+            });
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"File picker failed: {ex.Message}");
+            return null;
+        }
+
+        if (files is not { Count: > 0 })
+            return null;
+
+        try
+        {
+            await using var stream = await files[0].OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"Failed to read file: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task<bool> PickSaveJsonAsync(string title, string suggestedName, string json)
+    {
+        if (StorageProvider is not { } provider)
+        {
+            AddError(LogLevel.Error, "Storage provider unavailable.");
+            return false;
+        }
+
+        IStorageFile? file;
+        try
+        {
+            file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = title,
+                SuggestedFileName = suggestedName,
+                DefaultExtension = "json",
+                FileTypeChoices = new[] { new FilePickerFileType("JSON") { Patterns = new[] { "*.json" } } },
+            });
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"File picker failed: {ex.Message}");
+            return false;
+        }
+
+        if (file is null)
+            return false;
+
+        try
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(json);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"Failed to write file: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task ImportContentAsync()
+    {
+        var json = await PickOpenJsonAsync("Import Content Settings");
+        if (json is null) return;
+
+        try
+        {
+            var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.ContentModuleConfig);
+            if (config is null) return;
+
+            Core.CsvPath.Value = config.CsvFile;
+            Core.BodyHtmlPath.Value = config.BodyHtmlPath;
+            Core.Subject.Value = config.Subject;
+            Core.CharSet.Value = config.CharSet;
+
+            Attachments.Clear();
+            foreach (var att in config.Attachments ?? [])
+            {
+                var item = new AttachmentItemData();
+                item.SourceText.Value = att.SourceText;
+                item.DestinationText.Value = att.DestinationText;
+                Attachments.Add(item);
+            }
+
+            ExtraAttributes.Clear();
+            foreach (var attr in config.ExtraAttributes ?? [])
+            {
+                var item = new ExtraAttributeItemData();
+                item.Key.Value = attr.Key;
+                item.Value.Value = attr.Value;
+                ExtraAttributes.Add(item);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"Import failed: {ex.Message}");
+        }
+    }
+
+    private async Task ExportContentAsync()
+    {
+        var config = new ContentModuleConfig
+        {
+            CsvFile = Core.CsvPath.Value,
+            BodyHtmlPath = Core.BodyHtmlPath.Value,
+            Subject = Core.Subject.Value,
+            CharSet = Core.CharSet.Value,
+            Attachments = Attachments
+                .Select(a => new PersistedAttachment(a.SourceText.Value, a.DestinationText.Value))
+                .ToList(),
+            ExtraAttributes = ExtraAttributes
+                .Where(a => !string.IsNullOrWhiteSpace(a.Key.Value))
+                .Select(a => new PersistedExtraAttribute(a.Key.Value, a.Value.Value))
+                .ToList(),
+        };
+
+        var json = JsonSerializer.Serialize(config, ModuleConfigsContext.Default.ContentModuleConfig);
+        await PickSaveJsonAsync("Export Content Settings", "content-module.json", json);
+    }
+
+    private async Task ImportSenderAsync()
+    {
+        var json = await PickOpenJsonAsync("Import Sender Settings");
+        if (json is null) return;
+
+        try
+        {
+            var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.SenderModuleConfig);
+            if (config is null) return;
+
+            Core.SenderEmail.Value = config.SenderEmail;
+            Core.SenderPassword.Value = config.SenderPassword;
+            Core.SmtpHost.Value = config.SmtpHost;
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"Import failed: {ex.Message}");
+        }
+    }
+
+    private async Task ExportSenderAsync()
+    {
+        var config = new SenderModuleConfig
+        {
+            SenderEmail = Core.SenderEmail.Value,
+            SenderPassword = Core.SenderPassword.Value,
+            SmtpHost = Core.SmtpHost.Value,
+        };
+
+        var json = JsonSerializer.Serialize(config, ModuleConfigsContext.Default.SenderModuleConfig);
+        await PickSaveJsonAsync("Export Sender Settings", "sender-module.json", json);
+    }
+
+    private async Task ImportConvertAsync()
+    {
+        var json = await PickOpenJsonAsync("Import Convert Settings");
+        if (json is null) return;
+
+        try
+        {
+            var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.ConvertModuleConfig);
+            if (config is null) return;
+
+            Core.OutputDir.Value = config.OutputFolder;
+            Core.DeleteAfterSent.Value = config.IsDeleteAfterSent;
+            Core.ConvertOnly.Value = config.IsConvertOnly;
+            Core.SaveRawDocs.Value = config.IsSaveRawDoc;
+            Core.SaveHtmlFile.Value = config.IsSaveHtml;
+        }
+        catch (Exception ex)
+        {
+            AddError(LogLevel.Error, $"Import failed: {ex.Message}");
+        }
+    }
+
+    private async Task ExportConvertAsync()
+    {
+        var config = new ConvertModuleConfig
+        {
+            OutputFolder = Core.OutputDir.Value,
+            IsDeleteAfterSent = Core.DeleteAfterSent.Value,
+            IsConvertOnly = Core.ConvertOnly.Value,
+            IsSaveRawDoc = Core.SaveRawDocs.Value,
+            IsSaveHtml = Core.SaveHtmlFile.Value,
+        };
+
+        var json = JsonSerializer.Serialize(config, ModuleConfigsContext.Default.ConvertModuleConfig);
+        await PickSaveJsonAsync("Export Convert Settings", "convert-module.json", json);
     }
 
     public void Dispose()

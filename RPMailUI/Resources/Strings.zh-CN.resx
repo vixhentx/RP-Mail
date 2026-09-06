@@ -138,4 +138,10 @@
   <data name="TaskStatusFailed" xml:space="preserve">
     <value>失败</value>
   </data>
+  <data name="Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>导出</value>
+  </data>
 </root>

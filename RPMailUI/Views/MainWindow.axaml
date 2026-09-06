@@ -43,6 +43,10 @@
             <StackPanel Orientation="Vertical" Spacing="5">
                 <Expander Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
                     <StackPanel Orientation="Vertical" Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportContentCommand}" FontSize="15"/>
+                            <Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportContentCommand}" FontSize="15"/>
+                        </StackPanel>
                         <controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{Binding Core.CsvPath.Value}"/>
                         <controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{Binding Core.BodyHtmlPath.Value}"/>
                         <controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{Binding Core.Subject.Value}"/>
@@ -54,6 +58,10 @@
                 </Expander>
                 <Expander Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">
                     <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportSenderCommand}" FontSize="15"/>
+                            <Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportSenderCommand}" FontSize="15"/>
+                        </StackPanel>
                         <controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{Binding Core.SenderEmail.Value}"/>
                         <controls:TextBarView Caption="{x:Static res:Strings.PasswordCaption}" Text="{Binding Core.SenderPassword.Value}"/>
                         <controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{Binding Core.SmtpHost.Value}"/>
@@ -61,6 +69,10 @@
                 </Expander>
                 <Expander Header="{x:Static res:Strings.ConvertSettings}" HorizontalAlignment="Stretch">
                     <StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
+                            <Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportConvertCommand}" FontSize="15"/>
+                            <Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportConvertCommand}" FontSize="15"/>
+                        </StackPanel>
                         <controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True" FilePath="{Binding Core.OutputDir.Value}"/>
                         <CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{Binding Core.DeleteAfterSent.Value}"/>
                         <CheckBox Content="{x:Static res:Strings.ConvertOnly}" IsChecked="{Binding Core.ConvertOnly.Value}"/>
