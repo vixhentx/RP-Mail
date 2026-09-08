@@ -10,21 +10,21 @@ public sealed class TemplateEngine
 
     public string Render(string pattern, IReadOnlyDictionary<string, string> user, IReadOnlyDictionary<string, string> extraAttributes)
     {
-        var template = GetOrParse(pattern);
+		var template = GetOrParse(pattern);
 
-        var scriptObject = new ScriptObject();
-        foreach (var kv in extraAttributes)
-            scriptObject.SetValue(kv.Key, kv.Value, readOnly: true);
+		var scriptObject = new ScriptObject();
+		foreach (var kv in extraAttributes)
+			scriptObject.SetValue(kv.Key, kv.Value, readOnly: true);
 
-        var userObject = new ScriptObject();
-        foreach (var kv in user)
-            userObject.SetValue(kv.Key, kv.Value, readOnly: true);
+		var userObject = new ScriptObject();
+		foreach (var kv in user)
+			userObject.SetValue(kv.Key, kv.Value, readOnly: true);
 
-        scriptObject.SetValue("user", userObject, readOnly: true);
+		scriptObject.SetValue("user", userObject, readOnly: true);
 
-        var context = new TemplateContext { StrictVariables = true };
-        context.PushGlobal(scriptObject);
-        return template.Render(context);
+		var context = new TemplateContext { StrictVariables = true };
+		context.PushGlobal(scriptObject);
+		return template.Render(context);
     }
 
     private Template GetOrParse(string pattern)

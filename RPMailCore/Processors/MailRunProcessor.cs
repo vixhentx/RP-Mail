@@ -176,12 +176,20 @@ public class MailRunProcessor : IDisposable
             string targetFile = engine.Render(attachment.Name, user, extraAttributes);
             if (string.IsNullOrWhiteSpace(targetFile)) continue;
 
-            if (string.IsNullOrWhiteSpace(Path.GetExtension(targetFile)))
-                targetFile = Path.ChangeExtension(targetFile, ".pdf");
-
             string outputPath = Path.Combine(outputDir, targetFile);
-            string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), user, extraAttributes);
-            pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
+
+			switch((pattern: Path.GetExtension(patternPath).ToLower(), target: Path.GetExtension(outputPath).ToLower()))
+			{
+				// Render Typst to PDF
+				case { pattern: ".typ", target: ".pdf" }:
+					string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), user, extraAttributes);
+					pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
+					break;
+				// Rename and passthru
+				default:
+					File.Copy(patternPath,outputPath);
+					break;
+			}
             ret.Add(outputPath);
         }
         return ret.ToImmutable();
