@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux-packages:
+    name: Linux distro packages
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install native build tools
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev rpm
+
+      - name: Install nFPM
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build Linux packages
+        run: scripts/package-linux.sh
+        env:
+          RID: linux-x64
+          NFPM_ARCH: amd64
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: artifacts/packages/*
+
+  windows-package:
+    name: Windows package
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build Windows package
+        shell: pwsh
+        run: ./scripts/package-windows.ps1
+        env:
+          RID: win-x64
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: artifacts/packages/*
+
+  publish-release:
+    name: Publish GitHub release
+    needs:
+      - linux-packages
+      - windows-package
+    runs-on: ubuntu-24.04
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/release
+          merge-multiple: true
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/release/*
