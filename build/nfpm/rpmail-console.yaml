@@ -1,0 +1,33 @@
+name: @NAME@
+arch: @NFPM_ARCH@
+platform: linux
+version: @VERSION@
+section: mail
+priority: optional
+maintainer: RobotPilot Software R&D Department <w1084349470@outlook.com>
+vendor: RobotPilots
+homepage: https://github.com/vixhentx/RP-Mail
+license: MIT
+description: @DESCRIPTION@
+depends: @DEPENDS@
+contents:
+  - src: @PKG_ROOT@/usr/lib/@NAME@
+    dst: /usr/lib/@NAME@
+  - src: @PKG_ROOT@/usr/bin/@NAME@
+    dst: /usr/bin/@NAME@
+deb:
+  fields:
+    Bugs: https://github.com/vixhentx/RP-Mail/issues
+rpm:
+  summary: RobotPilots Mail Sender console application
+overrides:
+  deb:
+    depends: @DEB_DEPENDS@
+  rpm:
+    depends: @RPM_DEPENDS@
+  apk:
+    depends: @APK_DEPENDS@
+  archlinux:
+    depends: @ARCH_DEPENDS@
+  ipk:
+    depends: @IPK_DEPENDS@
