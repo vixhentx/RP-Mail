@@ -8,7 +8,7 @@
   zlib,
 }:
 buildDotnetModule {
-  pname = "RPMailConsole";
+  pname = "rpmail-console";
   version = "0.9.0";
   inherit src;
   projectFile = "RPMailConsole/RPMailConsole.csproj";
@@ -24,7 +24,7 @@ buildDotnetModule {
   installPhase = ''
     runHook preInstall
 
-    installPath="$out/lib/RPMailConsole"
+    installPath="$out/lib/rpmail-console"
     mkdir -p "$installPath"
 
     dotnet publish RPMailConsole/RPMailConsole.csproj \

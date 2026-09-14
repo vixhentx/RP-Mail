@@ -18,7 +18,7 @@
   zlib
 }:
 buildDotnetModule {
-  pname = "RPMailUI";
+  pname = "rpmail-ui";
   version = "0.9.0";
   inherit src;
   projectFile = "RPMailUI/RPMailUI.csproj";
@@ -34,7 +34,7 @@ buildDotnetModule {
   installPhase = ''
     runHook preInstall
 
-    installPath="$out/lib/RPMailUI"
+    installPath="$out/lib/rpmail-ui"
     mkdir -p "$installPath"
 
     dotnet publish RPMailUI/RPMailUI.csproj \
