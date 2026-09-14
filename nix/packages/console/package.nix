@@ -9,7 +9,7 @@
 }:
 buildDotnetModule {
   pname = "rpmail-console";
-  version = "0.9.0";
+  version = "27.0.0";
   inherit src;
   projectFile = "RPMailConsole/RPMailConsole.csproj";
   dotnet-sdk = dotnetCorePackages.sdk_10_0;
