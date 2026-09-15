@@ -54,16 +54,16 @@ EOF
 
   local nfpm_config="$pkg_root/${name}.nfpm.yaml"
   sed \
-    -e "s|@VERSION@|$VERSION|g" \
-    -e "s|@NFPM_ARCH@|$NFPM_ARCH|g" \
-    -e "s|@PKG_ROOT@|$PKG_ROOT|g" \
-    -e "s|@NAME@|$NAME|g" \
-    -e "s|@DESCRIPTION@|$DESCRIPTION|g" \
-    -e "s|@DEB_DEPENDS@|$DEB_DEPENDS|g" \
-    -e "s|@RPM_DEPENDS@|$RPM_DEPENDS|g" \
-    -e "s|@APK_DEPENDS@|$APK_DEPENDS|g" \
-    -e "s|@ARCH_DEPENDS@|$ARCH_DEPENDS|g" \
-    -e "s|@IPK_DEPENDS@|$IPK_DEPENDS|g" \
+    -e "s#@VERSION@#$VERSION#g" \
+    -e "s#@NFPM_ARCH@#$NFPM_ARCH#g" \
+    -e "s#@PKG_ROOT@#$PKG_ROOT#g" \
+    -e "s#@NAME@#$NAME#g" \
+    -e "s#@DESCRIPTION@#$DESCRIPTION#g" \
+    -e "s#@DEB_DEPENDS@#$DEB_DEPENDS#g" \
+    -e "s#@RPM_DEPENDS@#$RPM_DEPENDS#g" \
+    -e "s#@APK_DEPENDS@#$APK_DEPENDS#g" \
+    -e "s#@ARCH_DEPENDS@#$ARCH_DEPENDS#g" \
+    -e "s#@IPK_DEPENDS@#$IPK_DEPENDS#g" \
     build/nfpm/rpmail-linux.yaml > "$nfpm_config"
 
   for packager in deb rpm apk archlinux ipk; do
