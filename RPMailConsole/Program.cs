@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using R3;
 using RPMailConsole.Resources;
 using RPMailCore.Coordination;
 using RPMailCore.Models;
@@ -48,7 +49,6 @@ public static class Program
                 if (!quiet)
                     builder.AddSimpleConsole();
             });
-
             if (pr.GetValue(configOpt) is not { Length: > 0 } configPath)
             {
                 Console.Error.WriteLine(Strings.MissingConfigOption);
@@ -64,10 +64,16 @@ public static class Program
                 var config = JsonSerializer.Deserialize(json, RPMailJsonContext.Default.MailConfig)
                     ?? throw new JsonException(Strings.ConfigNull);
 
-                var vm = new MailRunCoordinator(loggerFactory.CreateLogger("RPMail"));
+                var coordinator = new MailRunCoordinator();
                 try
                 {
-                    var result = await vm.RunAsync(config, ct);
+                    var logger = loggerFactory.CreateLogger("RPMail");
+                    using var outputSubscription = coordinator.Output.Subscribe(output =>
+                    {
+                        if (quiet || output is not MessageOutput message || string.IsNullOrEmpty(message.Text)) return;
+                        logger.Log(message.Level, message.Exception, "{Message}", message.Text);
+                    });
+                    var result = await coordinator.RunAsync(config, ct);
                     if (!result.Success)
                     {
                         Console.Error.WriteLine(result.FatalException?.Message);
@@ -77,7 +83,7 @@ public static class Program
                 }
                 finally
                 {
-                    vm.Dispose();
+                    coordinator.Dispose();
                 }
             }
             catch (OperationCanceledException)

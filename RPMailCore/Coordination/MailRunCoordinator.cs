@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
 using R3;
 using RPMailCore.Models;
 using RPMailCore.Processors;
@@ -33,13 +32,11 @@ public class MailRunCoordinator : IDisposable
 
     public RunResult? LastResult { get; private set; }
 
-    public Observable<IReadOnlyList<ImmutableDictionary<string, string>>> RowsLoaded => _processor.RowsLoaded;
-    public Observable<TaskStateChanged> TaskStateChanged => _processor.TaskStateChanged;
-    public Observable<double> ProgressChanged => _processor.ProgressChanged;
+    public Observable<MailRunOutput> Output => _processor.Output;
 
-    public MailRunCoordinator(ILogger? logger = null)
+    public MailRunCoordinator()
     {
-        _processor = new MailRunProcessor(logger);
+        _processor = new MailRunProcessor();
         StartCommand = new ReactiveCommand<Unit, RunResult>(
             IsRunning.AsObservable().Select(x => !x),
             true,

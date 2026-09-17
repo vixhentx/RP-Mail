@@ -22,11 +22,11 @@ public class MainWindowViewModel : IDisposable
     private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "RPMailUI-Persisted.json");
 
     private readonly Subject<Unit> _dirty = new();
-    private DisposableBag _disposables = new();
+    private DisposableBag _d = new();
     private readonly Dictionary<AttachmentItemData, IDisposable> _attachmentSubscriptions = [];
     private readonly Dictionary<ExtraAttributeItemData, IDisposable> _extraAttributeSubscriptions = [];
 
-    public MailRunCoordinator Core { get; }
+    public MailRunCoordinator Coordinator { get; }
 
     public ObservableList<TaskItemData> Tasks { get; } = [];
     public ObservableList<AttachmentItemData> Attachments { get; } = [new()];
@@ -52,26 +52,26 @@ public class MainWindowViewModel : IDisposable
 
     public MainWindowViewModel()
     {
-        Core = new MailRunCoordinator(new UiLogger(this));
+        Coordinator = new MailRunCoordinator();
 
         OpenOutputFolderCommand.Subscribe(_ =>
         {
-            if (Core.LastResult is { } result)
+            if (Coordinator.LastResult is { } result)
                 PathOpenHelper.OpenDirectory(result.RealOutputDir);
-        }).AddTo(ref _disposables);
+        }).AddTo(ref _d);
 
         RetryCommand.Subscribe(_ =>
         {
-            if (Core.LastResult?.FailedCsvPath is { } failedCsv)
-                Core.CsvPath.Value = failedCsv;
-        }).AddTo(ref _disposables);
+            if (Coordinator.LastResult?.FailedCsvPath is { } failedCsv)
+                Coordinator.CsvPath.Value = failedCsv;
+        }).AddTo(ref _d);
 
-        ImportContentCommand.Subscribe(async _ => await ImportContentAsync()).AddTo(ref _disposables);
-        ExportContentCommand.Subscribe(async _ => await ExportContentAsync()).AddTo(ref _disposables);
-        ImportSenderCommand.Subscribe(async _ => await ImportSenderAsync()).AddTo(ref _disposables);
-        ExportSenderCommand.Subscribe(async _ => await ExportSenderAsync()).AddTo(ref _disposables);
-        ImportConvertCommand.Subscribe(async _ => await ImportConvertAsync()).AddTo(ref _disposables);
-        ExportConvertCommand.Subscribe(async _ => await ExportConvertAsync()).AddTo(ref _disposables);
+        ImportContentCommand.Subscribe(async _ => await ImportContentAsync()).AddTo(ref _d);
+        ExportContentCommand.Subscribe(async _ => await ExportContentAsync()).AddTo(ref _d);
+        ImportSenderCommand.Subscribe(async _ => await ImportSenderAsync()).AddTo(ref _d);
+        ExportSenderCommand.Subscribe(async _ => await ExportSenderAsync()).AddTo(ref _d);
+        ImportConvertCommand.Subscribe(async _ => await ImportConvertAsync()).AddTo(ref _d);
+        ExportConvertCommand.Subscribe(async _ => await ExportConvertAsync()).AddTo(ref _d);
 
         LoadSettings();
         WirePersistence();
@@ -80,33 +80,43 @@ public class MainWindowViewModel : IDisposable
 
     private void WireCoreStreams()
     {
-        Core.RowsLoaded
+        Coordinator.Output
             .ObserveOnUIThreadDispatcher()
-            .Subscribe(rows =>
+            .Subscribe(output =>
             {
-                Tasks.Clear();
-                foreach (var row in rows)
-                    Tasks.Add(new TaskItemData(row, MailTaskStatus.Ready, Strings.ReadyToSend));
-            }).AddTo(ref _disposables);
-
-        Core.TaskStateChanged
-            .ObserveOnUIThreadDispatcher()
-            .Subscribe(e =>
-            {
-                if (e.Index >= Tasks.Count) return;
-                var task = Tasks[e.Index];
-                Tasks[e.Index] = task with
+                switch (output)
                 {
-                    Status = e.Status,
-                    Tooltip = e.Message ?? task.Tooltip,
-                };
-            }).AddTo(ref _disposables);
+                    case RowsLoadedOutput rows:
+                        Tasks.Clear();
+                        foreach (var row in rows.Rows)
+                            Tasks.Add(new TaskItemData(row, MailTaskStatus.Ready, Strings.ReadyToSend));
+                        break;
+                    case TaskStateOutput state when state.Index < Tasks.Count:
+                        var task = Tasks[state.Index];
+                        Tasks[state.Index] = task with
+                        {
+                            Status = state.Status,
+                            Tooltip = state.Message ?? task.Tooltip,
+                        };
+                        break;
+                    case ProgressOutput progress:
+                        Progress.Value = progress.Progress;
+                        break;
+                    case MessageOutput message when message.Level >= LogLevel.Warning:
+                        AddError(message.Level, message.Text);
+                        break;
+                    case RunCompletedOutput completed:
+                        ShouldOpenOutputFolder.Value = completed.Result.Success;
+                        ShouldRetry.Value = completed.Result.Success && completed.Result.FailedRows > 0;
+                        break;
+                }
 
-        Core.ProgressChanged
-            .ObserveOnUIThreadDispatcher()
-            .Subscribe(p => Progress.Value = p).AddTo(ref _disposables);
+                if (output is not RowsLoadedOutput and not TaskStateOutput and not ProgressOutput
+                    && !string.IsNullOrEmpty(output.Text))
+                    ConsoleLog.Value += output.Text + Environment.NewLine;
+            }).AddTo(ref _d);
 
-        Core.IsRunning.AsObservable()
+        Coordinator.IsRunning.AsObservable()
             .ObserveOnUIThreadDispatcher()
             .Where(running => running)
             .Subscribe(_ =>
@@ -115,34 +125,34 @@ public class MainWindowViewModel : IDisposable
                 SyncExtraAttributes();
                 Errors.Clear();
                 Progress.Value = 0;
-            }).AddTo(ref _disposables);
+            }).AddTo(ref _d);
 
-        Core.IsRunning.AsObservable()
+        Coordinator.IsRunning.AsObservable()
             .ObserveOnUIThreadDispatcher()
             .Where(running => !running)
             .Skip(1)
             .Subscribe(_ =>
             {
-                var result = Core.LastResult;
+                var result = Coordinator.LastResult;
                 ShouldOpenOutputFolder.Value = result?.Success == true;
                 ShouldRetry.Value = result is { Success: true, FailedRows: > 0 };
-            }).AddTo(ref _disposables);
+            }).AddTo(ref _d);
     }
 
     private void WirePersistence()
     {
-        Watch(Core.CsvPath);
-        Watch(Core.BodyHtmlPath);
-        Watch(Core.Subject);
-        Watch(Core.CharSet);
-        Watch(Core.SmtpHost);
-        Watch(Core.SenderEmail);
-        Watch(Core.SenderPassword);
-        Watch(Core.OutputDir);
-        Watch(Core.SaveHtmlFile);
-        Watch(Core.SaveRawDocs);
-        Watch(Core.ConvertOnly);
-        Watch(Core.DeleteAfterSent);
+        Watch(Coordinator.CsvPath);
+        Watch(Coordinator.BodyHtmlPath);
+        Watch(Coordinator.Subject);
+        Watch(Coordinator.CharSet);
+        Watch(Coordinator.SmtpHost);
+        Watch(Coordinator.SenderEmail);
+        Watch(Coordinator.SenderPassword);
+        Watch(Coordinator.OutputDir);
+        Watch(Coordinator.SaveHtmlFile);
+        Watch(Coordinator.SaveRawDocs);
+        Watch(Coordinator.ConvertOnly);
+        Watch(Coordinator.DeleteAfterSent);
 
         Attachments.ObserveChanged().Subscribe(e =>
         {
@@ -164,7 +174,7 @@ public class MainWindowViewModel : IDisposable
                     break;
             }
             MarkDirty();
-        }).AddTo(ref _disposables);
+        }).AddTo(ref _d);
 
         foreach (var item in Attachments)
             SubscribeAttachment(item);
@@ -189,18 +199,18 @@ public class MainWindowViewModel : IDisposable
                     break;
             }
             MarkDirty();
-        }).AddTo(ref _disposables);
+        }).AddTo(ref _d);
 
         foreach (var item in ExtraAttributes)
             SubscribeExtraAttribute(item);
 
         _dirty.ThrottleLast(TimeSpan.FromMilliseconds(500))
             .SubscribeAwait(async (_, _) => await SaveSettingsAsync())
-            .AddTo(ref _disposables);
+            .AddTo(ref _d);
     }
 
     private void Watch<T>(BindableReactiveProperty<T> prop) =>
-        prop.AsObservable().Subscribe(_ => MarkDirty()).AddTo(ref _disposables);
+        prop.AsObservable().Subscribe(_ => MarkDirty()).AddTo(ref _d);
 
     private void SubscribeAttachment(AttachmentItemData item)
     {
@@ -220,18 +230,18 @@ public class MainWindowViewModel : IDisposable
 
     private void SyncAttachmentPatterns()
     {
-        Core.AttachmentPatterns.Clear();
+        Coordinator.AttachmentPatterns.Clear();
         foreach (var item in Attachments)
-            Core.AttachmentPatterns.Add(new() { Source = item.SourceText.Value, Name = item.DestinationText.Value });
+            Coordinator.AttachmentPatterns.Add(new() { Source = item.SourceText.Value, Name = item.DestinationText.Value });
     }
 
     private void SyncExtraAttributes()
     {
-        Core.ExtraAttributes.Clear();
+        Coordinator.ExtraAttributes.Clear();
         foreach (var item in ExtraAttributes)
         {
             if (string.IsNullOrWhiteSpace(item.Key.Value)) continue;
-            Core.ExtraAttributes[item.Key.Value] = item.Value.Value;
+            Coordinator.ExtraAttributes[item.Key.Value] = item.Value.Value;
         }
     }
 
@@ -243,18 +253,18 @@ public class MainWindowViewModel : IDisposable
             var settings = JsonSerializer.Deserialize(File.ReadAllText(SettingsPath), PersistedSettingsContext.Default.PersistedSettings);
             if (settings is null) return;
 
-            Core.CsvPath.Value = settings.CsvFile;
-            Core.BodyHtmlPath.Value = settings.BodyHtmlPath;
-            Core.Subject.Value = settings.Subject;
-            Core.CharSet.Value = settings.CharSet;
-            Core.SmtpHost.Value = settings.SmtpHost;
-            Core.SenderEmail.Value = settings.SenderEmail;
-            Core.SenderPassword.Value = settings.SenderPassword;
-            Core.OutputDir.Value = settings.OutputFolder;
-            Core.SaveHtmlFile.Value = settings.IsSaveHtml;
-            Core.SaveRawDocs.Value = settings.IsSaveRawDoc;
-            Core.ConvertOnly.Value = settings.IsConvertOnly;
-            Core.DeleteAfterSent.Value = settings.IsDeleteAfterSent;
+            Coordinator.CsvPath.Value = settings.CsvFile;
+            Coordinator.BodyHtmlPath.Value = settings.BodyHtmlPath;
+            Coordinator.Subject.Value = settings.Subject;
+            Coordinator.CharSet.Value = settings.CharSet;
+            Coordinator.SmtpHost.Value = settings.SmtpHost;
+            Coordinator.SenderEmail.Value = settings.SenderEmail;
+            Coordinator.SenderPassword.Value = settings.SenderPassword;
+            Coordinator.OutputDir.Value = settings.OutputFolder;
+            Coordinator.SaveHtmlFile.Value = settings.IsSaveHtml;
+            Coordinator.SaveRawDocs.Value = settings.IsSaveRawDoc;
+            Coordinator.ConvertOnly.Value = settings.IsConvertOnly;
+            Coordinator.DeleteAfterSent.Value = settings.IsDeleteAfterSent;
 
             Attachments.Clear();
             foreach (var attachment in settings.Attachments)
@@ -286,18 +296,18 @@ public class MainWindowViewModel : IDisposable
         {
             var settings = new PersistedSettings
             {
-                CsvFile = Core.CsvPath.Value,
-                BodyHtmlPath = Core.BodyHtmlPath.Value,
-                Subject = Core.Subject.Value,
-                CharSet = Core.CharSet.Value,
-                SmtpHost = Core.SmtpHost.Value,
-                SenderEmail = Core.SenderEmail.Value,
-                SenderPassword = Core.SenderPassword.Value,
-                OutputFolder = Core.OutputDir.Value,
-                IsDeleteAfterSent = Core.DeleteAfterSent.Value,
-                IsConvertOnly = Core.ConvertOnly.Value,
-                IsSaveRawDoc = Core.SaveRawDocs.Value,
-                IsSaveHtml = Core.SaveHtmlFile.Value,
+                CsvFile = Coordinator.CsvPath.Value,
+                BodyHtmlPath = Coordinator.BodyHtmlPath.Value,
+                Subject = Coordinator.Subject.Value,
+                CharSet = Coordinator.CharSet.Value,
+                SmtpHost = Coordinator.SmtpHost.Value,
+                SenderEmail = Coordinator.SenderEmail.Value,
+                SenderPassword = Coordinator.SenderPassword.Value,
+                OutputFolder = Coordinator.OutputDir.Value,
+                IsDeleteAfterSent = Coordinator.DeleteAfterSent.Value,
+                IsConvertOnly = Coordinator.ConvertOnly.Value,
+                IsSaveRawDoc = Coordinator.SaveRawDocs.Value,
+                IsSaveHtml = Coordinator.SaveHtmlFile.Value,
                 Attachments = Attachments.Select(a => new PersistedAttachment(a.SourceText.Value, a.DestinationText.Value)).ToList(),
                 ExtraAttributes = ExtraAttributes.Select(e => new PersistedExtraAttribute(e.Key.Value, e.Value.Value)).ToList(),
             };
@@ -409,10 +419,10 @@ public class MainWindowViewModel : IDisposable
             var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.ContentModuleConfig);
             if (config is null) return;
 
-            Core.CsvPath.Value = config.CsvFile;
-            Core.BodyHtmlPath.Value = config.BodyHtmlPath;
-            Core.Subject.Value = config.Subject;
-            Core.CharSet.Value = config.CharSet;
+            Coordinator.CsvPath.Value = config.CsvFile;
+            Coordinator.BodyHtmlPath.Value = config.BodyHtmlPath;
+            Coordinator.Subject.Value = config.Subject;
+            Coordinator.CharSet.Value = config.CharSet;
 
             Attachments.Clear();
             foreach (var att in config.Attachments ?? [])
@@ -442,10 +452,10 @@ public class MainWindowViewModel : IDisposable
     {
         var config = new ContentModuleConfig
         {
-            CsvFile = Core.CsvPath.Value,
-            BodyHtmlPath = Core.BodyHtmlPath.Value,
-            Subject = Core.Subject.Value,
-            CharSet = Core.CharSet.Value,
+            CsvFile = Coordinator.CsvPath.Value,
+            BodyHtmlPath = Coordinator.BodyHtmlPath.Value,
+            Subject = Coordinator.Subject.Value,
+            CharSet = Coordinator.CharSet.Value,
             Attachments = Attachments
                 .Select(a => new PersistedAttachment(a.SourceText.Value, a.DestinationText.Value))
                 .ToList(),
@@ -469,9 +479,9 @@ public class MainWindowViewModel : IDisposable
             var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.SenderModuleConfig);
             if (config is null) return;
 
-            Core.SenderEmail.Value = config.SenderEmail;
-            Core.SenderPassword.Value = config.SenderPassword;
-            Core.SmtpHost.Value = config.SmtpHost;
+            Coordinator.SenderEmail.Value = config.SenderEmail;
+            Coordinator.SenderPassword.Value = config.SenderPassword;
+            Coordinator.SmtpHost.Value = config.SmtpHost;
         }
         catch (Exception ex)
         {
@@ -483,9 +493,9 @@ public class MainWindowViewModel : IDisposable
     {
         var config = new SenderModuleConfig
         {
-            SenderEmail = Core.SenderEmail.Value,
-            SenderPassword = Core.SenderPassword.Value,
-            SmtpHost = Core.SmtpHost.Value,
+            SenderEmail = Coordinator.SenderEmail.Value,
+            SenderPassword = Coordinator.SenderPassword.Value,
+            SmtpHost = Coordinator.SmtpHost.Value,
         };
 
         var json = JsonSerializer.Serialize(config, ModuleConfigsContext.Default.SenderModuleConfig);
@@ -502,11 +512,11 @@ public class MainWindowViewModel : IDisposable
             var config = JsonSerializer.Deserialize(json, ModuleConfigsContext.Default.ConvertModuleConfig);
             if (config is null) return;
 
-            Core.OutputDir.Value = config.OutputFolder;
-            Core.DeleteAfterSent.Value = config.IsDeleteAfterSent;
-            Core.ConvertOnly.Value = config.IsConvertOnly;
-            Core.SaveRawDocs.Value = config.IsSaveRawDoc;
-            Core.SaveHtmlFile.Value = config.IsSaveHtml;
+            Coordinator.OutputDir.Value = config.OutputFolder;
+            Coordinator.DeleteAfterSent.Value = config.IsDeleteAfterSent;
+            Coordinator.ConvertOnly.Value = config.IsConvertOnly;
+            Coordinator.SaveRawDocs.Value = config.IsSaveRawDoc;
+            Coordinator.SaveHtmlFile.Value = config.IsSaveHtml;
         }
         catch (Exception ex)
         {
@@ -518,11 +528,11 @@ public class MainWindowViewModel : IDisposable
     {
         var config = new ConvertModuleConfig
         {
-            OutputFolder = Core.OutputDir.Value,
-            IsDeleteAfterSent = Core.DeleteAfterSent.Value,
-            IsConvertOnly = Core.ConvertOnly.Value,
-            IsSaveRawDoc = Core.SaveRawDocs.Value,
-            IsSaveHtml = Core.SaveHtmlFile.Value,
+            OutputFolder = Coordinator.OutputDir.Value,
+            IsDeleteAfterSent = Coordinator.DeleteAfterSent.Value,
+            IsConvertOnly = Coordinator.ConvertOnly.Value,
+            IsSaveRawDoc = Coordinator.SaveRawDocs.Value,
+            IsSaveHtml = Coordinator.SaveHtmlFile.Value,
         };
 
         var json = JsonSerializer.Serialize(config, ModuleConfigsContext.Default.ConvertModuleConfig);
@@ -539,26 +549,9 @@ public class MainWindowViewModel : IDisposable
             sub.Dispose();
         _extraAttributeSubscriptions.Clear();
 
-        _disposables.Dispose();
+        _d.Dispose();
         _dirty.Dispose();
-        Core.Dispose();
+        Coordinator.Dispose();
     }
 
-    private sealed class UiLogger(MainWindowViewModel owner) : ILogger
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            string message = formatter(state, exception);
-            Dispatcher.UIThread.Post(() =>
-            {
-                owner.ConsoleLog.Value += message + Environment.NewLine;
-                if (logLevel >= LogLevel.Warning)
-                    owner.AddError(logLevel, message);
-            });
-        }
-    }
 }

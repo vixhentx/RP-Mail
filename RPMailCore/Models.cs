@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 
 namespace RPMailCore.Models;
 
@@ -28,7 +29,53 @@ public static class MailTaskStatusExtensions
     }
 }
 
-public readonly record struct TaskStateChanged(int Index, MailTaskStatus Status, string? Message);
+public interface IMailRunOutput
+{
+    string Text { get; }
+    LogLevel Level { get; }
+    Exception? Exception { get; }
+}
+
+public abstract record MailRunOutput : IMailRunOutput
+{
+    public abstract string Text { get; }
+    public virtual LogLevel Level => LogLevel.Information;
+    public virtual Exception? Exception => null;
+}
+
+public sealed record RowsLoadedOutput(
+    IReadOnlyList<ImmutableDictionary<string, string>> Rows) : MailRunOutput
+{
+    public override string Text => "";
+}
+
+public sealed record TaskStateOutput(
+    int Index,
+    MailTaskStatus Status,
+    string? Message) : MailRunOutput
+{
+    public override string Text => Message ?? "";
+}
+
+public sealed record ProgressOutput(double Progress) : MailRunOutput
+{
+    public override string Text => "";
+}
+
+public sealed record MessageOutput(
+    string Message,
+    LogLevel logLevel = LogLevel.Information,
+    Exception? Exception = null) : MailRunOutput
+{
+    public override string Text => Message;
+    public override LogLevel Level => logLevel;
+    public override Exception? Exception { get; } = Exception;
+}
+
+public sealed record RunCompletedOutput(RunResult Result) : MailRunOutput
+{
+    public override string Text => "";
+}
 
 public sealed record FailedRow(ImmutableDictionary<string, string> Row, string Reason);
 
