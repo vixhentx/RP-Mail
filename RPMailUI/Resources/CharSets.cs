@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Text;
 using Avalonia.Controls;
-using Avalonia.Styling;
 
 namespace RPMailUI.Resources;
 

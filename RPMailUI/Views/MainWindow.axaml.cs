@@ -1,6 +1,4 @@
-using System;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using RPMailUI.ViewModels;
 
 namespace RPMailUI.Views;

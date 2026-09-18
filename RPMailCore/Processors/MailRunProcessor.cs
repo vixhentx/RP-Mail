@@ -6,7 +6,6 @@ using RPMailCore.Models;
 using RPMailCore.Resources;
 using RPMailCore.Services;
 using SmartFormat;
-using SmartFormat.Utilities;
 
 namespace RPMailCore.Processors;
 

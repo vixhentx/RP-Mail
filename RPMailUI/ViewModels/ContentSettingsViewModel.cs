@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using R3;
 using RPMailCore.Models;
-using RPMailUI.Models;
-using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
 
