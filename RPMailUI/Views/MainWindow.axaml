@@ -17,24 +17,24 @@
 	</Design.DataContext>
 	<DockPanel>
 		<controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
-							Errors="{Binding Errors, Mode=OneWay}" HorizontalAlignment="Stretch" MaxHeight="55"/>
-		<ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{Binding Progress.Value}"/>
+							Errors="{Binding Run.Errors, Mode=OneWay}" HorizontalAlignment="Stretch" MaxHeight="55"/>
+		<ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{Binding Run.Progress.Value}"/>
 		<Panel DockPanel.Dock="Bottom">
 			<StackPanel ZIndex="1" Spacing="10"
 						Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0">
-				<Button Content="{x:Static res:Strings.OpenOutput}" IsVisible="{Binding ShouldOpenOutputFolder.Value}" Command="{Binding OpenOutputFolderCommand}"
+				<Button Content="{x:Static res:Strings.OpenOutput}" IsVisible="{Binding Run.ShouldOpenOutputFolder.Value}" Command="{Binding Run.OpenOutputFolderCommand}"
 						FontSize="20"/>
-				<Button Content="{x:Static res:Strings.Retry}" IsVisible="{Binding ShouldRetry.Value}" Command="{Binding RetryCommand}"
+				<Button Content="{x:Static res:Strings.Retry}" IsVisible="{Binding Run.ShouldRetry.Value}" Command="{Binding Run.RetryCommand}"
 						FontSize="20"/>
-				<Button Content="{x:Static res:Strings.Start}" Command="{Binding Coordinator.StartCommand}"
+				<Button Content="{x:Static res:Strings.Start}" Command="{Binding Run.StartCommand}"
 						FontSize="20" FontWeight="SemiBold"/>
 			</StackPanel>
 			<TabControl MaxHeight="300">
 				<TabItem Header="{x:Static res:Strings.TaskList}" FontSize="20" FontWeight="SemiBold">
-					<controls:TaskListView Tasks="{Binding Tasks, Mode=OneWay}"/>
+					<controls:TaskListView DataContext="{Binding Run.TaskList}"/>
 				</TabItem>
 				<TabItem Header="{x:Static res:Strings.Console}" FontSize="20" FontWeight="SemiBold">
-					<TextBox IsReadOnly="True" Text="{Binding ConsoleLog.Value}"/>
+					<TextBox IsReadOnly="True" Text="{Binding Run.ConsoleLog.Value}"/>
 				</TabItem>
 				<TabItem Header="{x:Static res:Strings.Hide}" FontSize="20" FontWeight="SemiBold"/>
 			</TabControl>
@@ -44,40 +44,40 @@
 				<Expander Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
 					<StackPanel Orientation="Vertical" Spacing="5">
 						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportContentCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportContentCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Import}" Command="{Binding Content.ImportCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Export}" Command="{Binding Content.ExportCommand}" FontSize="15"/>
 						</StackPanel>
-						<controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{Binding Coordinator.CsvPath.Value}"/>
-						<controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{Binding Coordinator.BodyHtmlPath.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{Binding Coordinator.Subject.Value}"/>
-						<controls:TextPromptBarView Caption="{x:Static res:Strings.CharSetCaption}" PromptsSource="{StaticResource AllCharSets}" Text="{Binding Coordinator.CharSet.Value}"/>
+						<controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{Binding Content.CsvPath.Value}"/>
+						<controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{Binding Content.BodyHtmlPath.Value}"/>
+						<controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{Binding Content.Subject.Value}"/>
+						<controls:TextPromptBarView Caption="{x:Static res:Strings.CharSetCaption}" PromptsSource="{StaticResource AllCharSets}" Text="{Binding Content.CharSet.Value}"/>
 						<controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView"
-												 Attachments="{Binding Attachments, Mode=OneWay}"/>
-						<controls:ExtraAttributeView ExtraAttributes="{Binding ExtraAttributes, Mode=OneWay}"/>
+												 DataContext="{Binding Content.Attachments}"/>
+						<controls:ExtraAttributeView DataContext="{Binding Content.ExtraAttributes}"/>
 					</StackPanel>
 				</Expander>
 				<Expander Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">
 					<StackPanel Spacing="5">
 						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportSenderCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportSenderCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Import}" Command="{Binding Sender.ImportCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Export}" Command="{Binding Sender.ExportCommand}" FontSize="15"/>
 						</StackPanel>
-						<controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{Binding Coordinator.SenderEmail.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.PasswordCaption}" Text="{Binding Coordinator.SenderPassword.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{Binding Coordinator.SmtpHost.Value}"/>
+						<controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{Binding Sender.SenderEmail.Value}"/>
+						<controls:TextBarView Caption="{x:Static res:Strings.PasswordCaption}" Text="{Binding Sender.SenderPassword.Value}"/>
+						<controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{Binding Sender.SmtpHost.Value}"/>
 					</StackPanel>
 				</Expander>
 				<Expander Header="{x:Static res:Strings.ConvertSettings}" HorizontalAlignment="Stretch">
 					<StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-							<Button Content="{x:Static res:Strings.Import}" Command="{Binding ImportConvertCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{Binding ExportConvertCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Import}" Command="{Binding Convert.ImportCommand}" FontSize="15"/>
+							<Button Content="{x:Static res:Strings.Export}" Command="{Binding Convert.ExportCommand}" FontSize="15"/>
 						</StackPanel>
-						<controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True" FilePath="{Binding Coordinator.OutputDir.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{Binding Coordinator.DeleteAfterSent.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.ConvertOnly}" IsChecked="{Binding Coordinator.ConvertOnly.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.SaveRawDoc}" IsChecked="{Binding Coordinator.SaveRawDocs.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.SaveHtml}" IsChecked="{Binding Coordinator.SaveHtmlFile.Value}"/>
+						<controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True" FilePath="{Binding Convert.OutputDir.Value}"/>
+						<CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{Binding Convert.DeleteAfterSent.Value}"/>
+						<CheckBox Content="{x:Static res:Strings.ConvertOnly}" IsChecked="{Binding Convert.ConvertOnly.Value}"/>
+						<CheckBox Content="{x:Static res:Strings.SaveRawDoc}" IsChecked="{Binding Convert.SaveRawDocs.Value}"/>
+						<CheckBox Content="{x:Static res:Strings.SaveHtml}" IsChecked="{Binding Convert.SaveHtmlFile.Value}"/>
 					</StackPanel>
 				</Expander>
 			</StackPanel>

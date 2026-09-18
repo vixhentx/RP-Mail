@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Linq;
 using RPMailCore.Models;
 
 namespace RPMailUI.Models;
@@ -6,5 +8,5 @@ public sealed record TaskItemData(IReadOnlyDictionary<string, string> Data, Mail
 {
     public string this[string key] => Data[key];
 
-    public List<string> SearchTokens => [.. Data.Values, Status.Text];
+    public ImmutableArray<string> SearchTokens => Data.Values.Append(Status.Text).ToImmutableArray();
 }

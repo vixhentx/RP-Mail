@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 
 namespace RPMailUI.Services;
@@ -8,12 +9,14 @@ public sealed record PersistedExtraAttribute(string Key, string Value);
 
 public sealed record PersistedSettings
 {
+    public static PersistedSettings Empty { get; } = new();
+
     public string CsvFile { get; init; } = "";
     public string BodyHtmlPath { get; init; } = "";
     public string Subject { get; init; } = "";
     public string CharSet { get; init; } = "utf-8";
-    public List<PersistedAttachment> Attachments { get; init; } = [];
-    public List<PersistedExtraAttribute> ExtraAttributes { get; init; } = [];
+    public ImmutableArray<PersistedAttachment> Attachments { get; init; } = [];
+    public ImmutableArray<PersistedExtraAttribute> ExtraAttributes { get; init; } = [];
     public string SenderEmail { get; init; } = "";
     public string SenderPassword { get; init; } = "";
     public string SmtpHost { get; init; } = "";
