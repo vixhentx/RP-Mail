@@ -5,23 +5,23 @@ using RPMailCore.Models;
 
 namespace RPMailCore.Processors;
 
-public class MailSendProcessor(string host, string senderEmail, string smtpPassword)
+public class MailSendProcessor(SenderConfig conf)
 {
-    public virtual async Task SendAsync(ContentParsed content, CancellationToken ct = default)
+    public async Task SendAsync(ContentParsed content, CancellationToken ct = default)
     {
-        var (smtpHost, port) = ParseHost(host);
+        var (smtpHost, port) = ParseHost(conf.SmtpHost);
         using var client = new SmtpClient();
         await client.ConnectAsync(smtpHost, port, SecureSocketOptions.Auto, ct);
-        await client.AuthenticateAsync(senderEmail, smtpPassword, ct);
+        await client.AuthenticateAsync(conf.SenderEmail, conf.SenderPassword, ct);
 
         var message = new MimeMessage();
-        message.From.Add(MailboxAddress.Parse(senderEmail));
+        message.From.Add(MailboxAddress.Parse(conf.SenderEmail));
         message.To.Add(MailboxAddress.Parse(content.Email));
         message.Subject = content.Subject;
 
         var body = new BodyBuilder { HtmlBody = content.BodyHtml };
         foreach (var attachment in content.Attachments)
-            body.Attachments.Add(attachment);
+            body.Attachments.Add(attachment,ct);
 
         message.Body = body.ToMessageBody();
         await client.SendAsync(message, ct);

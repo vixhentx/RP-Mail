@@ -11,9 +11,18 @@ namespace RPMailUI.ViewModels;
 
 public sealed class TaskListViewModel : IDisposable
 {
-    private static readonly char[] Separators = [' ', ',', '&'];
+    public static char[] Separators => [' ', ',', '&'];
 
-    private DisposableBag _bag = new();
+    readonly DisposableBag _d = new();
+
+	// 暴露给View
+    public BindableReactiveProperty<string> SearchText { get; } = new(string.Empty);
+
+    public BindableReactiveProperty<string?> SelectedHeader { get; } = new(null);
+
+    public IReadOnlyBindableReactiveProperty<ImmutableArray<string>> AvailableHeaders { get; }
+
+    public IReadOnlyBindableReactiveProperty<ImmutableArray<TaskItemData>> Tasks { get; }
 
     public TaskListViewModel(Observable<MailRunOutput> output)
     {
@@ -23,8 +32,8 @@ public sealed class TaskListViewModel : IDisposable
             .Where(static x => x is RowsLoadedOutput or TaskStateOutput)
             .Scan(ImmutableArray<TaskItemData>.Empty, static (items, x) => Reduce(items, x))
             .ObserveOnUIThreadDispatcher()
-            .ToReadOnlyBindableReactiveProperty(ImmutableArray<TaskItemData>.Empty)
-            .AddTo(ref _bag);
+            .ToReadOnlyBindableReactiveProperty([])
+            .AddTo(ref _d);
 
         AvailableHeaders = taskItems
             .AsObservable()
@@ -32,34 +41,27 @@ public sealed class TaskListViewModel : IDisposable
                 .SelectMany(static item => item.Data.Keys)
                 .Distinct(StringComparer.Ordinal)
                 .ToImmutableArray())
-            .ToReadOnlyBindableReactiveProperty(ImmutableArray<string>.Empty);
+            .ToReadOnlyBindableReactiveProperty([]);
 
         Tasks = taskItems
             .AsObservable()
             .CombineLatest(
                 SearchText.AsObservable(),
                 SelectedHeader.AsObservable(),
-                static (items, search, _) => Filter(items, search))
-            .ToReadOnlyBindableReactiveProperty(ImmutableArray<TaskItemData>.Empty);
+                static (items, search, _) => Filter(items, search)
+			)
+            .ToReadOnlyBindableReactiveProperty([]);
 
         AvailableHeaders
             .AsObservable()
             .Subscribe(headers => SelectedHeader.Value = headers.FirstOrDefault())
-            .AddTo(ref _bag);
+            .AddTo(ref _d);
 
-        _bag.Add(SearchText);
-        _bag.Add(SelectedHeader);
-        _bag.Add(AvailableHeaders);
-        _bag.Add(Tasks);
+        _d.Add(SearchText);
+        _d.Add(SelectedHeader);
+        _d.Add(AvailableHeaders);
+        _d.Add(Tasks);
     }
-
-    public BindableReactiveProperty<string> SearchText { get; } = new(string.Empty);
-
-    public BindableReactiveProperty<string?> SelectedHeader { get; } = new(null);
-
-    public IReadOnlyBindableReactiveProperty<ImmutableArray<string>> AvailableHeaders { get; }
-
-    public IReadOnlyBindableReactiveProperty<ImmutableArray<TaskItemData>> Tasks { get; }
 
     private static ImmutableArray<TaskItemData> Reduce(ImmutableArray<TaskItemData> items, MailRunOutput output) => output switch
     {
@@ -80,7 +82,10 @@ public sealed class TaskListViewModel : IDisposable
     {
         string[] filters = string.IsNullOrWhiteSpace(searchText)
             ? []
-            : searchText.Split(Separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            : searchText.Split(
+				Separators,
+				StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+			);
 
         var query = items.AsEnumerable();
 
@@ -95,5 +100,5 @@ public sealed class TaskListViewModel : IDisposable
             .ToImmutableArray();
     }
 
-    public void Dispose() => _bag.Dispose();
+    public void Dispose() => _d.Dispose();
 }

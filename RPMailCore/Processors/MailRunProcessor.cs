@@ -6,22 +6,27 @@ using RPMailCore.Models;
 using RPMailCore.Resources;
 using RPMailCore.Services;
 using SmartFormat;
+using SmartFormat.Utilities;
 
 namespace RPMailCore.Processors;
 
 public class MailRunProcessor : IDisposable
 {
-    private const string EmailColumn = "email";
-    private readonly MailSendProcessor? _mailSender;
-
-    public Subject<MailRunOutput> Output { get; } = new();
-
-    public MailRunProcessor(MailSendProcessor? mailSender = null)
-    {
-        _mailSender = mailSender;
-    }
-
-    public async Task<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
+    public const string EmailColumn = "email";
+	readonly DisposableBag _d = new();
+	readonly Subject<MailRunOutput> _output = new();
+	readonly ReactiveProperty<double> _progress = new(0);
+    public Observable<MailRunOutput> Output => _output;
+	public ReadOnlyReactiveProperty<double> Progress => _progress;
+	public MailRunProcessor()
+	{
+		_progress
+			.Subscribe(p => 
+				Emit(new ProgressOutput(Math.Min(p, 100))
+			))
+			.AddTo(ref _d);
+	}
+    public async ValueTask<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
     {
         if (!config.Output.ConvertOnly && config.Sender is null)
         {
@@ -36,10 +41,9 @@ public class MailRunProcessor : IDisposable
         string realOutputDir = Path.Combine(config.Output.OutputDir, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
         int sentCount = 0;
         List<FailedRow> failedRows = [];
-        TypstPdfProcessor? pdfProcessor = null;
         try
         {
-            Emit(new MessageOutput(Smart.Format(Strings.ParsingContents, new { CsvPath = config.Template.CsvPath })));
+            Emit(new MessageOutput(Smart.Format(Strings.ParsingContents, new { config.Template.CsvPath })));
             FileIo.CreateDirectory(realOutputDir);
 
             var csv = CsvProcessor.Read(config.Template.CsvPath, encoding);
@@ -47,7 +51,7 @@ public class MailRunProcessor : IDisposable
 
             var engine = new TemplateEngine();
             var contents = new List<ContentParsed>();
-            pdfProcessor = new TypstPdfProcessor();
+            using var pdfProcessor = new TypstPdfProcessor();
 
             for (int index = 0; index < csv.Rows.Length; index++)
             {
@@ -94,19 +98,19 @@ public class MailRunProcessor : IDisposable
                 }
             }
 
-            Emit(new MessageOutput(Smart.Format(Strings.ParsedContents, new { Count = contents.Count, CsvPath = config.Template.CsvPath })));
+            Emit(new MessageOutput(Smart.Format(Strings.ParsedContents, new { contents.Count, config.Template.CsvPath })));
 
             if (!config.Output.ConvertOnly)
             {
-                var mailSender = _mailSender ?? new MailSendProcessor(config.Sender!.SmtpHost, config.Sender.SenderEmail, config.Sender.SenderPassword);
-                double progress = 0;
+				_progress.Value = 0;
+                var mailSender = new MailSendProcessor(config.Sender);
                 double step = contents.Count > 0 ? 100.0 / contents.Count : 0;
 
                 foreach (var content in contents)
                 {
                     ct.ThrowIfCancellationRequested();
                     Emit(new TaskStateOutput(content.RowIndex, MailTaskStatus.Running, Strings.StatusSending));
-                    Emit(new MessageOutput(Smart.Format(Strings.SendingEmailTo, new { Email = content.Email, Subject = content.Subject })));
+                    Emit(new MessageOutput(Smart.Format(Strings.SendingEmailTo, new { content.Email, content.Subject })));
                     try
                     {
                         await mailSender.SendAsync(content, ct);
@@ -127,10 +131,9 @@ public class MailRunProcessor : IDisposable
                     {
                         failedRows.Add(new(content.UserAttributes, e.Message));
                         Emit(new TaskStateOutput(content.RowIndex, MailTaskStatus.Failed, e.Message));
-                        Emit(new MessageOutput(Smart.Format(Strings.FailedToSendEmail, new { Email = content.Email }) + $": {e.Message}", LogLevel.Error, e));
+                        Emit(new MessageOutput(Smart.Format(Strings.FailedToSendEmail, new { content.Email }) + $": {e.Message}", LogLevel.Error, e));
                     }
-                    progress += step;
-                    Emit(new ProgressOutput(Math.Min(progress, 100)));
+                    _progress.Value = Math.Min(_progress.Value + step,100);
                 }
             }
 
@@ -160,10 +163,6 @@ public class MailRunProcessor : IDisposable
             Emit(new MessageOutput($"{Strings.UnexpectedError}: {e.Message}", LogLevel.Error, e));
             Emit(new RunCompletedOutput(result));
             return result;
-        }
-        finally
-        {
-            pdfProcessor?.Dispose();
         }
     }
 
@@ -199,8 +198,8 @@ public class MailRunProcessor : IDisposable
 
     public void Dispose()
     {
-        Output.Dispose();
+        _output.Dispose();
     }
 
-    private void Emit(MailRunOutput output) => Output.OnNext(output);
+    void Emit(MailRunOutput output) => _output.OnNext(output);
 }

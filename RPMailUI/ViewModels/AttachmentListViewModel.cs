@@ -1,107 +1,86 @@
-using System;
-using System.Collections.Specialized;
+using System.Collections.Immutable;
 using ObservableCollections;
 using R3;
+using RPMailCore.Models;
 using RPMailUI.Models;
 
 namespace RPMailUI.ViewModels;
 
 public sealed class AttachmentListViewModel : IDisposable
 {
-    private DisposableBag _d = new();
-
-    private readonly Subject<Unit> _itemChanges = new();
-    private readonly ISynchronizedView<AttachmentItemData, IDisposable> _view;
-
-    public ObservableList<AttachmentItemData> Items { get; } = [new()];
-
+    readonly DisposableBag _d = new();
+    readonly ObservableList<AttachmentItemData> _items = [new()];
+	// 暴露给View
     public NotifyCollectionChangedSynchronizedViewList<AttachmentItemData> ItemsView { get; }
 
     public BindableReactiveProperty<AttachmentItemData?> SelectedItem { get; } = new();
 
-    public ReactiveCommand AppendCommand { get; } = new();
+	public IReadOnlyBindableReactiveProperty<bool> ShouldRemoveItem { get; }
 
-    public ReactiveCommand RemoveCommand { get; } = new();
+    public ReactiveCommand AppendCommand { get; }
 
-    public Observable<Unit> Changes { get; }
+    public ReactiveCommand RemoveCommand { get; }
+
+	// 暴露给上层
+    public Observable<ImmutableArray<AttachmentPattern>> ConfOut { get; }
 
     public AttachmentListViewModel()
     {
-        ItemsView = Items.ToNotifyCollectionChangedSlim();
+        ItemsView = _items.ToNotifyCollectionChangedSlim()
+			.AddTo(ref _d);
 
-        _view = Items.CreateView(item => Observable
-            .Merge(
-                item.SourceText.Select(static _ => Unit.Default),
-                item.DestinationText.Select(static _ => Unit.Default))
-            .Subscribe(_ => _itemChanges.OnNext(Unit.Default)));
+		// 集合变化检测与model变换
+		ConfOut = _items
+			.ObserveChanged()
+			.Select(_items, static (_,items) =>
+					Observable.Merge(
+						items
+							.Select(static x => 
+								Observable.Merge(
+									x.SourceText.AsUnitObservable(),
+									x.DestinationText.AsUnitObservable()
+								)
+							)
+					)
+				)
+			.Switch() // change sig
+			.Select(
+				_items,
+				static (_,items) =>
+					items
+						.Select(static x => new AttachmentPattern()
+						{
+							Source = x.SourceText.Value,
+							Name = x.DestinationText.Value,
+						})
+						.ToImmutableArray()
+			); // modelize
 
-        _view.ViewChanged += OnViewChanged;
 
-        Changes = Observable.Merge(
-            Items.ObserveChanged().Select(static _ => Unit.Default),
-            _itemChanges);
-
-        AppendCommand.Subscribe(_ => Items.Add(new()))
+		AppendCommand = new();
+        AppendCommand.Subscribe(_ => _items.Add(new()))
             .AddTo(ref _d);
 
-        RemoveCommand.Subscribe(_ =>
-            {
-                if (SelectedItem.Value is not { } selected)
-                {
-                    return;
-                }
+		var shouldRemove = SelectedItem
+			.Select(static x => x is not null);
 
-                Items.Remove(selected);
+		ShouldRemoveItem = shouldRemove
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
+        RemoveCommand = shouldRemove.ToReactiveCommand();
+		RemoveCommand
+			.WithLatestFrom(SelectedItem, static (_,item) => item!)
+			.Subscribe(item =>
+            {
+                _items.Remove(item);
                 SelectedItem.Value = null;
             })
             .AddTo(ref _d);
     }
 
-    private void OnViewChanged(in SynchronizedViewChangedEventArgs<AttachmentItemData, IDisposable> e)
-    {
-        switch (e.Action)
-        {
-            case NotifyCollectionChangedAction.Remove:
-            case NotifyCollectionChangedAction.Replace:
-                if (e.IsSingleItem)
-                {
-                    e.OldItem.View.Dispose();
-                }
-                else
-                {
-                    DisposeViews(e.OldViews);
-                }
-
-                break;
-            case NotifyCollectionChangedAction.Reset:
-                DisposeViews(e.OldViews);
-                break;
-        }
-    }
-
-    private static void DisposeViews(ReadOnlySpan<IDisposable> views)
-    {
-        foreach (var view in views)
-        {
-            view.Dispose();
-        }
-    }
-
     public void Dispose()
     {
-        _view.ViewChanged -= OnViewChanged;
-
-        foreach (var view in _view)
-        {
-            view.Dispose();
-        }
-
-        _view.Dispose();
-        _itemChanges.Dispose();
         _d.Dispose();
-        ItemsView.Dispose();
         SelectedItem.Dispose();
-        AppendCommand.Dispose();
-        RemoveCommand.Dispose();
     }
 }

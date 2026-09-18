@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Immutable;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using ObservableCollections;
 using R3;
-using RPMailCore.Coordination;
 using RPMailCore.Models;
+using RPMailCore.Processors;
 using RPMailUI.Models;
 using RPMailUI.Services;
 
@@ -12,100 +13,112 @@ namespace RPMailUI.ViewModels;
 
 public sealed class MailRunViewModel : IDisposable
 {
-    private const int MaxErrorCount = 5;
+    public const int MaxErrorCount = 5;
 
-    private DisposableBag _d = new();
+    readonly DisposableBag _d = new();
+    readonly MailRunProcessor _processor = new();
+	readonly ReadOnlyReactiveProperty<RunResult> _result;
 
-    public MailRunCoordinator Coordinator { get; }
+	// 暴露给View
     public TaskListViewModel TaskList { get; }
+    public IReadOnlyBindableReactiveProperty<ImmutableArray<ErrorItemData>> Errors { get; }
 
-    public ObservableList<ErrorItemData> Errors { get; } = [];
+    public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
+    public IReadOnlyBindableReactiveProperty<double> Progress { get; }
+    public IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }
+    public IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
 
-    public BindableReactiveProperty<string> ConsoleLog { get; } = new("");
-    public BindableReactiveProperty<double> Progress { get; } = new(0);
-    public BindableReactiveProperty<bool> ShouldRetry { get; } = new(false);
-    public BindableReactiveProperty<bool> ShouldOpenOutputFolder { get; } = new(false);
+    public ReactiveCommand OpenOutputFolderCommand { get; }
+    public ReactiveCommand RetryCommand { get; }
+    public ReactiveCommand StartCommand { get; } = new();
 
-    public ReactiveCommand OpenOutputFolderCommand { get; } = new();
-    public ReactiveCommand RetryCommand { get; } = new();
-
-    // 直接引用 Coordinator.StartCommand，只需转发其可绑定命令语义，避免创建第二个运行入口。
-    public ReactiveCommand<Unit, RunResult> StartCommand { get; }
+	// 对MainViewModel 暴露属性
+	public Observable<string> RetryCsvPath { get; }
 
     public MailRunViewModel(
-        BindableReactiveProperty<PersistedSettings> configuration,
-        Action<string> setRetryCsvPath,
-        Observable<string> moduleErrors)
+        Observable<MailConfig> configuration,
+        Observable<string> moduleErrors
+	)
     {
-        Coordinator = new MailRunCoordinator();
-        TaskList = new TaskListViewModel(Coordinator.Output);
-        StartCommand = Coordinator.StartCommand;
+        TaskList = new TaskListViewModel(_processor.Output);
 
-        OpenOutputFolderCommand.Subscribe(_ =>
-        {
-            if (Coordinator.LastResult is { } result)
-                PathOpenHelper.OpenDirectory(result.RealOutputDir);
-        }).AddTo(ref _d);
+		var trigger = StartCommand.AsUnitObservable();
 
-        RetryCommand.Subscribe(_ =>
-        {
-            if (Coordinator.LastResult?.FailedCsvPath is { } failedCsv)
-                setRetryCsvPath(failedCsv);
-        }).AddTo(ref _d);
+		// 绑定StartCommand, 并收集运行结果
+		_result = 
+			trigger
+				.WithLatestFrom(configuration, static (_,conf) => conf)
+				.SelectAwait(_processor.RunAsync)
+				.ToReadOnlyReactiveProperty(null!)
+				.AddTo(ref _d);
 
-        moduleErrors
-            .ObserveOnUIThreadDispatcher()
-            .Subscribe(message => AddError(LogLevel.Error, message))
-            .AddTo(ref _d);
+		ShouldOpenOutputFolder = 
+			_result.Select(static r => r is not null)
+				.ToReadOnlyBindableReactiveProperty()
+				.AddTo(ref _d);
+        OpenOutputFolderCommand = 
+			_result.Select(static r => r is not null)
+				.ToReactiveCommand()
+				.AddTo(ref _d);
+		OpenOutputFolderCommand
+			.WithLatestFrom(_result, static (_,r) => r!)
+			.ObserveOnUIThreadDispatcher()
+			.Subscribe(r => PathOpenHelper.OpenDirectory(r.RealOutputDir))
+			.AddTo(ref _d);
 
-        // 这里是 UI 配置到 Core 的唯一副作用边界。
-        configuration.AsObservable()
-            .ObserveOnUIThreadDispatcher()
-            .Subscribe(ApplyConfigurationToCoordinator)
-            .AddTo(ref _d);
+		ShouldRetry = 
+			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
+				.ToReadOnlyBindableReactiveProperty()
+				.AddTo(ref _d);
+		RetryCommand = 
+			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
+			.ToReactiveCommand()
+			.AddTo(ref _d);
+		RetryCsvPath = 
+			RetryCommand
+				.WithLatestFrom(_result, static (_,r) => r!.FailedCsvPath!);
 
-        Coordinator.Output
-            .ObserveOnUIThreadDispatcher()
-            .Subscribe(output =>
-            {
-                switch (output)
-                {
-                    case ProgressOutput progress:
-                        Progress.Value = progress.Progress;
-                        break;
-                    case MessageOutput message when message.Level >= LogLevel.Warning:
-                        AddError(message.Level, message.Text);
-                        break;
-                    case RunCompletedOutput completed:
-                        ShouldOpenOutputFolder.Value = completed.Result.Success;
-                        ShouldRetry.Value = completed.Result.Success && completed.Result.FailedRows > 0;
-                        break;
-                }
+		Progress = _processor.Progress
+			.ObserveOnUIThreadDispatcher()
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
 
-                // 仅 MessageOutput 的文本追加到控制台；其他结构化输出不追加。
-                if (output is MessageOutput messageOutput && !string.IsNullOrEmpty(messageOutput.Text))
-                    ConsoleLog.Value += messageOutput.Text + Environment.NewLine;
-            }).AddTo(ref _d);
+		ConsoleLog = _processor.Output
+			.ObserveOnUIThreadDispatcher()
+			.Scan("",static (lastStr, output) =>
+				lastStr + output.Text + Environment.NewLine
+			)
+			.ToReadOnlyBindableReactiveProperty("")
+			.AddTo(ref _d);
 
-        Coordinator.IsRunning.AsObservable()
-            .ObserveOnUIThreadDispatcher()
-            .Where(running => running)
-            .Subscribe(_ =>
-            {
-                Errors.Clear();
-                Progress.Value = 0;
-            }).AddTo(ref _d);
+		// Error显示
+		static ErrorItemData CreateError(LogLevel level, string message)
+		{
+			string key = level >= LogLevel.Error ? "Flyout.Error" : "Flyout.Warning";
+			return new(message, key);
+		}
+		Errors =
+			Observable.Merge(
+				moduleErrors
+					.Select(static e => (reset: false, text: e, level: LogLevel.Error)),
+				_processor.Output
+					.Where(static o => o.Level >= LogLevel.Warning)
+					.Select(static o => (reset: false, text: o.Text, level: o.Level)),
+				trigger
+					.Select(static _ => (reset: true, text: default(string)!, level: default(LogLevel)))
+			)
+			.Scan(
+				ImmutableArray<ErrorItemData>.Empty,
+				static (acc, e) => (acc,e) switch
+				{
+					{ e.reset: true } => [],
+					{ acc.Length: < MaxErrorCount } => [ ..acc, CreateError(e.level, e.text) ],
+					{ acc.Length: >= MaxErrorCount } => [ ..acc[^(MaxErrorCount-1)..], CreateError(e.level, e.text)]
+				}
+			)
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
 
-        Coordinator.IsRunning.AsObservable()
-            .ObserveOnUIThreadDispatcher()
-            .Where(running => !running)
-            .Skip(1)
-            .Subscribe(_ =>
-            {
-                var result = Coordinator.LastResult;
-                ShouldOpenOutputFolder.Value = result?.Success == true;
-                ShouldRetry.Value = result is { Success: true, FailedRows: > 0 };
-            }).AddTo(ref _d);
 
         OpenOutputFolderCommand.AddTo(ref _d);
         RetryCommand.AddTo(ref _d);
@@ -115,51 +128,11 @@ public sealed class MailRunViewModel : IDisposable
         ShouldOpenOutputFolder.AddTo(ref _d);
     }
 
-    private void ApplyConfigurationToCoordinator(PersistedSettings settings)
-    {
-        if (settings is null)
-            return;
-
-        Coordinator.CsvPath.Value = settings.CsvFile;
-        Coordinator.BodyHtmlPath.Value = settings.BodyHtmlPath;
-        Coordinator.Subject.Value = settings.Subject;
-        Coordinator.CharSet.Value = settings.CharSet;
-        Coordinator.SmtpHost.Value = settings.SmtpHost;
-        Coordinator.SenderEmail.Value = settings.SenderEmail;
-        Coordinator.SenderPassword.Value = settings.SenderPassword;
-        Coordinator.OutputDir.Value = settings.OutputFolder;
-        Coordinator.DeleteAfterSent.Value = settings.IsDeleteAfterSent;
-        Coordinator.ConvertOnly.Value = settings.IsConvertOnly;
-        Coordinator.SaveRawDocs.Value = settings.IsSaveRawDoc;
-        Coordinator.SaveHtmlFile.Value = settings.IsSaveHtml;
-
-        Coordinator.AttachmentPatterns.Clear();
-        foreach (var pattern in settings.Attachments)
-        {
-            Coordinator.AttachmentPatterns.Add(new() { Source = pattern.SourceText, Name = pattern.DestinationText });
-        }
-
-        Coordinator.ExtraAttributes.Clear();
-        foreach (var attribute in settings.ExtraAttributes)
-        {
-            if (string.IsNullOrWhiteSpace(attribute.Key))
-                continue;
-            Coordinator.ExtraAttributes[attribute.Key] = attribute.Value;
-        }
-    }
-
-    public void AddError(LogLevel level, string message)
-    {
-        string key = level >= LogLevel.Error ? "Flyout.Error" : "Flyout.Warning";
-        Errors.Add(new ErrorItemData(message, key));
-        if (Errors.Count > MaxErrorCount)
-            Errors.RemoveAt(0);
-    }
 
     public void Dispose()
     {
         _d.Dispose();
         TaskList.Dispose();
-        Coordinator.Dispose();
+        _processor.Dispose();
     }
 }

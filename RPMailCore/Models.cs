@@ -105,7 +105,7 @@ public sealed class TemplateConfig
     public required string BodyHtmlPath { get; set; }
     public required string Subject { get; set; }
     public string CharSet { get; set; } = "utf-8";
-    public Dictionary<string, string> ExtraAttributes { get; set; } = [];
+    public ImmutableDictionary<string, string> ExtraAttributes { get; set; } = [];
     public ImmutableArray<AttachmentPattern> Attachments { get; set; } = [];
 }
 
@@ -126,7 +126,7 @@ public sealed class OutputConfig
 
 public sealed class MailConfig
 {
-    public SenderConfig? Sender { get; set; }
+    public required SenderConfig Sender { get; set; }
     public required TemplateConfig Template { get; set; }
     public OutputConfig Output { get; set; } = new();
 
@@ -143,7 +143,7 @@ public sealed class MailConfig
             CsvPath = "samples/sample.csv",
             BodyHtmlPath = "samples/template.html",
             Subject = "{{ user.title }}",
-            ExtraAttributes = new Dictionary<string, string> { ["company"] = "ACME Inc." },
+            ExtraAttributes = [ new("company", "RobotPilots") ],
             Attachments =
             [
                 new() { Source = "samples/attachment.typ", Name = "{{ user.name }}_attachment_1.pdf" },

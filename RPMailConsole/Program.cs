@@ -4,8 +4,8 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using R3;
 using RPMailConsole.Resources;
-using RPMailCore.Coordination;
 using RPMailCore.Models;
+using RPMailCore.Processors;
 using RPMailCore.Serialization;
 
 namespace RPMailConsole;
@@ -28,7 +28,7 @@ public static class Program
         root.Options.Add(quietOpt);
         root.Options.Add(versionOpt);
 
-        root.SetAction(async (ParseResult pr, CancellationToken ct) =>
+        root.SetAction(async (pr, ct) =>
         {
             if (pr.GetValue(versionOpt))
             {
@@ -64,32 +64,25 @@ public static class Program
                 var config = JsonSerializer.Deserialize(json, RPMailJsonContext.Default.MailConfig)
                     ?? throw new JsonException(Strings.ConfigNull);
 
-                var coordinator = new MailRunCoordinator();
-                try
-                {
-                    var logger = loggerFactory.CreateLogger("RPMail");
-                    using var outputSubscription = coordinator.Output.Subscribe(output =>
-                    {
-                        if (quiet || output is not MessageOutput message || string.IsNullOrEmpty(message.Text)) return;
-                        logger.Log(message.Level, message.Exception, "{Message}", message.Text);
-                    });
-                    var result = await coordinator.RunAsync(config, ct);
-                    if (!result.Success)
-                    {
-                        Console.Error.WriteLine(result.FatalException?.Message);
-                        return 2;
-                    }
-                    return result.FailedRows > 0 ? 1 : 0;
-                }
-                finally
-                {
-                    coordinator.Dispose();
-                }
+                using MailRunProcessor processor = new();
+
+				var logger = loggerFactory.CreateLogger("RPMail");
+				using var _ = processor.Output.Subscribe(output =>
+				{
+					if (output is MessageOutput message)
+						logger.Log(message.Level, message.Exception, "{Message}", message.Text);
+				});
+
+				var result = await processor.RunAsync(config, ct);
+
+				if (!result.Success)
+				{
+					Console.Error.WriteLine(result.FatalException?.Message);
+					return 2;
+				}
+				return result.FailedRows > 0 ? 1 : 0;
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
+            catch (OperationCanceledException) { throw; }
             catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
             {
                 Console.Error.WriteLine(string.Format(Strings.FailedToLoadConfig, e.Message));
