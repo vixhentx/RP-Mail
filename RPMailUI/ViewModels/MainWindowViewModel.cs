@@ -1,65 +1,39 @@
-using Avalonia.Platform.Storage;
 using R3;
-using RPMailCore.Models;
-using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
 
 public class MainWindowViewModel : IDisposable
 {
-    private static string SettingsPath => Path.Combine(AppContext.BaseDirectory, "RPMailUI-Persisted.json");
 
-    private DisposableBag _d = new();
-    private readonly JsonFileDialogService _jsonFiles = new();
-
-    public ContentSettingsViewModel Content { get; }
+    readonly DisposableBag _d = new();
+	public ContentSettingsViewModel Content { get; }
     public SenderSettingsViewModel Sender { get; }
     public ConvertSettingsViewModel Convert { get; }
-
     public MailRunViewModel Run { get; }
+	public ErrorViewModel Error { get; }
 
-    public Observable<MailConfig> ConfOut { get; }
-
-    public IStorageProvider? StorageProvider
-    {
-        get => _jsonFiles.StorageProvider;
-        set => _jsonFiles.StorageProvider = value;
-    }
-
-    public MainWindowViewModel()
-    {
-        Content = new ContentSettingsViewModel();
-        Sender = new SenderSettingsViewModel();
-        Convert = new ConvertSettingsViewModel();
-
-		ConfOut =
-			Observable.CombineLatest(
-				Content.ConfOut,
-				Sender.ConfOut,
-				Convert.ConfOut,
-				static (content, sender, convert) =>
-					new MailConfig()
-					{
-						Sender = sender,
-						Template = content,
-						Output = convert
-					}
-			);
-
-        Run = new MailRunViewModel(
-            ConfOut,
-			Observable.Empty<string>()
-		);
+	public MainWindowViewModel(
+		ContentSettingsViewModel contentVm,
+		ConvertSettingsViewModel convertVm,
+		SenderSettingsViewModel senderVm,
+		MailRunViewModel runVm,
+		ErrorViewModel errorVm
+	) 
+	{
+		Content = contentVm;
+		Convert = convertVm;
+		Sender = senderVm;
+		Run = runVm;
+		Error = errorVm;
     }
 
 
     public void Dispose()
     {
         _d.Dispose();
-        Run.Dispose();
-        Content.Dispose();
-        Sender.Dispose();
-        Convert.Dispose();
-        _jsonFiles.Dispose();
+		Content.Dispose();
+		Convert.Dispose();
+		Sender.Dispose();
+		Run.Dispose();
     }
 }

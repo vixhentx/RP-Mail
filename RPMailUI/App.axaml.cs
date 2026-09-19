@@ -17,13 +17,14 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         ResourcesEntry.Load();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            MainWindowViewModel vm = new();
-            MainWindow window = new()
-            {
-                DataContext = vm
-            };
+			var sp = new RPMailServiceProvider();
+			var window = sp.GetService<MainWindow>();
+			var vm = sp.GetService<MainWindowViewModel>();
+
+			window.DataContext = vm;
             window.Closed += (_, _) => vm.Dispose();
             desktop.MainWindow = window;
         }

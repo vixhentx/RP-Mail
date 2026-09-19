@@ -1,24 +1,37 @@
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Avalonia.Platform.Storage;
 using R3;
 
 namespace RPMailUI.Services;
 
-public sealed class JsonFileDialogService : IDisposable
+public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposable
 {
     private readonly Subject<string> _errors = new();
 
-    public IStorageProvider? StorageProvider { get; set; }
-
     public Observable<string> Errors => _errors;
+
+	public async ValueTask<T?> ReadConf<T>(JsonTypeInfo<T> info)
+		where T : class
+	{
+		string? text = await ReadAsync($"Select Config File: {typeof(T).Name}");
+		if(text is null) return null;
+
+		try
+		{
+			T? conf = JsonSerializer.Deserialize<T>(text, info);
+			return conf;
+		}
+        catch (Exception ex)
+        {
+            _errors.OnNext($"Json Deserializer failed: {ex.Message}");
+            return null;
+        }
+	}
+
 
     public async Task<string?> ReadAsync(string title)
     {
-        if (StorageProvider is not { } provider)
-        {
-            _errors.OnNext("Storage provider unavailable.");
-            return null;
-        }
-
         IReadOnlyList<IStorageFile> files;
         try
         {
@@ -26,7 +39,7 @@ public sealed class JsonFileDialogService : IDisposable
             {
                 Title = title,
                 AllowMultiple = false,
-                FileTypeFilter = new[] { new FilePickerFileType("JSON") { Patterns = new[] { "*.json" } } },
+                FileTypeFilter = [new("JSON") { Patterns = ["*.json"] }],
             });
         }
         catch (Exception ex)
@@ -51,24 +64,27 @@ public sealed class JsonFileDialogService : IDisposable
         }
     }
 
+	public async ValueTask WriteConf<T>(T conf, JsonTypeInfo<T> info, string suggestedName)
+		where T : class
+	{
+		string text = JsonSerializer.Serialize<T>(conf, info);
+		_ = await WriteAsync($"Select Config File: {typeof(T).Name}", suggestedName, text);
+	}
+
     public async Task<bool> WriteAsync(string title, string suggestedName, string json)
     {
-        if (StorageProvider is not { } provider)
-        {
-            _errors.OnNext("Storage provider unavailable.");
-            return false;
-        }
-
         IStorageFile? file;
         try
         {
-            file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
-            {
-                Title = title,
-                SuggestedFileName = suggestedName,
-                DefaultExtension = "json",
-                FileTypeChoices = new[] { new FilePickerFileType("JSON") { Patterns = new[] { "*.json" } } },
-            });
+            file = await provider.SaveFilePickerAsync(
+				new FilePickerSaveOptions
+				{
+					Title = title,
+					SuggestedFileName = suggestedName,
+					DefaultExtension = "json",
+					FileTypeChoices = [new("JSON") { Patterns = [ "*.json" ] } ],
+				}
+			);
         }
         catch (Exception ex)
         {

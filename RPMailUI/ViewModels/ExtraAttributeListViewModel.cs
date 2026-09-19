@@ -75,6 +75,19 @@ public sealed class ExtraAttributeListViewModel : IDisposable
             .AddTo(ref _d);
     }
 
+    // 从配置载入项集合
+    public void LoadItems(ImmutableDictionary<string, string> attributes)
+    {
+        _items.Clear();
+        foreach (var (key, value) in attributes)
+        {
+            var item = new ExtraAttributeItemData();
+            item.Key.Value = key;
+            item.Value.Value = value;
+            _items.Add(item);
+        }
+    }
+
     public void Dispose()
     {
         _d.Dispose();

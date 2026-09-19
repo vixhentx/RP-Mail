@@ -78,6 +78,19 @@ public sealed class AttachmentListViewModel : IDisposable
             .AddTo(ref _d);
     }
 
+    // 从配置载入项集合
+    public void LoadItems(ImmutableArray<AttachmentPattern> attachments)
+    {
+        _items.Clear();
+        foreach (var attachment in attachments)
+        {
+            var item = new AttachmentItemData();
+            item.SourceText.Value = attachment.Source;
+            item.DestinationText.Value = attachment.Name;
+            _items.Add(item);
+        }
+    }
+
     public void Dispose()
     {
         _d.Dispose();

@@ -17,7 +17,7 @@
 	</Design.DataContext>
 	<DockPanel>
 		<controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
-							Errors="{Binding Run.Errors, Mode=OneWay}" HorizontalAlignment="Stretch" MaxHeight="55"/>
+							Errors="{Binding Error.Items.Value}" HorizontalAlignment="Stretch" MaxHeight="55"/>
 		<ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{Binding Run.Progress.Value}"/>
 		<Panel DockPanel.Dock="Bottom">
 			<StackPanel ZIndex="1" Spacing="10"

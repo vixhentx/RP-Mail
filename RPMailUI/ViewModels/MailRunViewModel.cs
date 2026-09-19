@@ -10,15 +10,12 @@ namespace RPMailUI.ViewModels;
 
 public sealed class MailRunViewModel : IDisposable
 {
-    public const int MaxErrorCount = 5;
-
     readonly DisposableBag _d = new();
-    readonly MailRunProcessor _processor = new();
+    readonly MailRunProcessor _processor;
 	readonly ReadOnlyReactiveProperty<RunResult> _result;
 
 	// 暴露给View
     public TaskListViewModel TaskList { get; }
-    public IReadOnlyBindableReactiveProperty<ImmutableArray<ErrorItemData>> Errors { get; }
 
     public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
     public IReadOnlyBindableReactiveProperty<double> Progress { get; }
@@ -33,18 +30,22 @@ public sealed class MailRunViewModel : IDisposable
 	public Observable<string> RetryCsvPath { get; }
 
     public MailRunViewModel(
-        Observable<MailConfig> configuration,
-        Observable<string> moduleErrors
+		ErrorRouteService es,
+		MailRunProcessor processor,
+		TaskListViewModel taskList,
+		ConfigService conf
 	)
     {
-        TaskList = new TaskListViewModel(_processor.Output);
+		_processor = processor;
+
+        TaskList = taskList;
 
 		var trigger = StartCommand.AsUnitObservable();
 
 		// 绑定StartCommand, 并收集运行结果
 		_result = 
 			trigger
-				.WithLatestFrom(configuration, static (_,conf) => conf)
+				.WithLatestFrom(conf.Root, static (_,conf) => conf)
 				.SelectAwait(_processor.RunAsync)
 				.ToReadOnlyReactiveProperty(null!)
 				.AddTo(ref _d);
@@ -88,34 +89,11 @@ public sealed class MailRunViewModel : IDisposable
 			.ToReadOnlyBindableReactiveProperty("")
 			.AddTo(ref _d);
 
-		// Error显示
-		static ErrorItemData CreateError(LogLevel level, string message)
-		{
-			string key = level >= LogLevel.Error ? "Flyout.Error" : "Flyout.Warning";
-			return new(message, key);
-		}
-		Errors =
-			Observable.Merge(
-				moduleErrors
-					.Select(static e => (reset: false, text: e, level: LogLevel.Error)),
-				_processor.Output
-					.Where(static o => o.Level >= LogLevel.Warning)
-					.Select(static o => (reset: false, text: o.Text, level: o.Level)),
-				trigger
-					.Select(static _ => (reset: true, text: default(string)!, level: default(LogLevel)))
-			)
-			.Scan(
-				ImmutableArray<ErrorItemData>.Empty,
-				static (acc, e) => (acc,e) switch
-				{
-					{ e.reset: true } => [],
-					{ acc.Length: < MaxErrorCount } => [ ..acc, CreateError(e.level, e.text) ],
-					{ acc.Length: >= MaxErrorCount } => [ ..acc[^(MaxErrorCount-1)..], CreateError(e.level, e.text)]
-				}
-			)
-			.ToReadOnlyBindableReactiveProperty()
+		_processor.Output
+			.Where(static o => o.Level >= LogLevel.Warning)
+			.Select(static o => ErrorItemData.Create(o.Level, o.Text))
+			.Subscribe(es.Error.OnNext)
 			.AddTo(ref _d);
-
 
         OpenOutputFolderCommand.AddTo(ref _d);
         RetryCommand.AddTo(ref _d);
@@ -130,6 +108,5 @@ public sealed class MailRunViewModel : IDisposable
     {
         _d.Dispose();
         TaskList.Dispose();
-        _processor.Dispose();
     }
 }

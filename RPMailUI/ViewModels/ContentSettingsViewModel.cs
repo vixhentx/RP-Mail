@@ -1,5 +1,7 @@
 using R3;
 using RPMailCore.Models;
+using RPMailCore.Serialization;
+using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
 
@@ -17,23 +19,28 @@ public sealed class ContentSettingsViewModel : IDisposable
     public BindableReactiveProperty<string> Subject { get; } = new("");
     public BindableReactiveProperty<string> CharSet { get; } = new("utf-8");
 
-    public AttachmentListViewModel Attachments { get; } = new();
-    public ExtraAttributeListViewModel ExtraAttributes { get; } = new();
+    public AttachmentListViewModel Attachments { get; }
+    public ExtraAttributeListViewModel ExtraAttributes { get; }
 
-	// 暴露给上机
-	
-	public Observable<TemplateConfig> ConfOut { get; }
+	public ContentSettingsViewModel(
+		ConfigService conf,
+		JsonFileDialogService fileDialog,
+		AttachmentListViewModel attachments,
+		ExtraAttributeListViewModel extraAttributes
+	)
+	{
+		Attachments = attachments;
+		ExtraAttributes = extraAttributes;
 
-    public ContentSettingsViewModel()
-    {
-		ConfOut = Observable.CombineLatest(
+		// 配置产生
+		var confOut = Observable.CombineLatest(
 			CsvPath,
 			BodyHtmlPath,
 			Subject,
 			CharSet,
 			Attachments.ConfOut,
 			ExtraAttributes.ConfOut,
-			static (csv,body,subject,charset,attachments,extraAttributes) => new TemplateConfig()
+			static (csv, body, subject, charset, attachments, extraAttributes) => new TemplateConfig()
 			{
 				CsvPath = csv,
 				BodyHtmlPath = body,
@@ -43,12 +50,48 @@ public sealed class ContentSettingsViewModel : IDisposable
 				ExtraAttributes = extraAttributes
 			}
 		);
-		// TODO: 模块化导入导出
-    }
+		var confImport = ImportCommand
+			.SelectAwait((_, _) => fileDialog.ReadConf(RPMailJsonContext.Default.TemplateConfig))
+			.WhereNotNull();
 
+		Observable.Merge(confOut, confImport)
+			.DistinctUntilChanged()
+			.Subscribe(conf.Root, static (module, root) =>
+				root.Value = root.Value with { Template = module }
+			)
+			.AddTo(ref _d);
 
+		// 配置传入
+		conf.Root
+			.Select(static x => x.Template)
+			.DistinctUntilChanged()
+			.Subscribe(conf =>
+			{
+				CsvPath.Value = conf.CsvPath;
+				BodyHtmlPath.Value = conf.BodyHtmlPath;
+				Subject.Value = conf.Subject;
+				CharSet.Value = conf.CharSet;
+				Attachments.LoadItems(conf.Attachments);
+				ExtraAttributes.LoadItems(conf.ExtraAttributes);
+			})
+			.AddTo(ref _d);
 
-    public void Dispose()
+		// 配置导出
+		ExportCommand
+			.WithLatestFrom(confOut, static (_, conf) => conf)
+			.SubscribeAwait((conf, _) => fileDialog.WriteConf(conf, RPMailJsonContext.Default.TemplateConfig, "content_template_module.json"))
+			.AddTo(ref _d);
+		Attachments = attachments;
+		ExtraAttributes = extraAttributes;
+	}
+
+	public ContentSettingsViewModel(AttachmentListViewModel attachments, ExtraAttributeListViewModel extraAttributes)
+	{
+		Attachments = attachments;
+		ExtraAttributes = extraAttributes;
+	}
+
+	public void Dispose()
     {
         Attachments.Dispose();
         ExtraAttributes.Dispose();

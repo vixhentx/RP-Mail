@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,12 +12,10 @@ namespace RPMailUI.Controls;
 
 public partial class ErrorView : UserControl
 {
-    private DisposableBag _disposables = new();
-
-    public static readonly StyledProperty<ObservableList<ErrorItemData>> ErrorsProperty = AvaloniaProperty.Register<ErrorView, ObservableList<ErrorItemData>>(
+    public static readonly StyledProperty<IReadOnlyList<ErrorItemData>> ErrorsProperty = AvaloniaProperty.Register<ErrorView, IReadOnlyList<ErrorItemData>>(
         nameof(Errors), [], defaultBindingMode: BindingMode.OneWay);
 
-    public ObservableList<ErrorItemData> Errors
+    public IReadOnlyList<ErrorItemData> Errors
     {
         get => GetValue(ErrorsProperty);
         set => SetValue(ErrorsProperty, value);
@@ -41,15 +40,10 @@ public partial class ErrorView : UserControl
         base.OnPropertyChanged(change);
         if (change.Property == ErrorsProperty)
         {
-            ErrorsControl.ItemsSource = Errors.ToNotifyCollectionChangedSlim();
-            Errors.ObserveChanged()
-                .Subscribe(e =>
-                {
-                    if (e.Action == NotifyCollectionChangedAction.Add)
-                        AfterAppend();
-                }).AddTo(ref _disposables);
-        }
-    }
+            ErrorsControl.ItemsSource = Errors;
+			AfterAppend();
+		}
+	}
 
     private void AfterAppend()
     {

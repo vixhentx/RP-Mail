@@ -92,21 +92,21 @@ public sealed record ContentParsed
     public required ImmutableDictionary<string, string> ExtraAttributes { get; init; }
 }
 
-public sealed class SenderConfig
+public sealed record SenderConfig
 {
-    public required string SmtpHost { get; set; }
-    public required string SenderEmail { get; set; }
-    public required string SenderPassword { get; set; }
+    public required string SmtpHost { get; init; }
+    public required string SenderEmail { get; init; }
+    public required string SenderPassword { get; init; }
 }
 
-public sealed class TemplateConfig
+public sealed record TemplateConfig
 {
-    public required string CsvPath { get; set; }
-    public required string BodyHtmlPath { get; set; }
-    public required string Subject { get; set; }
-    public string CharSet { get; set; } = "utf-8";
-    public ImmutableDictionary<string, string> ExtraAttributes { get; set; } = [];
-    public ImmutableArray<AttachmentPattern> Attachments { get; set; } = [];
+    public required string CsvPath { get; init; }
+    public required string BodyHtmlPath { get; init; }
+    public required string Subject { get; init; }
+    public string CharSet { get; init; } = "utf-8";
+    public ImmutableDictionary<string, string> ExtraAttributes { get; init; } = [];
+    public ImmutableArray<AttachmentPattern> Attachments { get; init; } = [];
 }
 
 public sealed class AttachmentPattern
@@ -115,20 +115,20 @@ public sealed class AttachmentPattern
     public required string Name { get; set; }
 }
 
-public sealed class OutputConfig
+public sealed record OutputConfig
 {
-    public string OutputDir { get; set; } = "Output";
-    public bool SaveHtmlFile { get; set; }
-    public bool SaveRawDocs { get; set; }
-    public bool ConvertOnly { get; set; }
-    public bool DeleteAfterSent { get; set; }
+    public required string OutputDir { get; init; }
+    public required bool SaveHtmlFile { get; init; }
+    public required bool SaveRawDocs { get; init; }
+    public required bool ConvertOnly { get; init; }
+    public required bool DeleteAfterSent { get; init; }
 }
 
-public sealed class MailConfig
+public sealed record MailConfig
 {
-    public required SenderConfig Sender { get; set; }
-    public required TemplateConfig Template { get; set; }
-    public OutputConfig Output { get; set; } = new();
+    public required SenderConfig Sender { get; init; }
+    public required TemplateConfig Template { get; init; }
+    public required OutputConfig Output { get; init; }
 
     public static MailConfig CreateTemplate() => new()
     {
@@ -152,6 +152,10 @@ public sealed class MailConfig
         Output = new()
         {
             OutputDir = "Output",
+			SaveHtmlFile = false,
+			ConvertOnly = false,
+			DeleteAfterSent = false,
+			SaveRawDocs = true
         },
     };
 }
