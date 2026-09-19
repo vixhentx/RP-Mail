@@ -1,5 +1,6 @@
 using R3;
 using RPMailCore.Models;
+using RPMailUI.Models;
 
 namespace RPMailUI.Services;
 
@@ -9,7 +10,6 @@ namespace RPMailUI.Services;
 public class ConfigService : IDisposable
 {
 	public ReactiveProperty<MailConfig> Root { get; } = new(MailConfig.CreateTemplate());
-
 	public void Dispose()
 	{
 		Root.Dispose();

@@ -10,6 +10,8 @@ public sealed class AttachmentListViewModel : IDisposable
 {
     readonly DisposableBag _d = new();
     readonly ObservableList<AttachmentItemData> _items = [new()];
+	readonly Subject<Unit> _syncComplete = new();
+	bool _synching;
 	// 暴露给View
     public NotifyCollectionChangedSynchronizedViewList<AttachmentItemData> ItemsView { get; }
 
@@ -44,6 +46,8 @@ public sealed class AttachmentListViewModel : IDisposable
 					)
 				)
 			.Switch() // change sig
+			.Where(_ => !_synching)
+			.Merge(_syncComplete)
 			.Select(
 				_items,
 				static (_,items) =>
@@ -81,6 +85,7 @@ public sealed class AttachmentListViewModel : IDisposable
     // 从配置载入项集合
     public void LoadItems(ImmutableArray<AttachmentPattern> attachments)
     {
+		_synching = true;
         _items.Clear();
         foreach (var attachment in attachments)
         {
@@ -89,11 +94,14 @@ public sealed class AttachmentListViewModel : IDisposable
             item.DestinationText.Value = attachment.Name;
             _items.Add(item);
         }
+		_synching = false;
+		_syncComplete.OnNext(default);
     }
 
     public void Dispose()
     {
         _d.Dispose();
+		_syncComplete.Dispose();
         SelectedItem.Dispose();
     }
 }

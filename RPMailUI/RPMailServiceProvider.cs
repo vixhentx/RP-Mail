@@ -28,6 +28,7 @@ namespace RPMailUI;
 [Scoped<ConfigService>]
 [Scoped<ErrorRouteService>]
 [Scoped<MailRunProcessor>]
+[Scoped<PersistenceService>]
 [Scoped<IStorageProvider>(Factory = nameof(StorageProviderFacotory))]
 [Scoped<JsonFileDialogService>]
 partial class RPMailServiceProvider

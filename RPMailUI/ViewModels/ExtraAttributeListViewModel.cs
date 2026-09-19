@@ -8,6 +8,8 @@ namespace RPMailUI.ViewModels;
 public sealed class ExtraAttributeListViewModel : IDisposable
 {
     readonly DisposableBag _d = new();
+	bool _synching = false;
+	readonly Subject<Unit> _syncComplete = new();
     readonly ObservableList<ExtraAttributeItemData> _items = [new()];
 	// 暴露给View
     public NotifyCollectionChangedSynchronizedViewList<ExtraAttributeItemData> ItemsView { get; }
@@ -43,6 +45,8 @@ public sealed class ExtraAttributeListViewModel : IDisposable
 					)
 				)
 			.Switch() // change sig
+			.Where(_ => !_synching)
+			.Merge(_syncComplete)
 			.Select(
 				_items,
 				static (_,items) =>
@@ -78,6 +82,7 @@ public sealed class ExtraAttributeListViewModel : IDisposable
     // 从配置载入项集合
     public void LoadItems(ImmutableDictionary<string, string> attributes)
     {
+		_synching = true;
         _items.Clear();
         foreach (var (key, value) in attributes)
         {
@@ -86,11 +91,14 @@ public sealed class ExtraAttributeListViewModel : IDisposable
             item.Value.Value = value;
             _items.Add(item);
         }
+		_synching = false;
+		_syncComplete.OnNext(default);
     }
 
     public void Dispose()
     {
         _d.Dispose();
         SelectedItem.Dispose();
+		_syncComplete.Dispose();
     }
 }

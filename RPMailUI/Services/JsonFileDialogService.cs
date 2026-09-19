@@ -1,16 +1,17 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Avalonia.Platform.Storage;
+using Microsoft.Extensions.Logging;
 using R3;
+using RPMailUI.Models;
 
 namespace RPMailUI.Services;
 
-public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposable
+public sealed class JsonFileDialogService(
+	IStorageProvider provider,
+	ErrorRouteService es
+)
 {
-    private readonly Subject<string> _errors = new();
-
-    public Observable<string> Errors => _errors;
-
 	public async ValueTask<T?> ReadConf<T>(JsonTypeInfo<T> info)
 		where T : class
 	{
@@ -24,7 +25,7 @@ public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposab
 		}
         catch (Exception ex)
         {
-            _errors.OnNext($"Json Deserializer failed: {ex.Message}");
+            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Json Deserializer failed: {ex.Message}"));
             return null;
         }
 	}
@@ -44,7 +45,7 @@ public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposab
         }
         catch (Exception ex)
         {
-            _errors.OnNext($"File picker failed: {ex.Message}");
+            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"File picker failed: {ex.Message}"));
             return null;
         }
 
@@ -59,7 +60,7 @@ public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposab
         }
         catch (Exception ex)
         {
-            _errors.OnNext($"Failed to read file: {ex.Message}");
+            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Failed to read file: {ex.Message}"));
             return null;
         }
     }
@@ -88,7 +89,7 @@ public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposab
         }
         catch (Exception ex)
         {
-            _errors.OnNext($"File picker failed: {ex.Message}");
+            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"File picker failed: {ex.Message}"));
             return false;
         }
 
@@ -104,10 +105,8 @@ public sealed class JsonFileDialogService(IStorageProvider provider) : IDisposab
         }
         catch (Exception ex)
         {
-            _errors.OnNext($"Failed to write file: {ex.Message}");
+            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Failed to write file: {ex.Message}"));
             return false;
         }
     }
-
-    public void Dispose() => _errors.Dispose();
 }

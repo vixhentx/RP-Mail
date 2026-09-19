@@ -109,10 +109,10 @@ public sealed record TemplateConfig
     public ImmutableArray<AttachmentPattern> Attachments { get; init; } = [];
 }
 
-public sealed class AttachmentPattern
+public sealed record AttachmentPattern
 {
-    public required string Source { get; set; }
-    public required string Name { get; set; }
+    public required string Source { get; init; }
+    public required string Name { get; init; }
 }
 
 public sealed record OutputConfig

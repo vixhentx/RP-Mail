@@ -14,7 +14,7 @@ public class ErrorViewModel : IDisposable
 	)
 	{
 		Items = es.ErrorList
-			.ToReadOnlyBindableReactiveProperty();
+			.ToReadOnlyBindableReactiveProperty([]);
 	}
 
 	public void Dispose() => Items.Dispose();

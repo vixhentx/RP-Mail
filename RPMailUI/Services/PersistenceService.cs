@@ -2,6 +2,7 @@ using System.Text.Json;
 using R3;
 using RPMailCore.Models;
 using RPMailCore.Serialization;
+using RPMailUI.Models;
 
 namespace RPMailUI.Services;
 
@@ -13,19 +14,19 @@ public class PersistenceService : IDisposable
     public static string DefautlSettingsPath => Path.Combine(AppContext.BaseDirectory, "RPMailUI-Persisted.json");
 	public const float DebounceMs = 500;
 	readonly DisposableBag _d = new();
-	readonly Subject<MailConfig> _confOut = new();
-	public Observable<MailConfig> ConfOut => _confOut;
+	readonly ConfigService _conf;
 	public PersistenceService(
-		Observable<MailConfig> ConfIn
+		ConfigService conf
 	)
 	{
-		ConfIn
+		_conf = conf;
+		conf.Root
 			.Debounce(TimeSpan.FromMilliseconds(DebounceMs))
 			.SubscribeAwait((conf, ct) => SaveAsync(conf, ct: ct))
 			.AddTo(ref _d);
 	}
 
-	public async ValueTask LoadAsync(string path = default!, CancellationToken ct = default)
+	public void Load(string path = default!)
 	{
 		path ??= DefautlSettingsPath;
 
@@ -33,7 +34,7 @@ public class PersistenceService : IDisposable
 		MailConfig conf = MailConfig.CreateTemplate();
 		if(File.Exists(path)) try
 		{
-			var text = await File.ReadAllTextAsync(path,ct);
+			var text = File.ReadAllText(path);
 			conf =
 				JsonSerializer.Deserialize(
 					text,
@@ -44,7 +45,7 @@ public class PersistenceService : IDisposable
 		}
 		catch {}
 
-		_confOut.OnNext(conf);
+		_conf.Root.Value = conf;
 	}
 
 	public async ValueTask SaveAsync(MailConfig conf, string path = default!, CancellationToken ct = default)
@@ -67,6 +68,5 @@ public class PersistenceService : IDisposable
 	public void Dispose()
 	{
 		_d.Dispose();
-		_confOut.Dispose();
 	}
 }

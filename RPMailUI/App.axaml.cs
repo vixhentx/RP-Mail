@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using RPMailUI.Resources;
+using RPMailUI.Services;
 using RPMailUI.ViewModels;
 using RPMailUI.Views;
 
@@ -9,6 +10,7 @@ namespace RPMailUI;
 
 public partial class App : Application
 {
+	readonly RPMailServiceProvider rootSp = new();
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -20,13 +22,18 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-			var sp = new RPMailServiceProvider();
-			var window = sp.GetService<MainWindow>();
-			var vm = sp.GetService<MainWindowViewModel>();
+			var scope = rootSp.CreateScope();
+
+			var persistence = scope.GetService<PersistenceService>();
+			var window = scope.GetService<MainWindow>();
+			var vm = scope.GetService<MainWindowViewModel>();
 
 			window.DataContext = vm;
-            window.Closed += (_, _) => vm.Dispose();
+            window.Closed += (_, _) => scope.Dispose();
             desktop.MainWindow = window;
+
+			persistence.Load();
+
         }
 
         base.OnFrameworkInitializationCompleted();
