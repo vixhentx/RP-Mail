@@ -17,6 +17,7 @@ public sealed class AttachmentListViewModel : IDisposable
 	public NotifyCollectionChangedSynchronizedViewList<AttachmentItemData> ItemsView { get; }
 
 	public BindableReactiveProperty<AttachmentItemData?> SelectedItem { get; } = new();
+	public BindableReactiveProperty<string> WorkspaceDirectory { get; } = new(Directory.GetCurrentDirectory());
 
 	public IReadOnlyBindableReactiveProperty<bool> ShouldRemoveItem { get; }
 
@@ -34,9 +35,15 @@ public sealed class AttachmentListViewModel : IDisposable
 
 		// 配置传入
 		conf.Pipe
-			.DistinctUntilChangedBy(static p => p.Value.Template.Attachments)
+			.Select(static p => p.Value.WorkspaceDirectory)
+			.DistinctUntilChanged()
+			.Subscribe(WorkspaceDirectory, static (directory, property) => property.Value = directory)
+			.AddTo(ref _d);
+
+		conf.Pipe
+			.DistinctUntilChangedBy(static p => p.Value.Mail.Template.Attachments)
 			.Where(static p => p.Source is ConfChangingSource.Import)
-			.Select(static p => p.Value.Template.Attachments)
+			.Select(static p => p.Value.Mail.Template.Attachments)
 			.Subscribe(LoadItems)
 			.AddTo(ref _d);
 
@@ -81,9 +88,9 @@ public sealed class AttachmentListViewModel : IDisposable
 				static (attachments, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Template = pipe.Value.Template with
+						Mail = pipe.Value.Mail with
 						{
-							Attachments = attachments
+							Template = pipe.Value.Mail.Template with { Attachments = attachments }
 						}
 					},
 					ConfChangingSource.UserEdit
@@ -137,5 +144,6 @@ public sealed class AttachmentListViewModel : IDisposable
 	{
 		_d.Dispose();
 		SelectedItem.Dispose();
+		WorkspaceDirectory.Dispose();
 	}
 }

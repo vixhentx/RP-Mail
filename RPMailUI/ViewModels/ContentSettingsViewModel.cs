@@ -35,9 +35,9 @@ public sealed class ContentSettingsViewModel : IDisposable
 
 		// 配置传入
 		conf.Pipe
-			.DistinctUntilChangedBy(static p => p.Value.Template)
+			.DistinctUntilChangedBy(static p => p.Value.Mail.Template)
 			.Where(static p => p.Source is ConfChangingSource.Import)
-			.Select(static p => p.Value.Template)
+			.Select(static p => p.Value.Mail.Template)
 			.Subscribe(template =>
 			{
 				_synching = true;
@@ -72,12 +72,15 @@ public sealed class ContentSettingsViewModel : IDisposable
 				static (content, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Template = pipe.Value.Template with
+						Mail = pipe.Value.Mail with
 						{
-							CsvPath = content.CsvPath,
-							BodyHtmlPath = content.BodyHtmlPath,
-							Subject = content.Subject,
-							CharSet = content.CharSet
+							Template = pipe.Value.Mail.Template with
+							{
+								CsvPath = content.CsvPath,
+								BodyHtmlPath = content.BodyHtmlPath,
+								Subject = content.Subject,
+								CharSet = content.CharSet
+							}
 						}
 					},
 					ConfChangingSource.UserEdit
@@ -89,14 +92,16 @@ public sealed class ContentSettingsViewModel : IDisposable
 
 		// 配置导入
 		ImportCommand
-			.SelectAwait((_, _) => fileDialog.ReadConf(RPMailJsonContext.Default.TemplateConfig))
+			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.WorkspaceDirectory)
+			.SelectAwait((directory, ct) => fileDialog.ReadConf(RPMailJsonContext.Default.TemplateConfig, directory, ct))
 			.WhereNotNull()
 			.WithLatestFrom(
 				conf.Pipe,
-				static (template, pipe) => new ConfPipe(
+				static (loaded, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Template = template
+						Mail = pipe.Value.Mail with { Template = loaded.Value },
+						WorkspaceDirectory = loaded.Directory,
 					},
 					ConfChangingSource.Import
 				)
@@ -107,12 +112,14 @@ public sealed class ContentSettingsViewModel : IDisposable
 
 		// 配置导出
 		ExportCommand
-			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.Template)
-			.SubscribeAwait((template, _) =>
+			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
+			.SubscribeAwait((config, ct) =>
 				fileDialog.WriteConf(
-					template,
+					config.Mail.Template,
 					RPMailJsonContext.Default.TemplateConfig,
-					"content_template_module.json"
+					"content_template_module.json",
+					config.WorkspaceDirectory,
+					ct
 				)
 			)
 			.AddTo(ref _d);

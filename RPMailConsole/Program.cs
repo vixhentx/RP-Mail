@@ -73,7 +73,7 @@ public static class Program
 						logger.Log(message.Level, message.Exception, "{Message}", message.Text);
 				});
 
-				var result = await processor.RunAsync(config, ct);
+				var result = await processor.RunAsync(config, Directory.GetCurrentDirectory(), ct);
 
 				if (!result.Success)
 				{

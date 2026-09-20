@@ -28,9 +28,9 @@ public sealed class ConvertSettingsViewModel : IDisposable
 	{
 		// 配置传入
 		conf.Pipe
-			.DistinctUntilChangedBy(static p => p.Value.Output)
+			.DistinctUntilChangedBy(static p => p.Value.Mail.Output)
 			.Where(static p => p.Source is ConfChangingSource.Import)
-			.Select(static p => p.Value.Output)
+			.Select(static p => p.Value.Mail.Output)
 			.Subscribe(output =>
 			{
 				_synching = true;
@@ -68,7 +68,7 @@ public sealed class ConvertSettingsViewModel : IDisposable
 				static (output, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Output = output
+						Mail = pipe.Value.Mail with { Output = output }
 					},
 					ConfChangingSource.UserEdit
 				)
@@ -79,14 +79,15 @@ public sealed class ConvertSettingsViewModel : IDisposable
 
 		// 配置导入
 		ImportCommand
-			.SelectAwait((_, _) => fileDialog.ReadConf(RPMailJsonContext.Default.OutputConfig))
+			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.WorkspaceDirectory)
+			.SelectAwait((directory, ct) => fileDialog.ReadConf(RPMailJsonContext.Default.OutputConfig, directory, ct))
 			.WhereNotNull()
 			.WithLatestFrom(
 				conf.Pipe,
-				static (output, pipe) => new ConfPipe(
+				static (loaded, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Output = output
+						Mail = pipe.Value.Mail with { Output = loaded.Value }
 					},
 					ConfChangingSource.Import
 				)
@@ -97,12 +98,14 @@ public sealed class ConvertSettingsViewModel : IDisposable
 
 		// 配置导出
 		ExportCommand
-			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.Output)
-			.SubscribeAwait((output, _) =>
+			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
+			.SubscribeAwait((config, ct) =>
 				fileDialog.WriteConf(
-					output,
+					config.Mail.Output,
 					RPMailJsonContext.Default.OutputConfig,
-					"output_config_module.json"
+					"output_config_module.json",
+					config.WorkspaceDirectory,
+					ct
 				)
 			)
 			.AddTo(ref _d);

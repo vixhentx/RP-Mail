@@ -1,8 +1,7 @@
 using System.Text.Json;
 using R3;
-using RPMailCore.Models;
-using RPMailCore.Serialization;
 using RPMailUI.Models;
+using RPMailUI.Serialization;
 
 namespace RPMailUI.Services;
 
@@ -37,7 +36,7 @@ public class PersistenceService : IDisposable
 		path ??= DefautlSettingsPath;
 
 		// fall back 为默认模板
-		MailConfig conf = MailConfig.CreateTemplate();
+		PersistedConfig conf = PersistedConfig.CreateTemplate();
 		if (File.Exists(path))
 		{
 			try
@@ -46,7 +45,7 @@ public class PersistenceService : IDisposable
 				conf =
 					JsonSerializer.Deserialize(
 						text,
-						RPMailJsonContext.Default.MailConfig
+						PersistedConfigJsonContext.Default.PersistedConfig
 					)
 					is {} c
 						? c
@@ -64,7 +63,7 @@ public class PersistenceService : IDisposable
 	}
 
 	public async ValueTask SaveAsync(
-		MailConfig conf,
+		PersistedConfig conf,
 		string path = default!,
 		CancellationToken ct = default
 	)
@@ -74,7 +73,7 @@ public class PersistenceService : IDisposable
 		string text =
 			JsonSerializer.Serialize(
 				conf,
-				RPMailJsonContext.Default.MailConfig
+				PersistedConfigJsonContext.Default.PersistedConfig
 			);
 
 		var dir = Path.GetDirectoryName(path);

@@ -1,5 +1,4 @@
 using R3;
-using RPMailCore.Models;
 using RPMailUI.Models;
 
 namespace RPMailUI.Services;
@@ -12,7 +11,7 @@ public class ConfigService : IDisposable
 	public ReactiveProperty<ConfPipe> Pipe { get; } =
 		new(
 			value: new(
-				Value: MailConfig.CreateTemplate(),
+				Value: PersistedConfig.CreateTemplate(),
 				Source: ConfChangingSource.Import
 			)
 		);

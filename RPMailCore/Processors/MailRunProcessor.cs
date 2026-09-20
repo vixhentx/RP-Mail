@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using R3;
 using RPMailCore.Models;
@@ -26,8 +25,11 @@ public class MailRunProcessor : IDisposable
 			))
 			.AddTo(ref _d);
 	}
-    public async ValueTask<RunResult> RunAsync(MailConfig config, CancellationToken ct = default)
+    public async ValueTask<RunResult> RunAsync(MailConfig config, string workspaceDirectory, CancellationToken ct = default)
     {
+		workspaceDirectory = Path.GetFullPath(workspaceDirectory);
+		string ResolvePath(string path) => Path.GetFullPath(path, workspaceDirectory);
+
         if (!config.Output.ConvertOnly && config.Sender is null)
         {
             string message = Strings.SenderConfigRequired;
@@ -38,18 +40,51 @@ public class MailRunProcessor : IDisposable
         }
 
         var encoding = EncodingResolver.Resolve(config.Template.CharSet);
-        string realOutputDir = Path.Combine(config.Output.OutputDir, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
+		string realOutputDir = Path.Combine(ResolvePath(config.Output.OutputDir), $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
 		TemplateEngine engine = new();
 
 		ConcurrentQueue<ContentParsed> contents = [];
         ConcurrentQueue<FailedRow> failedRows = [];
+
+		ImmutableArray<string> BuildAttachments(
+			TypstPdfProcessor pdfProcessor,
+			ImmutableArray<AttachmentPattern> attachmentPatterns,
+			string outputDir,
+			ImmutableDictionary<string, string> user,
+			IReadOnlyDictionary<string, string> extraAttributes)
+		{
+			var ret = ImmutableArray.CreateBuilder<string>();
+			foreach (var attachment in attachmentPatterns)
+			{
+				var patternPath = ResolvePath(engine.Render(attachment.Source, user, extraAttributes));
+				if (string.IsNullOrWhiteSpace(patternPath)) continue;
+
+				var targetFile = engine.Render(attachment.Name, user, extraAttributes);
+				if (string.IsNullOrWhiteSpace(targetFile)) continue;
+
+				var outputPath = Path.Combine(outputDir, targetFile);
+
+				switch ((pattern: Path.GetExtension(patternPath).ToLower(), target: Path.GetExtension(outputPath).ToLower()))
+				{
+					case { pattern: ".typ", target: ".pdf" }:
+						var renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), user, extraAttributes);
+						pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
+						break;
+					default:
+						File.Copy(patternPath, outputPath);
+						break;
+				}
+				ret.Add(outputPath);
+			}
+			return ret.ToImmutable();
+		}
 
         try
         {
             Emit(new MessageOutput(Smart.Format(Strings.ParsingContents, new { config.Template.CsvPath })));
             FileIo.CreateDirectory(realOutputDir);
 
-            var csv = CsvProcessor.Read(config.Template.CsvPath, encoding);
+			var csv = CsvProcessor.Read(ResolvePath(config.Template.CsvPath), encoding);
             Emit(new RowsLoadedOutput(csv.Rows));
 
 			var rowNumDigits = (int)Math.Floor(Math.Log10(csv.Rows.Length));
@@ -66,7 +101,7 @@ public class MailRunProcessor : IDisposable
                     Emit(new MessageOutput(Smart.Format(Strings.ParsingEmail, new { Email = email })));
 
                     string subject = engine.Render(config.Template.Subject, row, config.Template.ExtraAttributes);
-                    string bodyHtmlPath = engine.Render(config.Template.BodyHtmlPath, row, config.Template.ExtraAttributes);
+					string bodyHtmlPath = ResolvePath(engine.Render(config.Template.BodyHtmlPath, row, config.Template.ExtraAttributes));
                     string htmlBody = engine.Render(FileIo.ReadAllText(bodyHtmlPath, encoding), row, config.Template.ExtraAttributes);
 
                     string outputDir = Path.Combine(realOutputDir, $"{index.ToString().PadLeft(rowNumDigits,'0')}-{email}");
@@ -75,7 +110,7 @@ public class MailRunProcessor : IDisposable
                     if (config.Output.SaveHtmlFile || config.Output.ConvertOnly)
                         FileIo.WriteAllText(Path.Combine(outputDir, "body.html"), htmlBody, encoding);
 
-                    var attachments = BuildAttachments(engine, pdfProcessor, config.Template.Attachments, outputDir, row, encoding, config.Template.ExtraAttributes);
+					var attachments = BuildAttachments(pdfProcessor, config.Template.Attachments, outputDir, row, config.Template.ExtraAttributes);
 
                     contents.Enqueue(new ()
                     {
@@ -178,36 +213,6 @@ public class MailRunProcessor : IDisposable
             Emit(new RunCompletedOutput(result));
             return result;
         }
-    }
-
-    static ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> user, Encoding encoding, IReadOnlyDictionary<string, string> extraAttributes)
-    {
-        var ret = ImmutableArray.CreateBuilder<string>();
-        foreach (var attachment in attachmentPatterns)
-        {
-            string patternPath = engine.Render(attachment.Source, user, extraAttributes);
-            if (string.IsNullOrWhiteSpace(patternPath)) continue;
-
-            string targetFile = engine.Render(attachment.Name, user, extraAttributes);
-            if (string.IsNullOrWhiteSpace(targetFile)) continue;
-
-            string outputPath = Path.Combine(outputDir, targetFile);
-
-			switch((pattern: Path.GetExtension(patternPath).ToLower(), target: Path.GetExtension(outputPath).ToLower()))
-			{
-				// Render Typst to PDF
-				case { pattern: ".typ", target: ".pdf" }:
-					string renderedTyp = engine.Render(FileIo.ReadAllText(patternPath, encoding), user, extraAttributes);
-					pdfProcessor.Convert(renderedTyp, Path.GetDirectoryName(patternPath) ?? "", outputPath);
-					break;
-				// Rename and passthru
-				default:
-					File.Copy(patternPath,outputPath);
-					break;
-			}
-            ret.Add(outputPath);
-        }
-        return ret.ToImmutable();
     }
 
     public void Dispose()

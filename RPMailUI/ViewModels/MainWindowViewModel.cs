@@ -5,7 +5,8 @@ namespace RPMailUI.ViewModels;
 public class MainWindowViewModel : IDisposable
 {
 
-    readonly DisposableBag _d = new();
+	readonly DisposableBag _d = new();
+	public WorkspaceConfigViewModel Workspace { get; }
 	public ContentSettingsViewModel Content { get; }
     public SenderSettingsViewModel Sender { get; }
     public ConvertSettingsViewModel Convert { get; }
@@ -13,6 +14,7 @@ public class MainWindowViewModel : IDisposable
 	public ErrorViewModel Error { get; }
 
 	public MainWindowViewModel(
+		WorkspaceConfigViewModel workspaceVm,
 		ContentSettingsViewModel contentVm,
 		ConvertSettingsViewModel convertVm,
 		SenderSettingsViewModel senderVm,
@@ -20,6 +22,7 @@ public class MainWindowViewModel : IDisposable
 		ErrorViewModel errorVm
 	) 
 	{
+		Workspace = workspaceVm;
 		Content = contentVm;
 		Convert = convertVm;
 		Sender = senderVm;
@@ -29,8 +32,9 @@ public class MainWindowViewModel : IDisposable
 
 
     public void Dispose()
-    {
-        _d.Dispose();
+	{
+		_d.Dispose();
+		Workspace.Dispose();
 		Content.Dispose();
 		Convert.Dispose();
 		Sender.Dispose();

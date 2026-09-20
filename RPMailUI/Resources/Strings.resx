@@ -147,4 +147,10 @@
   <data name="Export" xml:space="preserve">
     <value>Export</value>
   </data>
+  <data name="Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="WorkspaceDirectory" xml:space="preserve">
+    <value>Workspace Directory</value>
+  </data>
 </root>

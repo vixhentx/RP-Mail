@@ -23,6 +23,7 @@ namespace RPMailUI;
 [Transient<TaskListViewModel>(Factory = nameof(TaskListViewModelFactory))]
 [Transient<AttachmentListViewModel>]
 [Transient<ExtraAttributeListViewModel>]
+[Transient<WorkspaceConfigViewModel>]
 
 // Normal Service
 [Scoped<ConfigService>]

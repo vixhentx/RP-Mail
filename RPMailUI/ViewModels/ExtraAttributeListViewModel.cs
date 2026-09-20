@@ -33,9 +33,9 @@ public sealed class ExtraAttributeListViewModel : IDisposable
 
 		// 配置传入
 		conf.Pipe
-			.DistinctUntilChangedBy(static p => p.Value.Template.ExtraAttributes)
+			.DistinctUntilChangedBy(static p => p.Value.Mail.Template.ExtraAttributes)
 			.Where(static p => p.Source is ConfChangingSource.Import)
-			.Select(static p => p.Value.Template.ExtraAttributes)
+			.Select(static p => p.Value.Mail.Template.ExtraAttributes)
 			.Subscribe(LoadItems)
 			.AddTo(ref _d);
 
@@ -78,9 +78,9 @@ public sealed class ExtraAttributeListViewModel : IDisposable
 				static (attributes, pipe) => new ConfPipe(
 					pipe.Value with
 					{
-						Template = pipe.Value.Template with
+						Mail = pipe.Value.Mail with
 						{
-							ExtraAttributes = attributes
+							Template = pipe.Value.Mail.Template with { ExtraAttributes = attributes }
 						}
 					},
 					ConfChangingSource.UserEdit

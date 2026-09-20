@@ -50,6 +50,15 @@ public partial class FileBarView : UserControl
         set => SetValue(IsDirectoryProperty, value);
     }
 
+    public static readonly StyledProperty<string> WorkspaceDirectoryProperty = AvaloniaProperty.Register<FileBarView, string>(
+        nameof(WorkspaceDirectory), Directory.GetCurrentDirectory());
+
+    public string WorkspaceDirectory
+    {
+        get => GetValue(WorkspaceDirectoryProperty);
+        set => SetValue(WorkspaceDirectoryProperty, value);
+    }
+
     public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
         RoutedEvent.Register<TextBox, TextChangedEventArgs>(
             nameof(TextChanged), RoutingStrategies.Bubble);
@@ -87,6 +96,7 @@ public partial class FileBarView : UserControl
             {
                 Title = string.Format(Strings.OpenFilePickerTitle, FileType),
                 AllowMultiple = false,
+				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(WorkspaceDirectory),
                 FileTypeFilter = [new(fileTypeName)
                 {
                     Patterns = [$"*.{fileTypeExt}"]
@@ -104,7 +114,7 @@ public partial class FileBarView : UserControl
             {
                 Title = Strings.SelectDirectory,
                 AllowMultiple = false,
-                SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(AppContext.BaseDirectory)
+				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(WorkspaceDirectory)
             });
 
             if (directories.Count > 0)
@@ -115,12 +125,9 @@ public partial class FileBarView : UserControl
         string filePath = selectedPath;
         if (!string.IsNullOrEmpty(filePath))
         {
-            string currentDir = Directory.GetCurrentDirectory();
-            string relativePath = GetRelativePath(currentDir, selectedPath);
-            if (GetPathLayerCount(relativePath) <= 2)
-            {
-                filePath = relativePath;
-            }
+			var relativePath = Path.GetRelativePath(WorkspaceDirectory, selectedPath);
+			if (!Path.IsPathRooted(relativePath) && relativePath is not ".." && !relativePath.StartsWith($"..{Path.DirectorySeparatorChar}"))
+				filePath = relativePath;
         }
         FilePath = filePath;
     }
@@ -131,11 +138,11 @@ public partial class FileBarView : UserControl
         {
             if (!IsDirectory)
             {
-                PathOpenHelper.OpenFilePath(FilePath);
+				PathOpenHelper.OpenFilePath(Path.GetFullPath(FilePath, WorkspaceDirectory));
             }
             else
             {
-                PathOpenHelper.OpenDirectory(FilePath);
+				PathOpenHelper.OpenDirectory(Path.GetFullPath(FilePath, WorkspaceDirectory));
             }
         }
         catch (Exception ex)
@@ -144,22 +151,4 @@ public partial class FileBarView : UserControl
         }
     }
 
-    //Utils
-    static string GetRelativePath(string basePath, string targetPath)
-    {
-        Uri baseUri = new Uri(basePath + Path.DirectorySeparatorChar);
-        Uri targetUri = new Uri(targetPath);
-
-        Uri relativeUri = baseUri.MakeRelativeUri(targetUri);
-
-        return Uri.UnescapeDataString(relativeUri.ToString());
-    }
-    static int GetPathLayerCount(string path)
-    {
-        char separator = Path.DirectorySeparatorChar;
-
-        string[] parts = path.Split(separator, StringSplitOptions.RemoveEmptyEntries);
-
-        return parts.Length;
-    }
 }

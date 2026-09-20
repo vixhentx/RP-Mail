@@ -7,72 +7,85 @@ using RPMailUI.Models;
 
 namespace RPMailUI.Services;
 
+public sealed record LoadedConfig<T>(T Value, string Directory)
+	where T : class;
+
 public sealed class JsonFileDialogService(
 	IStorageProvider provider,
 	ErrorRouteService es
 )
 {
-	public async ValueTask<T?> ReadConf<T>(JsonTypeInfo<T> info)
+	public async ValueTask<LoadedConfig<T>?> ReadConf<T>(JsonTypeInfo<T> info, string workspaceDirectory, CancellationToken ct = default)
 		where T : class
 	{
-		string? text = await ReadAsync($"Select Config File: {typeof(T).Name}");
-		if(text is null) return null;
+		IReadOnlyList<IStorageFile> files;
+		try
+		{
+			files = await provider.OpenFilePickerAsync(new()
+			{
+				Title = $"Select Config File: {typeof(T).Name}",
+				AllowMultiple = false,
+				FileTypeFilter = [new("JSON") { Patterns = ["*.json"] }],
+				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
+			});
+		}
+		catch (Exception ex)
+		{
+			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"File picker failed: {ex.Message}"));
+			return null;
+		}
+
+		if (files is not [var file])
+			return null;
 
 		try
 		{
-			T? conf = JsonSerializer.Deserialize<T>(text, info);
-			return conf;
+			var path = file.TryGetLocalPath();
+			var directory = path is null ? null : Path.GetDirectoryName(path);
+			if (directory is null)
+			{
+				es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, "Selected config file has no local directory."));
+				return null;
+			}
+
+			await using var stream = await file.OpenReadAsync();
+			var conf = await JsonSerializer.DeserializeAsync(stream, info, ct);
+			return conf is null ? null : new(conf, directory);
 		}
-        catch (Exception ex)
-        {
-            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Json Deserializer failed: {ex.Message}"));
-            return null;
-        }
+		catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+		{
+			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"Failed to read config: {ex.Message}"));
+			return null;
+		}
 	}
 
-
-    public async Task<string?> ReadAsync(string title)
-    {
-        IReadOnlyList<IStorageFile> files;
-        try
-        {
-            files = await provider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = title,
-                AllowMultiple = false,
-                FileTypeFilter = [new("JSON") { Patterns = ["*.json"] }],
-            });
-        }
-        catch (Exception ex)
-        {
-            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"File picker failed: {ex.Message}"));
-            return null;
-        }
-
-        if (files is not { Count: > 0 })
-            return null;
-
-        try
-        {
-            await using var stream = await files[0].OpenReadAsync();
-            using var reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
-        }
-        catch (Exception ex)
-        {
-            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Failed to read file: {ex.Message}"));
-            return null;
-        }
-    }
-
-	public async ValueTask WriteConf<T>(T conf, JsonTypeInfo<T> info, string suggestedName)
+	public async ValueTask WriteConf<T>(T conf, JsonTypeInfo<T> info, string suggestedName, string workspaceDirectory, CancellationToken ct = default)
 		where T : class
 	{
-		string text = JsonSerializer.Serialize<T>(conf, info);
-		_ = await WriteAsync($"Select Config File: {typeof(T).Name}", suggestedName, text);
+		var text = JsonSerializer.Serialize(conf, info);
+		_ = await WriteAsync($"Select Config File: {typeof(T).Name}", suggestedName, text, workspaceDirectory, ct);
 	}
 
-    public async Task<bool> WriteAsync(string title, string suggestedName, string json)
+	public async ValueTask<string?> PickDirectory(string workspaceDirectory)
+	{
+		try
+		{
+			var directories = await provider.OpenFolderPickerAsync(new()
+			{
+				Title = "Select Workspace Directory",
+				AllowMultiple = false,
+				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
+			});
+			return directories is [var directory] ? directory.TryGetLocalPath() : null;
+		}
+		catch (Exception ex)
+		{
+			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"File picker failed: {ex.Message}"));
+			return null;
+		}
+	}
+
+    public async Task<bool> WriteAsync(string title, string suggestedName, string json, string workspaceDirectory, CancellationToken ct = default)
     {
         IStorageFile? file;
         try
@@ -83,7 +96,8 @@ public sealed class JsonFileDialogService(
 					Title = title,
 					SuggestedFileName = suggestedName,
 					DefaultExtension = "json",
-					FileTypeChoices = [new("JSON") { Patterns = [ "*.json" ] } ],
+					FileTypeChoices = [new("JSON") { Patterns = ["*.json"] }],
+					SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
 				}
 			);
         }
@@ -100,7 +114,7 @@ public sealed class JsonFileDialogService(
         {
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new StreamWriter(stream);
-            await writer.WriteAsync(json);
+			await writer.WriteAsync(json.AsMemory(), ct);
             return true;
         }
         catch (Exception ex)

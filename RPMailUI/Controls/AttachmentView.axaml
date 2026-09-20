@@ -7,7 +7,8 @@
                       xmlns:vm="using:RPMailUI.ViewModels"
                       xmlns:res="using:RPMailUI.Resources"
                       mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                      x:Class="RPMailUI.Controls.AttachmentView"
+                       x:Class="RPMailUI.Controls.AttachmentView"
+                       x:Name="Root"
                       x:DataType="vm:AttachmentListViewModel">
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
@@ -23,8 +24,9 @@
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
-                        <local:FileBarView Grid.Column="0" Caption=""
-                                     FilePath="{Binding SourceText.Value, Mode=TwoWay}"/>
+						<local:FileBarView Grid.Column="0" Caption=""
+									  FilePath="{Binding SourceText.Value, Mode=TwoWay}"
+									  WorkspaceDirectory="{Binding #Root.DataContext.WorkspaceDirectory.Value}"/>
                         <Label Grid.Column="1"
                                 Content=" ==&gt; " VerticalAlignment="Center"/>
                         <TextBox Grid.Column="2" Margin="5"

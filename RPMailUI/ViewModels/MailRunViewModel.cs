@@ -47,7 +47,10 @@ public sealed class MailRunViewModel : IDisposable
 			trigger
 				.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
 				.ObserveOnThreadPool()
-				.SelectAwait(_processor.RunAsync,awaitOperation: AwaitOperation.Drop)
+				.SelectAwait(
+					(config, ct) => _processor.RunAsync(config.Mail, config.WorkspaceDirectory, ct),
+					awaitOperation: AwaitOperation.Drop
+				)
 				.ObserveOnUIThreadDispatcher()
 				.ToReadOnlyReactiveProperty(null!)
 				.AddTo(ref _d);

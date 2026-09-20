@@ -1,5 +1,3 @@
-using RPMailCore.Models;
-
 namespace RPMailUI.Models;
 
 /// <summary>
@@ -17,12 +15,12 @@ public enum ConfChangingSource
 	Import
 }
 
-public sealed record ConfPipe(MailConfig Value, ConfChangingSource Source)
-	: IEquatable<ConfPipe>, IEquatable<MailConfig>
+public sealed record ConfPipe(PersistedConfig Value, ConfChangingSource Source)
+	: IEquatable<ConfPipe>, IEquatable<PersistedConfig>
 {
 	public bool Equals(ConfPipe? other)
 		=> other is not null && Value.Equals(other.Value);
-	public bool Equals(MailConfig? other)
+	public bool Equals(PersistedConfig? other)
 		=> other is not null && Value.Equals(other);
 	public override int GetHashCode() => Value.GetHashCode();
 }
