@@ -11,16 +11,22 @@ namespace RPMailUI.Services;
 /// </summary>
 public class PersistenceService : IDisposable
 {
-    public static string DefautlSettingsPath => Path.Combine(AppContext.BaseDirectory, "RPMailUI-Persisted.json");
+	public static string DefautlSettingsPath =>
+		Path.Combine(AppContext.BaseDirectory, "RPMailUI-Persisted.json");
+
 	public const float DebounceMs = 500;
+
 	readonly DisposableBag _d = new();
 	readonly ConfigService _conf;
+
 	public PersistenceService(
 		ConfigService conf
 	)
 	{
 		_conf = conf;
-		conf.Root
+
+		conf.Pipe
+			.Select(static p => p.Value)
 			.Debounce(TimeSpan.FromMilliseconds(DebounceMs))
 			.SubscribeAwait((conf, ct) => SaveAsync(conf, ct: ct))
 			.AddTo(ref _d);
@@ -30,28 +36,41 @@ public class PersistenceService : IDisposable
 	{
 		path ??= DefautlSettingsPath;
 
-		// fall back 为 默认模板
+		// fall back 为默认模板
 		MailConfig conf = MailConfig.CreateTemplate();
-		if(File.Exists(path)) try
+		if (File.Exists(path))
 		{
-			var text = File.ReadAllText(path);
-			conf =
-				JsonSerializer.Deserialize(
-					text,
-					RPMailJsonContext.Default.MailConfig
-				)
-				is {} c ?
-				c : conf;
+			try
+			{
+				var text = File.ReadAllText(path);
+				conf =
+					JsonSerializer.Deserialize(
+						text,
+						RPMailJsonContext.Default.MailConfig
+					)
+					is {} c
+						? c
+						: conf;
+			}
+			catch
+			{
+			}
 		}
-		catch {}
 
-		_conf.Root.Value = conf;
+		_conf.Pipe.Value = new(
+			Value: conf,
+			Source: ConfChangingSource.Import
+		);
 	}
 
-	public async ValueTask SaveAsync(MailConfig conf, string path = default!, CancellationToken ct = default)
+	public async ValueTask SaveAsync(
+		MailConfig conf,
+		string path = default!,
+		CancellationToken ct = default
+	)
 	{
 		path ??= DefautlSettingsPath;
-		
+
 		string text =
 			JsonSerializer.Serialize(
 				conf,
@@ -59,7 +78,7 @@ public class PersistenceService : IDisposable
 			);
 
 		var dir = Path.GetDirectoryName(path);
-		if(dir is {} d && !Directory.Exists(dir))
+		if (dir is {} d && !Directory.Exists(dir))
 			Directory.CreateDirectory(d);
 
 		await File.WriteAllTextAsync(path, text, ct);

@@ -9,9 +9,15 @@ namespace RPMailUI.Services;
 /// </summary>
 public class ConfigService : IDisposable
 {
-	public ReactiveProperty<MailConfig> Root { get; } = new(MailConfig.CreateTemplate());
+	public ReactiveProperty<ConfPipe> Pipe { get; } =
+		new(
+			value: new(
+				Value: MailConfig.CreateTemplate(),
+				Source: ConfChangingSource.Import
+			)
+		);
 	public void Dispose()
 	{
-		Root.Dispose();
+		Pipe.Dispose();
 	}
 }

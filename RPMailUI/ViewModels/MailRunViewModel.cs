@@ -10,71 +10,75 @@ namespace RPMailUI.ViewModels;
 
 public sealed class MailRunViewModel : IDisposable
 {
-    readonly DisposableBag _d = new();
-    readonly MailRunProcessor _processor;
+	readonly DisposableBag _d = new();
+	readonly MailRunProcessor _processor;
 	readonly ReadOnlyReactiveProperty<RunResult> _result;
 
 	// 暴露给View
-    public TaskListViewModel TaskList { get; }
+	public TaskListViewModel TaskList { get; }
 
-    public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
-    public IReadOnlyBindableReactiveProperty<double> Progress { get; }
-    public IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }
-    public IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
+	public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
+	public IReadOnlyBindableReactiveProperty<double> Progress { get; }
+	public IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }
+	public IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
 
-    public ReactiveCommand OpenOutputFolderCommand { get; }
-    public ReactiveCommand RetryCommand { get; }
-    public ReactiveCommand StartCommand { get; } = new();
+	public ReactiveCommand OpenOutputFolderCommand { get; }
+	public ReactiveCommand RetryCommand { get; }
+	public ReactiveCommand StartCommand { get; } = new();
 
-	// 对MainViewModel 暴露属性
+	// 对MainViewModel暴露属性
 	public Observable<string> RetryCsvPath { get; }
 
-    public MailRunViewModel(
+	public MailRunViewModel(
 		ErrorRouteService es,
 		MailRunProcessor processor,
 		TaskListViewModel taskList,
 		ConfigService conf
 	)
-    {
+	{
 		_processor = processor;
 
-        TaskList = taskList;
+		TaskList = taskList;
 
 		var trigger = StartCommand.AsUnitObservable();
 
-		// 绑定StartCommand, 并收集运行结果
-		_result = 
+		// 绑定 StartCommand，并收集运行结果
+		_result =
 			trigger
-				.WithLatestFrom(conf.Root, static (_,conf) => conf)
+				.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
 				.SelectAwait(_processor.RunAsync)
 				.ToReadOnlyReactiveProperty(null!)
 				.AddTo(ref _d);
 
-		ShouldOpenOutputFolder = 
+		ShouldOpenOutputFolder =
 			_result.Select(static r => r is not null)
 				.ToReadOnlyBindableReactiveProperty()
 				.AddTo(ref _d);
-        OpenOutputFolderCommand = 
+
+		OpenOutputFolderCommand =
 			_result.Select(static r => r is not null)
 				.ToReactiveCommand()
 				.AddTo(ref _d);
+
 		OpenOutputFolderCommand
-			.WithLatestFrom(_result, static (_,r) => r!)
+			.WithLatestFrom(_result, static (_, r) => r!)
 			.ObserveOnUIThreadDispatcher()
 			.Subscribe(r => PathOpenHelper.OpenDirectory(r.RealOutputDir))
 			.AddTo(ref _d);
 
-		ShouldRetry = 
+		ShouldRetry =
 			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
 				.ToReadOnlyBindableReactiveProperty()
 				.AddTo(ref _d);
-		RetryCommand = 
+
+		RetryCommand =
 			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
-			.ToReactiveCommand()
-			.AddTo(ref _d);
-		RetryCsvPath = 
+				.ToReactiveCommand()
+				.AddTo(ref _d);
+
+		RetryCsvPath =
 			RetryCommand
-				.WithLatestFrom(_result, static (_,r) => r!.FailedCsvPath!);
+				.WithLatestFrom(_result, static (_, r) => r!.FailedCsvPath!);
 
 		Progress = _processor.Progress
 			.ObserveOnUIThreadDispatcher()
@@ -83,8 +87,10 @@ public sealed class MailRunViewModel : IDisposable
 
 		ConsoleLog = _processor.Output
 			.ObserveOnUIThreadDispatcher()
-			.Scan("",static (lastStr, output) =>
-				lastStr + output.Text + Environment.NewLine
+			.Scan(
+				"",
+				static (lastStr, output) =>
+					lastStr + output.Text + Environment.NewLine
 			)
 			.ToReadOnlyBindableReactiveProperty("")
 			.AddTo(ref _d);
@@ -95,18 +101,17 @@ public sealed class MailRunViewModel : IDisposable
 			.Subscribe(es.Error.OnNext)
 			.AddTo(ref _d);
 
-        OpenOutputFolderCommand.AddTo(ref _d);
-        RetryCommand.AddTo(ref _d);
-        ConsoleLog.AddTo(ref _d);
-        Progress.AddTo(ref _d);
-        ShouldRetry.AddTo(ref _d);
-        ShouldOpenOutputFolder.AddTo(ref _d);
-    }
+		OpenOutputFolderCommand.AddTo(ref _d);
+		RetryCommand.AddTo(ref _d);
+		ConsoleLog.AddTo(ref _d);
+		Progress.AddTo(ref _d);
+		ShouldRetry.AddTo(ref _d);
+		ShouldOpenOutputFolder.AddTo(ref _d);
+	}
 
-
-    public void Dispose()
-    {
-        _d.Dispose();
-        TaskList.Dispose();
-    }
+	public void Dispose()
+	{
+		_d.Dispose();
+		TaskList.Dispose();
+	}
 }

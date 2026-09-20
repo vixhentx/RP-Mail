@@ -3,54 +3,68 @@ using ObservableCollections;
 using R3;
 using RPMailCore.Models;
 using RPMailUI.Models;
+using RPMailUI.Services;
 
 namespace RPMailUI.ViewModels;
 
 public sealed class AttachmentListViewModel : IDisposable
 {
-    readonly DisposableBag _d = new();
-    readonly ObservableList<AttachmentItemData> _items = [new()];
-	readonly Subject<Unit> _syncComplete = new();
+	readonly DisposableBag _d = new();
+	readonly ObservableList<AttachmentItemData> _items = [new()];
 	bool _synching;
-	// 暴露给View
-    public NotifyCollectionChangedSynchronizedViewList<AttachmentItemData> ItemsView { get; }
 
-    public BindableReactiveProperty<AttachmentItemData?> SelectedItem { get; } = new();
+	// 暴露给View
+	public NotifyCollectionChangedSynchronizedViewList<AttachmentItemData> ItemsView { get; }
+
+	public BindableReactiveProperty<AttachmentItemData?> SelectedItem { get; } = new();
 
 	public IReadOnlyBindableReactiveProperty<bool> ShouldRemoveItem { get; }
 
-    public ReactiveCommand AppendCommand { get; }
+	public ReactiveCommand AppendCommand { get; }
 
-    public ReactiveCommand RemoveCommand { get; }
+	public ReactiveCommand RemoveCommand { get; }
 
 	// 暴露给上层
-    public Observable<ImmutableArray<AttachmentPattern>> ConfOut { get; }
+	public Observable<ImmutableArray<AttachmentPattern>> ConfOut { get; }
 
-    public AttachmentListViewModel()
-    {
-        ItemsView = _items.ToNotifyCollectionChangedSlim()
+	public AttachmentListViewModel(ConfigService conf)
+	{
+		ItemsView = _items.ToNotifyCollectionChangedSlim()
 			.AddTo(ref _d);
 
-		// 集合变化检测与model变换
-		ConfOut = _items
+		// 配置传入
+		conf.Pipe
+			.DistinctUntilChangedBy(static p => p.Value.Template.Attachments)
+			.Where(static p => p.Source is ConfChangingSource.Import)
+			.Select(static p => p.Value.Template.Attachments)
+			.Subscribe(LoadItems)
+			.AddTo(ref _d);
+
+		// 集合变化检测与 model 变换
+		var changeSignal = _items
 			.ObserveChanged()
-			.Select(_items, static (_,items) =>
+			.Select(
+				_items,
+				static (_, items) =>
 					Observable.Merge(
-						items
-							.Select(static x => 
+						items.Select(
+							static x =>
 								Observable.Merge(
 									x.SourceText.AsUnitObservable(),
 									x.DestinationText.AsUnitObservable()
 								)
-							)
+						)
 					)
-				)
-			.Switch() // change sig
-			.Where(_ => !_synching)
-			.Merge(_syncComplete)
+			)
+			.Switch()
+			.Where(_ => !_synching);
+
+		ConfOut =
+			changeSignal
+			.Prepend(value: default)
 			.Select(
 				_items,
-				static (_,items) =>
+				static (_, items) =>
 					items
 						.Select(static x => new AttachmentPattern()
 						{
@@ -58,12 +72,31 @@ public sealed class AttachmentListViewModel : IDisposable
 							Name = x.DestinationText.Value,
 						})
 						.ToImmutableArray()
-			); // modelize
+			);
 
+		// 用户编辑产生配置
+		ConfOut
+			.WithLatestFrom(
+				conf.Pipe,
+				static (attachments, pipe) => new ConfPipe(
+					pipe.Value with
+					{
+						Template = pipe.Value.Template with
+						{
+							Attachments = attachments
+						}
+					},
+					ConfChangingSource.UserEdit
+				)
+			)
+			.Where(static p => p.Source is ConfChangingSource.UserEdit)
+			.Subscribe(conf.Pipe, static (module,conf) => conf.Value = module)
+			.AddTo(ref _d);
 
 		AppendCommand = new();
-        AppendCommand.Subscribe(_ => _items.Add(new()))
-            .AddTo(ref _d);
+		AppendCommand
+			.Subscribe(_ => _items.Add(new()))
+			.AddTo(ref _d);
 
 		var shouldRemove = SelectedItem
 			.Select(static x => x is not null);
@@ -71,37 +104,38 @@ public sealed class AttachmentListViewModel : IDisposable
 		ShouldRemoveItem = shouldRemove
 			.ToReadOnlyBindableReactiveProperty()
 			.AddTo(ref _d);
-        RemoveCommand = shouldRemove.ToReactiveCommand();
+
+		RemoveCommand = shouldRemove.ToReactiveCommand();
 		RemoveCommand
-			.WithLatestFrom(SelectedItem, static (_,item) => item!)
+			.WithLatestFrom(SelectedItem, static (_, item) => item!)
 			.Subscribe(item =>
-            {
-                _items.Remove(item);
-                SelectedItem.Value = null;
-            })
-            .AddTo(ref _d);
-    }
+			{
+				_items.Remove(item);
+				SelectedItem.Value = null;
+			})
+			.AddTo(ref _d);
+	}
 
-    // 从配置载入项集合
-    public void LoadItems(ImmutableArray<AttachmentPattern> attachments)
-    {
+	// 从配置载入项集合
+	public void LoadItems(ImmutableArray<AttachmentPattern> attachments)
+	{
 		_synching = true;
-        _items.Clear();
-        foreach (var attachment in attachments)
-        {
-            var item = new AttachmentItemData();
-            item.SourceText.Value = attachment.Source;
-            item.DestinationText.Value = attachment.Name;
-            _items.Add(item);
-        }
-		_synching = false;
-		_syncComplete.OnNext(default);
-    }
 
-    public void Dispose()
-    {
-        _d.Dispose();
-		_syncComplete.Dispose();
-        SelectedItem.Dispose();
-    }
+		_items.Clear();
+		foreach (var attachment in attachments)
+		{
+			var item = new AttachmentItemData();
+			item.SourceText.Value = attachment.Source;
+			item.DestinationText.Value = attachment.Name;
+			_items.Add(item);
+		}
+
+		_synching = false;
+	}
+
+	public void Dispose()
+	{
+		_d.Dispose();
+		SelectedItem.Dispose();
+	}
 }

@@ -23,40 +23,11 @@ public sealed class SenderSettingsViewModel : IDisposable
 		JsonFileDialogService fileDialog
 	)
 	{
-		// 配置产生
-		var confOut =
-			Observable.CombineLatest(
-				SenderEmail,
-				SenderPassword,
-				SmtpHost,
-				static (senderEmail, senderPassword, smtpHost) =>
-					new SenderConfig()
-					{
-						SenderEmail = senderEmail,
-						SenderPassword = senderPassword,
-						SmtpHost = smtpHost
-					}
-
-			)
-			.Where(_ => !_synching);
-
-		var confImport = ImportCommand
-			.SelectAwait((_, _) => fileDialog.ReadConf(RPMailJsonContext.Default.SenderConfig))
-			.WhereNotNull();
-
-		Observable.Merge(confOut, confImport)
-			.DistinctUntilChanged()
-			.Subscribe(conf.Root, static (m, root) => root.Value = root.Value with
-				{
-					Sender = m
-				})
-			.AddTo(ref _d);
-
 		// 配置传入
-		conf.Root
-			.Where(_ => !_synching)
-			.Select(static x => x.Sender)
-			.DistinctUntilChanged()
+		conf.Pipe
+			.DistinctUntilChangedBy(static p => p.Value.Sender)
+			.Where(static p => p.Source is ConfChangingSource.Import)
+			.Select(static p => p.Value.Sender)
 			.Subscribe(sender =>
 			{
 				_synching = true;
@@ -69,13 +40,64 @@ public sealed class SenderSettingsViewModel : IDisposable
 			})
 			.AddTo(ref _d);
 
+		// 用户编辑产生配置
+		Observable.CombineLatest(
+				SenderEmail,
+				SenderPassword,
+				SmtpHost,
+				static (senderEmail, senderPassword, smtpHost) =>
+					new SenderConfig()
+					{
+						SenderEmail = senderEmail,
+						SenderPassword = senderPassword,
+						SmtpHost = smtpHost
+					}
+			)
+			.Where(_ => !_synching)
+			.WithLatestFrom(
+				conf.Pipe,
+				static (sender, pipe) => new ConfPipe(
+					pipe.Value with
+					{
+						Sender = sender
+					},
+					ConfChangingSource.UserEdit
+				)
+			)
+			.Where(static p => p.Source is ConfChangingSource.UserEdit)
+			.Subscribe(conf.Pipe, static (module,conf) => conf.Value = module)
+			.AddTo(ref _d);
+
+		// 配置导入
+		ImportCommand
+			.SelectAwait((_, _) => fileDialog.ReadConf(RPMailJsonContext.Default.SenderConfig))
+			.WhereNotNull()
+			.WithLatestFrom(
+				conf.Pipe,
+				static (sender, pipe) => new ConfPipe(
+					pipe.Value with
+					{
+						Sender = sender
+					},
+					ConfChangingSource.Import
+				)
+			)
+			.Where(static p => p.Source is ConfChangingSource.Import)
+			.Subscribe(conf.Pipe, static (module,conf) => conf.Value = module)
+			.AddTo(ref _d);
+
 		// 配置导出
 		ExportCommand
-			.WithLatestFrom(conf.Root, static (_, conf) => conf.Sender)
-			.SubscribeAwait((sender, _) => fileDialog.WriteConf(sender, RPMailJsonContext.Default.SenderConfig, "sender_module.json"))
+			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.Sender)
+			.SubscribeAwait((sender, _) =>
+				fileDialog.WriteConf(
+					sender,
+					RPMailJsonContext.Default.SenderConfig,
+					"sender_module.json"
+				)
+			)
 			.AddTo(ref _d);
 	}
-
 
 	public void Dispose()
 	{
