@@ -105,6 +105,11 @@
     "hash": "sha256-WNUQmLWVFSwBKT9x7UdhSz9T2FA7wibvwjuPew/3yUM="
   },
   {
+    "pname": "Jab",
+    "version": "0.12.0",
+    "hash": "sha256-WLS0b8LlyJh3AMBwFEY4TdDb8H++PfQs/5XnywFndTM="
+  },
+  {
     "pname": "MailKit",
     "version": "4.17.0",
     "hash": "sha256-LGruedMrHrI0AXHcXOFxsYP2awwPbrC9Q41AeQk4+9U="
@@ -148,6 +153,11 @@
     "pname": "MimeKit",
     "version": "4.17.0",
     "hash": "sha256-GpWv+8shoprshuPNB+H+C5saffiKQ6Pek3zhLUGklRo="
+  },
+  {
+    "pname": "Newtonsoft.Json",
+    "version": "13.0.3",
+    "hash": "sha256-hy/BieY4qxBWVVsDqqOPaLy1QobiIapkbrESm6v2PHc="
   },
   {
     "pname": "ObservableCollections",
@@ -200,6 +210,36 @@
     "hash": "sha256-WlaYsbTh/cn/6YaN9odNtfpp8hpN52unGgGlQum0M5E="
   },
   {
+    "pname": "SmartFormat",
+    "version": "3.5.0",
+    "hash": "sha256-1A8JbvPhHfgoyhJwcpfYeFY5QfMza0L53qMMIQRxKag="
+  },
+  {
+    "pname": "SmartFormat.Extensions.Newtonsoft.Json",
+    "version": "3.5.0",
+    "hash": "sha256-EaQtwkbcqT30k0Ns3SYCU5ANk2SvMn4tPBnVPII6QCE="
+  },
+  {
+    "pname": "SmartFormat.Extensions.System.Text.Json",
+    "version": "3.5.0",
+    "hash": "sha256-o6i/cTNlgi54wpwynmXLbAynYSXxm22dh4qqTCqPq7E="
+  },
+  {
+    "pname": "SmartFormat.Extensions.Time",
+    "version": "3.5.0",
+    "hash": "sha256-hThIh8UX/LFMfB5NtcifS0PLnMoSOnra0K4jk1PP9cM="
+  },
+  {
+    "pname": "SmartFormat.Extensions.Xml",
+    "version": "3.5.0",
+    "hash": "sha256-US7k2O2ayLid4kQo4UWWwxkRnljh1CEhaGOB3VTlWEY="
+  },
+  {
+    "pname": "SmartFormat.NET",
+    "version": "3.5.0",
+    "hash": "sha256-JiMe0RtwPql6Nz8tZfzzyzsEclTOQMTALbhQ7da8794="
+  },
+  {
     "pname": "System.Security.Cryptography.Pkcs",
     "version": "10.0.0",
     "hash": "sha256-d3sLG+LZ3+N/h/6gdJcVKOgbBO6wYb66NfXalAEDqnE="
@@ -218,5 +258,10 @@
     "pname": "Typst.Native.Runtime",
     "version": "0.15.0",
     "hash": "sha256-qkQ6g7O/cCONh/p7/lqrrumQip6Ygc/XuWE3Zzwwjms="
+  },
+  {
+    "pname": "ZString",
+    "version": "2.6.0",
+    "hash": "sha256-9Q/L1SPmI+oVxvUBIz202mUn+UVsoV/y2OfhopHXzeo="
   }
 ]

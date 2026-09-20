@@ -19,7 +19,7 @@
 }:
 buildDotnetModule {
   pname = "rpmail-ui";
-  version = "27.0.0";
+  version = "27.0.1";
   inherit src;
   projectFile = "RPMailUI/RPMailUI.csproj";
   dotnet-sdk = dotnetCorePackages.sdk_10_0;

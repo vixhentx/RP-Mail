@@ -7,8 +7,8 @@
         <IsAotCompatible>true</IsAotCompatible>
         <Company>RobotPilots Software Research &amp; Development Department</Company>
         <SignAssembly>true</SignAssembly>
-        <Version>27.0.0</Version>
-        <AssemblyVersion>27.0.0</AssemblyVersion>
+        <Version>27.0.1</Version>
+        <AssemblyVersion>27.0.1</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>
