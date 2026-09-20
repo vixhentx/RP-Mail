@@ -126,11 +126,14 @@
   <data name="TaskStatusReady" xml:space="preserve">
     <value>就绪</value>
   </data>
+  <data name="TaskStatusPreparing" xml:space="preserve">
+    <value>准备中..</value>
+  </data>
   <data name="TaskStatusPending" xml:space="preserve">
-    <value>待处理</value>
+    <value>待发送</value>
   </data>
   <data name="TaskStatusRunning" xml:space="preserve">
-    <value>运行中</value>
+    <value>发送中..</value>
   </data>
   <data name="TaskStatusSuccess" xml:space="preserve">
     <value>成功</value>

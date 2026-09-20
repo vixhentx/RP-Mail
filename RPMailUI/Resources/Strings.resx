@@ -129,8 +129,11 @@
   <data name="TaskStatusPending" xml:space="preserve">
     <value>Pending</value>
   </data>
+  <data name="TaskStatusPreparing" xml:space="preserve">
+    <value>Preparing</value>
+  </data>
   <data name="TaskStatusRunning" xml:space="preserve">
-    <value>Running</value>
+    <value>Sending</value>
   </data>
   <data name="TaskStatusSuccess" xml:space="preserve">
     <value>Success</value>

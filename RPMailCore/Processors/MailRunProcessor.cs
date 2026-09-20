@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -38,8 +39,11 @@ public class MailRunProcessor : IDisposable
 
         var encoding = EncodingResolver.Resolve(config.Template.CharSet);
         string realOutputDir = Path.Combine(config.Output.OutputDir, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
-        int sentCount = 0;
-        List<FailedRow> failedRows = [];
+		TemplateEngine engine = new();
+
+		ConcurrentQueue<ContentParsed> contents = [];
+        ConcurrentQueue<FailedRow> failedRows = [];
+
         try
         {
             Emit(new MessageOutput(Smart.Format(Strings.ParsingContents, new { config.Template.CsvPath })));
@@ -48,30 +52,32 @@ public class MailRunProcessor : IDisposable
             var csv = CsvProcessor.Read(config.Template.CsvPath, encoding);
             Emit(new RowsLoadedOutput(csv.Rows));
 
-            var engine = new TemplateEngine();
-            var contents = new List<ContentParsed>();
-            using var pdfProcessor = new TypstPdfProcessor();
+			var rowNumDigits = (int)Math.Floor(Math.Log10(csv.Rows.Length));
 
-            for (int index = 0; index < csv.Rows.Length; index++)
-            {
+			async ValueTask PrepareForRow(int index, CancellationToken ct = default)
+			{
                 ct.ThrowIfCancellationRequested();
                 var row = csv.Rows[index];
+				using TypstPdfProcessor pdfProcessor = new();
                 try
                 {
                     string email = row[EmailColumn];
+                    Emit(new TaskStateOutput(index, MailTaskStatus.Preparing, null));
                     Emit(new MessageOutput(Smart.Format(Strings.ParsingEmail, new { Email = email })));
 
                     string subject = engine.Render(config.Template.Subject, row, config.Template.ExtraAttributes);
                     string bodyHtmlPath = engine.Render(config.Template.BodyHtmlPath, row, config.Template.ExtraAttributes);
                     string htmlBody = engine.Render(FileIo.ReadAllText(bodyHtmlPath, encoding), row, config.Template.ExtraAttributes);
 
-                    string outputDir = Path.Combine(realOutputDir, email);
+                    string outputDir = Path.Combine(realOutputDir, $"{index.ToString().PadLeft(rowNumDigits,'0')}-{email}");
+					Directory.CreateDirectory(outputDir);
+
                     if (config.Output.SaveHtmlFile || config.Output.ConvertOnly)
                         FileIo.WriteAllText(Path.Combine(outputDir, "body.html"), htmlBody, encoding);
 
                     var attachments = BuildAttachments(engine, pdfProcessor, config.Template.Attachments, outputDir, row, encoding, config.Template.ExtraAttributes);
 
-                    contents.Add(new ContentParsed
+                    contents.Enqueue(new ()
                     {
                         RowIndex = index,
                         Email = email,
@@ -81,9 +87,9 @@ public class MailRunProcessor : IDisposable
                         BodyHtmlPath = bodyHtmlPath,
                         OutputDir = outputDir,
                         UserAttributes = row,
-                        ExtraAttributes = config.Template.ExtraAttributes.ToImmutableDictionary(),
+                        ExtraAttributes = config.Template.ExtraAttributes,
                     });
-                    Emit(new TaskStateOutput(index, MailTaskStatus.Pending, Strings.StatusPending));
+                    Emit(new TaskStateOutput(index, MailTaskStatus.Pending, null));
                 }
                 catch (OperationCanceledException)
                 {
@@ -91,19 +97,28 @@ public class MailRunProcessor : IDisposable
                 }
                 catch (Exception e)
                 {
-                    failedRows.Add(new(row, e.Message));
+                    failedRows.Enqueue(new(row, e.Message));
                     Emit(new TaskStateOutput(index, MailTaskStatus.Failed, e.Message));
                     Emit(new MessageOutput(Smart.Format(Strings.FailedToParseRow, new { Index = index + 1 }) + $": {e.Message}", LogLevel.Error, e));
                 }
             }
 
-            Emit(new MessageOutput(Smart.Format(Strings.ParsedContents, new { contents.Count, config.Template.CsvPath })));
+			// 全部准备, 先等待, 再发送
+			await Parallel.ForEachAsync(
+				Enumerable.Range(0, csv.Rows.Length),
+				parallelOptions: new() { CancellationToken = ct },
+				PrepareForRow
+			);
+            
 
-            if (!config.Output.ConvertOnly)
+            Emit(new MessageOutput(Smart.Format(Strings.ParsedContents, new { contents.Count, config.Template.CsvPath })));
+			int sentCount = 0;
+
+            if (!config.Output.ConvertOnly && contents is { IsEmpty: false })
             {
 				_progress.Value = 0;
                 var mailSender = new MailSendProcessor(config.Sender);
-                double step = contents.Count > 0 ? 100.0 / contents.Count : 0;
+                double step = 100.0 / contents.Count;
 
                 foreach (var content in contents)
                 {
@@ -128,7 +143,7 @@ public class MailRunProcessor : IDisposable
                     }
                     catch (Exception e)
                     {
-                        failedRows.Add(new(content.UserAttributes, e.Message));
+                        failedRows.Enqueue(new(content.UserAttributes, e.Message));
                         Emit(new TaskStateOutput(content.RowIndex, MailTaskStatus.Failed, e.Message));
                         Emit(new MessageOutput(Smart.Format(Strings.FailedToSendEmail, new { content.Email }) + $": {e.Message}", LogLevel.Error, e));
                     }
@@ -137,7 +152,7 @@ public class MailRunProcessor : IDisposable
             }
 
             string? failedCsvPath = null;
-            if (failedRows.Count > 0)
+            if (!failedRows.IsEmpty)
             {
                 failedCsvPath = Path.Combine(realOutputDir, "data_failed.csv");
                 FileIo.WriteCsv(failedCsvPath, csv.Headers, failedRows.Select(f => f.Row), encoding);
@@ -165,7 +180,7 @@ public class MailRunProcessor : IDisposable
         }
     }
 
-    private ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> user, Encoding encoding, IReadOnlyDictionary<string, string> extraAttributes)
+    static ImmutableArray<string> BuildAttachments(TemplateEngine engine, TypstPdfProcessor pdfProcessor, ImmutableArray<AttachmentPattern> attachmentPatterns, string outputDir, ImmutableDictionary<string, string> user, Encoding encoding, IReadOnlyDictionary<string, string> extraAttributes)
     {
         var ret = ImmutableArray.CreateBuilder<string>();
         foreach (var attachment in attachmentPatterns)
@@ -200,5 +215,10 @@ public class MailRunProcessor : IDisposable
         _output.Dispose();
     }
 
-    void Emit(MailRunOutput output) => _output.OnNext(output);
+	readonly Lock _emitLock = new();
+    void Emit(MailRunOutput output)
+	{
+		lock(_emitLock)
+			_output.OnNext(output);
+	}
 }

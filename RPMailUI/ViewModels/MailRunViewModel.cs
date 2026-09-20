@@ -46,7 +46,9 @@ public sealed class MailRunViewModel : IDisposable
 		_result =
 			trigger
 				.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
-				.SelectAwait(_processor.RunAsync)
+				.ObserveOnThreadPool()
+				.SelectAwait(_processor.RunAsync,awaitOperation: AwaitOperation.Drop)
+				.ObserveOnUIThreadDispatcher()
 				.ToReadOnlyReactiveProperty(null!)
 				.AddTo(ref _d);
 
@@ -62,7 +64,6 @@ public sealed class MailRunViewModel : IDisposable
 
 		OpenOutputFolderCommand
 			.WithLatestFrom(_result, static (_, r) => r!)
-			.ObserveOnUIThreadDispatcher()
 			.Subscribe(r => PathOpenHelper.OpenDirectory(r.RealOutputDir))
 			.AddTo(ref _d);
 
@@ -86,6 +87,7 @@ public sealed class MailRunViewModel : IDisposable
 			.AddTo(ref _d);
 
 		ConsoleLog = _processor.Output
+			.Where(static x => x is MessageOutput)
 			.ObserveOnUIThreadDispatcher()
 			.Scan(
 				"",

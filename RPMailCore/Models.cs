@@ -5,8 +5,13 @@ namespace RPMailCore.Models;
 
 public enum MailTaskStatus
 {
+	// 就绪, csv刚加载时
     Ready,
+	// 准备内容中
+	Preparing,
+	// 待发送
     Pending,
+	// 发送中
     Running,
     Success,
     Failed,
@@ -20,6 +25,7 @@ public static class MailTaskStatusExtensions
 		{
 			MailTaskStatus.Ready => 2,
 			MailTaskStatus.Pending => 1,
+			MailTaskStatus.Preparing => 0,
 			MailTaskStatus.Running => 0,
 			MailTaskStatus.Success => 3,
 			MailTaskStatus.Failed => 4,

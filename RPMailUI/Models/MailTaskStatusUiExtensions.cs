@@ -11,6 +11,7 @@ public static class MailTaskStatusUiExtensions
         {
             MailTaskStatus.Ready => Strings.TaskStatusReady,
             MailTaskStatus.Pending => Strings.TaskStatusPending,
+			MailTaskStatus.Preparing => Strings.TaskStatusPreparing,
             MailTaskStatus.Running => Strings.TaskStatusRunning,
             MailTaskStatus.Success => Strings.TaskStatusSuccess,
             MailTaskStatus.Failed => Strings.TaskStatusFailed,

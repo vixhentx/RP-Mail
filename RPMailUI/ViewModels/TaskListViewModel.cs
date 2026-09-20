@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using R3;
 using RPMailCore.Models;
 using RPMailUI.Models;
 using RPMailUI.Resources;
+using SmartFormat;
 
 namespace RPMailUI.ViewModels;
 
@@ -25,28 +27,32 @@ public sealed class TaskListViewModel : IDisposable
     {
         ArgumentNullException.ThrowIfNull(output);
 
-        var taskItems = output
+        var taskItemsOnThreadPool = output
+            .ObserveOnThreadPool()
             .Where(static x => x is RowsLoadedOutput or TaskStateOutput)
             .Scan(ImmutableArray<TaskItemData>.Empty, static (items, x) => Reduce(items, x))
-            .ObserveOnUIThreadDispatcher()
             .ToReadOnlyBindableReactiveProperty([])
             .AddTo(ref _d);
 
-        AvailableHeaders = taskItems
+        AvailableHeaders =
+			taskItemsOnThreadPool
             .AsObservable()
             .Select(static items => items
                 .SelectMany(static item => item.Data.Keys)
                 .Distinct(StringComparer.Ordinal)
                 .ToImmutableArray())
+			.ObserveOnUIThreadDispatcher()
             .ToReadOnlyBindableReactiveProperty([]);
 
-        Tasks = taskItems
+        Tasks =
+			taskItemsOnThreadPool
             .AsObservable()
             .CombineLatest(
                 SearchText.AsObservable(),
                 SelectedHeader.AsObservable(),
                 static (items, search, _) => Filter(items, search)
 			)
+			.ObserveOnUIThreadDispatcher()
             .ToReadOnlyBindableReactiveProperty([]);
 
         AvailableHeaders
@@ -65,14 +71,14 @@ public sealed class TaskListViewModel : IDisposable
         RowsLoadedOutput rows => rows.Rows
             .Select(static row => new TaskItemData(row, MailTaskStatus.Ready, Strings.ReadyToSend))
             .ToImmutableArray(),
-        TaskStateOutput state when state.Index >= 0 && state.Index < items.Length => items.SetItem(
+        TaskStateOutput state => items.SetItem(
             state.Index,
             items[state.Index] with
             {
                 Status = state.Status,
-                Tooltip = state.Message ?? items[state.Index].Tooltip,
+                Tooltip = state.Message ?? state.Status.Text
             }),
-        _ => items,
+        _ => throw new UnreachableException(),
     };
 
     private static ImmutableArray<TaskItemData> Filter(ImmutableArray<TaskItemData> items, string? searchText)

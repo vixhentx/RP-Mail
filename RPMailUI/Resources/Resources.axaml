@@ -7,6 +7,7 @@
     <!-- Task status colors -->
     <Color x:Key="TaskStatus.Ready">White</Color>
     <Color x:Key="TaskStatus.Pending">LightGray</Color>
+    <Color x:Key="TaskStatus.Preparing">LightCyan</Color>
     <Color x:Key="TaskStatus.Running">Cyan</Color>
     <Color x:Key="TaskStatus.Success">Green</Color>
     <Color x:Key="TaskStatus.Failed">Red</Color>

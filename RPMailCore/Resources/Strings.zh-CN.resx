@@ -31,7 +31,7 @@
     <value>正在从 {CsvPath} 解析内容</value>
   </data>
   <data name="ParsingEmail" xml:space="preserve">
-    <value>正在解析邮箱：{Email}</value>
+    <value>正在准备内容：{Email}</value>
   </data>
   <data name="StatusPending" xml:space="preserve">
     <value>待发送…</value>

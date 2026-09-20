@@ -31,7 +31,7 @@
     <value>Parsing Contents from {CsvPath}</value>
   </data>
   <data name="ParsingEmail" xml:space="preserve">
-    <value>Parsing Email: {Email}</value>
+    <value>Preparing Contents for: {Email}</value>
   </data>
   <data name="StatusPending" xml:space="preserve">
     <value>Pending...</value>

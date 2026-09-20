@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Scriban;
 using Scriban.Runtime;
 
@@ -5,8 +6,7 @@ namespace RPMailCore.Processors;
 
 public sealed class TemplateEngine
 {
-    private readonly Dictionary<string, Template> _cache = [];
-    private readonly object _gate = new();
+    readonly ConcurrentDictionary<string, Template> _cache = [];
 
     public string Render(string pattern, IReadOnlyDictionary<string, string> user, IReadOnlyDictionary<string, string> extraAttributes)
     {
@@ -27,18 +27,13 @@ public sealed class TemplateEngine
 		return template.Render(context);
     }
 
-    private Template GetOrParse(string pattern)
-    {
-        lock (_gate)
-        {
-            if (!_cache.TryGetValue(pattern, out var template))
-            {
-                template = Template.Parse(pattern);
-                if (template.HasErrors)
-                    throw new InvalidOperationException(string.Join("; ", template.Messages));
-                _cache[pattern] = template;
-            }
-            return template;
-        }
-    }
+    Template GetOrParse(string pattern) =>
+		_cache.GetOrAdd(pattern, static pattern =>
+		{
+			var template = Template.Parse(pattern);
+			if (template.HasErrors)
+				throw new InvalidOperationException(string.Join("; ", template.Messages));
+			return template;
+		});
+		
 }
