@@ -27,8 +27,10 @@
 						FontSize="20"/>
 				<Button Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding Run.ShouldRetry.Value}" Command="{CompiledBinding Run.RetryCommand}"
 						FontSize="20"/>
-				<Button Content="{x:Static res:Strings.Start}" Command="{CompiledBinding Run.StartCommand}"
+				<Button Content="{x:Static res:Strings.Start}" IsVisible="{CompiledBinding Run.ShouldStart.Value}" Command="{CompiledBinding Run.StartCommand}"
 						FontSize="20" FontWeight="SemiBold"/>
+				<Button Content="{x:Static res:Strings.Cancel}" IsVisible="{CompiledBinding Run.ShouldCancel.Value}" Command="{CompiledBinding Run.CancelCommand}"
+						FontSize="20"/>
 			</StackPanel>
 			<TabControl MaxHeight="300">
 				<TabItem Header="{x:Static res:Strings.TaskList}" FontSize="20" FontWeight="SemiBold">

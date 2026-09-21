@@ -10,7 +10,10 @@ public interface IMailRunViewModel : IDisposable
     IReadOnlyBindableReactiveProperty<double> Progress { get; }
     IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }
     IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
+    IReadOnlyBindableReactiveProperty<bool> ShouldStart { get; }
+    IReadOnlyBindableReactiveProperty<bool> ShouldCancel { get; }
     ReactiveCommand OpenOutputFolderCommand { get; }
     ReactiveCommand RetryCommand { get; }
     ReactiveCommand StartCommand { get; }
+    ReactiveCommand CancelCommand { get; }
 }

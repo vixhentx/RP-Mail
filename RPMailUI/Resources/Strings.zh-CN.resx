@@ -21,6 +21,9 @@
   <data name="Start" xml:space="preserve">
     <value>开始！</value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
   <data name="TaskList" xml:space="preserve">
     <value>任务列表</value>
   </data>

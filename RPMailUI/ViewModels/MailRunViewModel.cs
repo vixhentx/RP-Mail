@@ -6,29 +6,34 @@ using RPMailCore.Processors;
 using RPMailUI.Models;
 using RPMailUI.Services;
 using RPMailUI.Contracts.ViewModels;
+using System.Diagnostics;
 
 namespace RPMailUI.ViewModels;
+
+file enum TriggerOperation
+{
+	Start,
+	Cancel
+}
 
 public sealed class MailRunViewModel : IMailRunViewModel
 {
 	readonly DisposableBag _d = new();
-	readonly MailRunProcessor _processor;
-	readonly ReadOnlyReactiveProperty<RunResult> _result;
-
-	// 暴露给View
 	public ITaskListViewModel TaskList { get; }
 
 	public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
 	public IReadOnlyBindableReactiveProperty<double> Progress { get; }
+
 	public IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }
 	public IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
+	public IReadOnlyBindableReactiveProperty<bool> ShouldStart { get; }
+	public IReadOnlyBindableReactiveProperty<bool> ShouldCancel { get; }
+
 
 	public ReactiveCommand OpenOutputFolderCommand { get; }
 	public ReactiveCommand RetryCommand { get; }
-	public ReactiveCommand StartCommand { get; } = new();
-
-	// 对MainViewModel暴露属性
-	public Observable<string> RetryCsvPath { get; }
+	public ReactiveCommand StartCommand { get; }
+	public ReactiveCommand CancelCommand {  get; }
 
 	public MailRunViewModel(
 		ErrorRouteService es,
@@ -37,60 +42,89 @@ public sealed class MailRunViewModel : IMailRunViewModel
 		ConfigService conf
 	)
 	{
-		_processor = processor;
-
 		TaskList = taskList;
 
-		var trigger = StartCommand.AsUnitObservable();
+		var shouldStart = processor.Running
+			.Select(static x => !x)
+			.ObserveOnUIThreadDispatcher();
+		ShouldStart = shouldStart
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
+		StartCommand = shouldStart
+			.ToReactiveCommand()
+			.AddTo(ref _d);
 
-		// 绑定 StartCommand，并收集运行结果
-		_result =
+		var shouldCancel = processor.Running
+			.ObserveOnUIThreadDispatcher();
+		ShouldCancel = shouldCancel
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
+		CancelCommand = shouldCancel
+			.ToReactiveCommand()
+			.AddTo(ref _d);
+
+		var trigger =
+			Observable.Merge(
+				StartCommand.Select(_ => TriggerOperation.Start),
+				CancelCommand.Select(_ => TriggerOperation.Cancel)
+			);
+		// 绑定 Start/Stop, 并收集运行结果
+		var result =
 			trigger
-				.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value)
+				.WithLatestFrom(conf.Pipe, static (trigger,pipe) => (trigger, conf: pipe.Value))
 				.ObserveOnThreadPool()
 				.SelectAwait(
-					(config, ct) => _processor.RunAsync(config.Mail, config.WorkspaceDirectory, ct),
-					awaitOperation: AwaitOperation.Drop
+					async (pipe, ct) => pipe.trigger switch
+					{
+						TriggerOperation.Start =>
+							await processor.RunAsync(pipe.conf.Mail, pipe.conf.WorkspaceDirectory, ct),
+						TriggerOperation.Cancel =>
+							await ValueTask.FromResult<RunResult?>(null),
+						_ => throw new UnreachableException()
+					},
+					awaitOperation: AwaitOperation.Switch
 				)
+				.WhereNotNull() // 滤掉取消状态
 				.ObserveOnUIThreadDispatcher()
-				.ToReadOnlyReactiveProperty(null!)
-				.AddTo(ref _d);
+				.Publish();
+
+		var hasResult = result
+				.Select(_ => true)
+				.Prepend(false)
+				.Publish();
 
 		ShouldOpenOutputFolder =
-			_result.Select(static r => r is not null)
-				.ToReadOnlyBindableReactiveProperty()
+			hasResult
+				.ToReadOnlyBindableReactiveProperty(false)
 				.AddTo(ref _d);
 
 		OpenOutputFolderCommand =
-			_result.Select(static r => r is not null)
+			hasResult
 				.ToReactiveCommand()
 				.AddTo(ref _d);
 
 		OpenOutputFolderCommand
-			.WithLatestFrom(_result, static (_, r) => r!)
+			.WithLatestFrom(result, static (_, r) => r)
 			.Subscribe(r => PathOpenHelper.OpenDirectory(r.RealOutputDir))
 			.AddTo(ref _d);
 
+		var shouldRetry = 
+			result.Select(static r => r is { Success: true, FailedRows: > 0 });
 		ShouldRetry =
-			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
+			shouldRetry
 				.ToReadOnlyBindableReactiveProperty()
 				.AddTo(ref _d);
-
 		RetryCommand =
-			_result.Select(static r => r is { Success: true, FailedRows: > 0 })
+			shouldRetry
 				.ToReactiveCommand()
 				.AddTo(ref _d);
 
-		RetryCsvPath =
-			RetryCommand
-				.WithLatestFrom(_result, static (_, r) => r!.FailedCsvPath!);
-
-		Progress = _processor.Progress
+		Progress = processor.Progress
 			.ObserveOnUIThreadDispatcher()
 			.ToReadOnlyBindableReactiveProperty()
 			.AddTo(ref _d);
 
-		ConsoleLog = _processor.Output
+		ConsoleLog = processor.Output
 			.Where(static x => x is MessageOutput)
 			.ObserveOnUIThreadDispatcher()
 			.Scan(
@@ -101,18 +135,16 @@ public sealed class MailRunViewModel : IMailRunViewModel
 			.ToReadOnlyBindableReactiveProperty("")
 			.AddTo(ref _d);
 
-		_processor.Output
+		processor.Output
 			.Where(static o => o.Level >= LogLevel.Warning)
 			.Select(static o => ErrorItemData.Create(o.Level, o.Text))
 			.Subscribe(es.Error.OnNext)
 			.AddTo(ref _d);
 
-		OpenOutputFolderCommand.AddTo(ref _d);
-		RetryCommand.AddTo(ref _d);
-		ConsoleLog.AddTo(ref _d);
-		Progress.AddTo(ref _d);
-		ShouldRetry.AddTo(ref _d);
-		ShouldOpenOutputFolder.AddTo(ref _d);
+		result.Connect()
+			.AddTo(ref _d);
+		hasResult.Connect()
+			.AddTo(ref _d);
 	}
 
 	public void Dispose()

@@ -16,8 +16,12 @@ public class MailRunProcessor : IDisposable
 	readonly DisposableBag _d = new();
 	readonly Subject<MailRunOutput> _output = new();
 	readonly ReactiveProperty<double> _progress = new(0);
+	readonly ReactiveProperty<bool> _running = new(false);
+
     public Observable<MailRunOutput> Output => _output;
 	public ReadOnlyReactiveProperty<double> Progress => _progress;
+	public ReadOnlyReactiveProperty<bool> Running => _running;
+
 	public MailRunProcessor()
 	{
 		_progress
@@ -28,6 +32,9 @@ public class MailRunProcessor : IDisposable
 	}
     public async ValueTask<RunResult> RunAsync(MailConfig config, string workspaceDirectory, CancellationToken ct = default)
     {
+		_running.Value = true; // 本来想用响应式管道搞的, 暂时想不到优雅解法了, 先这么用着.
+		using var _ = Disposable.Create(_running, static r => r.Value = false);
+
 		workspaceDirectory = Path.GetFullPath(workspaceDirectory);
 		string ResolvePath(string path) => Path.GetFullPath(path, workspaceDirectory);
 
