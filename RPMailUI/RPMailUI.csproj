@@ -9,8 +9,8 @@
         <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <Company>RobotPilots Software Research &amp; Development Department</Company>
-        <Version>27.0.1</Version>
-        <AssemblyVersion>27.0.1</AssemblyVersion>
+        <Version>27.0.2</Version>
+        <AssemblyVersion>27.0.2</AssemblyVersion>
         <SignAssembly>true</SignAssembly>
 		<PublishAot>true</PublishAot>
     </PropertyGroup>
