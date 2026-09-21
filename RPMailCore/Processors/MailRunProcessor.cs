@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using R3;
+using RPMailCore.Extensions;
 using RPMailCore.Models;
 using RPMailCore.Resources;
 using RPMailCore.Services;
@@ -81,7 +82,7 @@ public class MailRunProcessor : IDisposable
 
         try
         {
-            Emit(new MessageOutput(Smart.Format(Strings.ParsingContents, new { config.Template.CsvPath })));
+            Emit(new MessageOutput(Smart.FormatDict(Strings.ParsingContents, new(){  ["CsvPath"] = config.Template.CsvPath  })));
             FileIo.CreateDirectory(realOutputDir);
 
 			var csv = CsvProcessor.Read(ResolvePath(config.Template.CsvPath), encoding);
@@ -98,7 +99,7 @@ public class MailRunProcessor : IDisposable
                 {
                     string email = row[EmailColumn];
                     Emit(new TaskStateOutput(index, MailTaskStatus.Preparing, null));
-                    Emit(new MessageOutput(Smart.Format(Strings.ParsingEmail, new { Email = email })));
+                    Emit(new MessageOutput(Smart.FormatDict(Strings.ParsingEmail, new() { ["Email"] = email })));
 
                     string subject = engine.Render(config.Template.Subject, row, config.Template.ExtraAttributes);
 					string bodyHtmlPath = ResolvePath(engine.Render(config.Template.BodyHtmlPath, row, config.Template.ExtraAttributes));
@@ -134,7 +135,7 @@ public class MailRunProcessor : IDisposable
                 {
                     failedRows.Enqueue(new(row, e.Message));
                     Emit(new TaskStateOutput(index, MailTaskStatus.Failed, e.Message));
-                    Emit(new MessageOutput(Smart.Format(Strings.FailedToParseRow, new { Index = index + 1 }) + $": {e.Message}", LogLevel.Error, e));
+                    Emit(new MessageOutput(Smart.FormatDict(Strings.FailedToParseRow, new() { ["Index"] = index + 1 }) + $": {e.Message}", LogLevel.Error, e));
                 }
             }
 
@@ -146,7 +147,7 @@ public class MailRunProcessor : IDisposable
 			);
             
 
-            Emit(new MessageOutput(Smart.Format(Strings.ParsedContents, new { contents.Count, config.Template.CsvPath })));
+            Emit(new MessageOutput(Smart.FormatDict(Strings.ParsedContents, new() { ["Count"] = contents.Count, ["CsvPath"] = config.Template.CsvPath })));
 			int sentCount = 0;
 
             if (!config.Output.ConvertOnly && contents is { IsEmpty: false })
@@ -159,7 +160,7 @@ public class MailRunProcessor : IDisposable
                 {
                     ct.ThrowIfCancellationRequested();
                     Emit(new TaskStateOutput(content.RowIndex, MailTaskStatus.Running, Strings.StatusSending));
-                    Emit(new MessageOutput(Smart.Format(Strings.SendingEmailTo, new { content.Email, content.Subject })));
+                    Emit(new MessageOutput(Smart.FormatDict(Strings.SendingEmailTo, new() { ["Email"] = content.Email, ["Subject"] = content.Subject })));
                     try
                     {
                         await mailSender.SendAsync(content, ct);
@@ -180,7 +181,7 @@ public class MailRunProcessor : IDisposable
                     {
                         failedRows.Enqueue(new(content.UserAttributes, e.Message));
                         Emit(new TaskStateOutput(content.RowIndex, MailTaskStatus.Failed, e.Message));
-                        Emit(new MessageOutput(Smart.Format(Strings.FailedToSendEmail, new { content.Email }) + $": {e.Message}", LogLevel.Error, e));
+                        Emit(new MessageOutput(Smart.FormatDict(Strings.FailedToSendEmail, new() { ["Email"] = content.Email }) + $": {e.Message}", LogLevel.Error, e));
                     }
                     _progress.Value = Math.Min(_progress.Value + step,100);
                 }
@@ -191,7 +192,7 @@ public class MailRunProcessor : IDisposable
             {
                 failedCsvPath = Path.Combine(realOutputDir, "data_failed.csv");
                 FileIo.WriteCsv(failedCsvPath, csv.Headers, failedRows.Select(f => f.Row), encoding);
-                Emit(new MessageOutput(Smart.Format(Strings.WrittenFailedList, new { FailedCsvPath = failedCsvPath }), LogLevel.Warning));
+                Emit(new MessageOutput(Smart.FormatDict(Strings.WrittenFailedList, new() { ["FailedCsvPath"] = failedCsvPath }), LogLevel.Warning));
             }
             else
             {

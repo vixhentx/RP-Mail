@@ -6,15 +6,15 @@
                 xmlns:model="clr-namespace:RPMailUI.Models"
                 xmlns:vm="using:RPMailUI.ViewModels"
                 xmlns:res="using:RPMailUI.Resources"
-                xmlns:local="clr-namespace:RPMailUI.Controls"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:DataType="vm:TaskListViewModel"
-                x:Class="RPMailUI.Controls.TaskListView">
+                x:Class="RPMailUI.Controls.TaskListView"
+				x:Name="Root"
+				>
     <Design.Width>400</Design.Width>
     <Design.Height>600</Design.Height>
     <UserControl.Resources>
-        <converter:DictionaryValueConverter x:Key="DictionaryValueConverter"/>
-        <converter:ResourceColorConverter x:Key="ResourceColorConverter"/>
+			<converter:ResourceColorConverter x:Key="ResourceColorConverter"/>
     </UserControl.Resources>
         <ScrollViewer>
             <DockPanel>
@@ -22,30 +22,23 @@
                       ColumnDefinitions="Auto,Auto,Auto,*">
                     <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Static res:Strings.PropertyShown}"/>
                     <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Margin="5"
-                              ItemsSource="{Binding AvailableHeaders.Value}"
-                              SelectedItem="{Binding SelectedHeader.Value, Mode=TwoWay}"/>
+                              ItemsSource="{CompiledBinding AvailableHeaders.Value}"
+                              SelectedItem="{CompiledBinding SelectedHeader.Value, Mode=TwoWay}"/>
                     <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Static res:Strings.Search}"/>
-                    <TextBox Grid.Column="3" Text="{Binding SearchText.Value, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="5"/>
+                    <TextBox Grid.Column="3" Text="{CompiledBinding SearchText.Value, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="5"/>
                 </Grid>
-                <ItemsControl ItemsSource="{Binding Tasks.Value}">
+                <ItemsControl ItemsSource="{CompiledBinding Tasks.Value}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="model:TaskItemData">
                             <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                                     CornerRadius="5" BorderThickness="2">
                                 <Border.Background>
-                                    <SolidColorBrush Color="{Binding Status, Converter={StaticResource ResourceColorConverter}}"/>
+                                    <SolidColorBrush Color="{CompiledBinding Status, Converter={StaticResource ResourceColorConverter}}"/>
                                 </Border.Background>
                                 <DockPanel>
                                     <SelectableTextBlock DockPanel.Dock="Right" Margin="5"
-                                                         FontSize="14" Text="{Binding Tooltip}"/>
-                                    <SelectableTextBlock FontSize="14" Margin="5">
-                                        <SelectableTextBlock.Text>
-                                            <MultiBinding x:CompileBindings="False" Converter="{StaticResource DictionaryValueConverter}">
-                                                <Binding Path="Data"/>
-                                                <Binding Path="DataContext.SelectedHeader.Value"
-                                                         RelativeSource="{RelativeSource AncestorType={x:Type local:TaskListView}}"/>
-                                            </MultiBinding>
-                                        </SelectableTextBlock.Text>
+                                                         FontSize="14" Text="{CompiledBinding TooltipText}"/>
+                                    <SelectableTextBlock FontSize="14" Margin="5" Text="{CompiledBinding Text}">
                                     </SelectableTextBlock>
                                 </DockPanel>
                             </Border>

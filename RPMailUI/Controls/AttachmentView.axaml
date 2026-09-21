@@ -13,24 +13,24 @@
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button Content="{x:Static res:Strings.Append}" Command="{Binding AppendCommand}"/>
-                <Button Content="{x:Static res:Strings.Remove}" Command="{Binding RemoveCommand}"/>
+                <Button Content="{x:Static res:Strings.Append}" Command="{CompiledBinding AppendCommand}"/>
+                <Button Content="{x:Static res:Strings.Remove}" Command="{CompiledBinding RemoveCommand}"/>
             </StackPanel>
             <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{x:Static res:Strings.Attachments}" Margin="5"/>
         </DockPanel>
         <ListBox x:Name="AttachmentListBox" SelectionMode="Single"
-                 ItemsSource="{Binding ItemsView}"
-                 SelectedItem="{Binding SelectedItem.Value, Mode=TwoWay}">
+                 ItemsSource="{CompiledBinding ItemsView}"
+                 SelectedItem="{CompiledBinding SelectedItem.Value, Mode=TwoWay}">
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="models:AttachmentItemData">
                     <Grid ColumnDefinitions="*,Auto,*">
 						<local:FileBarView Grid.Column="0" Caption=""
-									  FilePath="{Binding SourceText.Value, Mode=TwoWay}"
-									  WorkspaceDirectory="{Binding #Root.DataContext.WorkspaceDirectory.Value}"/>
+									  FilePath="{CompiledBinding SourceText.Value, Mode=TwoWay}"
+									  WorkspaceDirectory="{CompiledBinding #Root.DataContext.WorkspaceDirectory.Value}"/>
                         <Label Grid.Column="1"
                                 Content=" ==&gt; " VerticalAlignment="Center"/>
                         <TextBox Grid.Column="2" Margin="5"
-                                 Text="{Binding DestinationText.Value, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
+                                 Text="{CompiledBinding DestinationText.Value, Mode=TwoWay}" AcceptsReturn="False" AcceptsTab="False"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

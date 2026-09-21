@@ -21,14 +21,14 @@
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Stretch">
                             <Border.Background>
-                                <SolidColorBrush Color="{Binding BackgroundKey, Converter={StaticResource ResourceColorConverter}}"/>
+                                <SolidColorBrush Color="{CompiledBinding BackgroundKey, Converter={StaticResource ResourceColorConverter}}"/>
                             </Border.Background>
                             <DockPanel>
-                                <SelectableTextBlock Text="{Binding Message}" Height="{Binding #Root.CellHeight}" FontSize="18" FontWeight="Bold"
+                                <SelectableTextBlock Text="{CompiledBinding Message}" Height="{CompiledBinding #Root.CellHeight}" FontSize="18" FontWeight="Bold"
                                            VerticalAlignment="Center" HorizontalAlignment="Stretch" Padding="5"
                                            TextWrapping="Wrap" TextAlignment="Center">
                                     <SelectableTextBlock.Foreground>
-                                        <SolidColorBrush Color="{Binding ForegroundKey, Converter={StaticResource ResourceColorConverter}}"/>
+                                        <SolidColorBrush Color="{CompiledBinding ForegroundKey, Converter={StaticResource ResourceColorConverter}}"/>
                                     </SelectableTextBlock.Foreground>
                                 </SelectableTextBlock>
                             </DockPanel>
