@@ -3,10 +3,11 @@ using RPMailCore.Models;
 using RPMailCore.Serialization;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public sealed class ContentSettingsViewModel : IDisposable
+public sealed class ContentSettingsViewModel : IContentSettingsViewModel
 {
 	readonly DisposableBag _d = new();
 	bool _synching = false;
@@ -20,14 +21,14 @@ public sealed class ContentSettingsViewModel : IDisposable
 	public BindableReactiveProperty<string> Subject { get; } = new("");
 	public BindableReactiveProperty<string> CharSet { get; } = new("utf-8");
 
-	public AttachmentListViewModel Attachments { get; }
-	public ExtraAttributeListViewModel ExtraAttributes { get; }
+	public IAttachmentListViewModel Attachments { get; }
+	public IExtraAttributeListViewModel ExtraAttributes { get; }
 
 	public ContentSettingsViewModel(
 		ConfigService conf,
 		JsonFileDialogService fileDialog,
-		AttachmentListViewModel attachments,
-		ExtraAttributeListViewModel extraAttributes
+		IAttachmentListViewModel attachments,
+		IExtraAttributeListViewModel extraAttributes
 	)
 	{
 		Attachments = attachments;

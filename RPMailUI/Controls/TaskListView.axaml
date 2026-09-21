@@ -4,13 +4,11 @@
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                 xmlns:converter="clr-namespace:RPMailUI.Converter"
                 xmlns:model="clr-namespace:RPMailUI.Models"
-                xmlns:vm="using:RPMailUI.ViewModels"
+                 xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
                 xmlns:res="using:RPMailUI.Resources"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:DataType="vm:TaskListViewModel"
-                x:Class="RPMailUI.Controls.TaskListView"
-				x:Name="Root"
-				>
+                 x:DataType="contracts:ITaskListViewModel"
+                x:Class="RPMailUI.Controls.TaskListView">
     <Design.Width>400</Design.Width>
     <Design.Height>600</Design.Height>
     <UserControl.Resources>

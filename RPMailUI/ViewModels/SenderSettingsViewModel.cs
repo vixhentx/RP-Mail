@@ -3,10 +3,11 @@ using RPMailCore.Models;
 using RPMailCore.Serialization;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public sealed class SenderSettingsViewModel : IDisposable
+public sealed class SenderSettingsViewModel : ISenderSettingsViewModel
 {
 	readonly DisposableBag _d = new();
 	bool _synching = false;

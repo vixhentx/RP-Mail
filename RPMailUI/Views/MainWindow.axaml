@@ -1,19 +1,20 @@
 <Window xmlns="https://github.com/avaloniaui"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:vm="using:RPMailUI.ViewModels"
+		xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+		xmlns:design="using:RPMailUI.Design.ViewModels"
 		xmlns:res="using:RPMailUI.Resources"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:controls="clr-namespace:RPMailUI.Controls"
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
 		x:Class="RPMailUI.Views.MainWindow"
-		x:DataType="vm:MainWindowViewModel"
+		x:DataType="contracts:IMainWindowViewModel"
         Icon="/Assets/icon.ico"
 		Title="RP-Mail UI"
 		MinHeight="300" MinWidth="400">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel/>
+		<design:DesignMainWindowViewModel/>
 	</Design.DataContext>
 	<DockPanel>
 		<controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"

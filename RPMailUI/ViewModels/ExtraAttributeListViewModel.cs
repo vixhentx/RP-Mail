@@ -3,10 +3,11 @@ using ObservableCollections;
 using R3;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public sealed class ExtraAttributeListViewModel : IDisposable
+public sealed class ExtraAttributeListViewModel : IExtraAttributeListViewModel
 {
 	readonly DisposableBag _d = new();
 	readonly ObservableList<ExtraAttributeItemData> _items = [new()];

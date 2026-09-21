@@ -4,12 +4,12 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:local="clr-namespace:RPMailUI.Controls"
                       xmlns:models="clr-namespace:RPMailUI.Models"
-                      xmlns:vm="using:RPMailUI.ViewModels"
+                       xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
                       xmlns:res="using:RPMailUI.Resources"
                       mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                        x:Class="RPMailUI.Controls.AttachmentView"
                        x:Name="Root"
-                      x:DataType="vm:AttachmentListViewModel">
+                       x:DataType="contracts:IAttachmentListViewModel">
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">

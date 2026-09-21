@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Jab;
 using RPMailCore.Processors;
+using RPMailUI.Contracts.ViewModels;
 using RPMailUI.Services;
 using RPMailUI.ViewModels;
 using RPMailUI.Views;
@@ -14,16 +15,16 @@ namespace RPMailUI;
 [Scoped<TopLevel>(Factory = nameof(TopLevelFactory))]
 
 // ViewModels
-[Transient<MainWindowViewModel>]
-[Transient<ContentSettingsViewModel>]
-[Transient<ConvertSettingsViewModel>]
-[Transient<SenderSettingsViewModel>]
-[Transient<ErrorViewModel>]
-[Transient<MailRunViewModel>]
-[Transient<TaskListViewModel>(Factory = nameof(TaskListViewModelFactory))]
-[Transient<AttachmentListViewModel>]
-[Transient<ExtraAttributeListViewModel>]
-[Transient<WorkspaceConfigViewModel>]
+[Transient<IMainWindowViewModel, MainWindowViewModel>]
+[Transient<IContentSettingsViewModel, ContentSettingsViewModel>]
+[Transient<IConvertSettingsViewModel, ConvertSettingsViewModel>]
+[Transient<ISenderSettingsViewModel, SenderSettingsViewModel>]
+[Transient<IErrorViewModel, ErrorViewModel>]
+[Transient<IMailRunViewModel, MailRunViewModel>]
+[Transient<ITaskListViewModel>(Factory = nameof(TaskListViewModelFactory))]
+[Transient<IAttachmentListViewModel, AttachmentListViewModel>]
+[Transient<IExtraAttributeListViewModel, ExtraAttributeListViewModel>]
+[Transient<IWorkspaceConfigViewModel, WorkspaceConfigViewModel>]
 
 // Normal Service
 [Scoped<ConfigService>]

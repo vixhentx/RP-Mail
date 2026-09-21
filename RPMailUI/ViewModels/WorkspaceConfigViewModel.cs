@@ -2,13 +2,14 @@ using R3;
 using RPMailCore.Serialization;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
 /// <summary>
 /// 管理工作区以及根配置加载
 /// </summary>
-public sealed class WorkspaceConfigViewModel : IDisposable
+public sealed class WorkspaceConfigViewModel : IWorkspaceConfigViewModel
 {
 	readonly DisposableBag _d = new();
 

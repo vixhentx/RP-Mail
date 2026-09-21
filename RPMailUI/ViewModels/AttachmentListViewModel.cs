@@ -4,10 +4,11 @@ using R3;
 using RPMailCore.Models;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public sealed class AttachmentListViewModel : IDisposable
+public sealed class AttachmentListViewModel : IAttachmentListViewModel
 {
 	readonly DisposableBag _d = new();
 	readonly ObservableList<AttachmentItemData> _items = [new()];

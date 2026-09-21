@@ -3,6 +3,7 @@ using System.Diagnostics;
 using R3;
 using RPMailCore.Models;
 using RPMailUI.Models;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
@@ -15,7 +16,7 @@ file readonly record struct RawItem(
 	public IEnumerable<string> SearchTokens => [ ..Data.Values, Status.Text ];
 }
 
-public sealed class TaskListViewModel : IDisposable
+public sealed class TaskListViewModel : ITaskListViewModel
 {
 	public static char[] Separators => [' ', ',', '&'];
 
@@ -107,5 +108,5 @@ public sealed class TaskListViewModel : IDisposable
 			.AddTo(ref _d);
 	}
 
-	public void Dispose() => _d.Dispose();
+    public void Dispose() => _d.Dispose();
 }

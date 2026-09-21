@@ -1,25 +1,26 @@
 using R3;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public class MainWindowViewModel : IDisposable
+public class MainWindowViewModel : IMainWindowViewModel
 {
 
 	readonly DisposableBag _d = new();
-	public WorkspaceConfigViewModel Workspace { get; }
-	public ContentSettingsViewModel Content { get; }
-    public SenderSettingsViewModel Sender { get; }
-    public ConvertSettingsViewModel Convert { get; }
-    public MailRunViewModel Run { get; }
-	public ErrorViewModel Error { get; }
+	public IWorkspaceConfigViewModel Workspace { get; }
+	public IContentSettingsViewModel Content { get; }
+    public ISenderSettingsViewModel Sender { get; }
+    public IConvertSettingsViewModel Convert { get; }
+    public IMailRunViewModel Run { get; }
+	public IErrorViewModel Error { get; }
 
 	public MainWindowViewModel(
-		WorkspaceConfigViewModel workspaceVm,
-		ContentSettingsViewModel contentVm,
-		ConvertSettingsViewModel convertVm,
-		SenderSettingsViewModel senderVm,
-		MailRunViewModel runVm,
-		ErrorViewModel errorVm
+		IWorkspaceConfigViewModel workspaceVm,
+		IContentSettingsViewModel contentVm,
+		IConvertSettingsViewModel convertVm,
+		ISenderSettingsViewModel senderVm,
+		IMailRunViewModel runVm,
+		IErrorViewModel errorVm
 	) 
 	{
 		Workspace = workspaceVm;

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using RPMailUI.Contracts.ViewModels;
 using RPMailUI.Resources;
 using RPMailUI.Services;
 using RPMailUI.ViewModels;
@@ -26,7 +27,7 @@ public partial class App : Application
 
 			var persistence = scope.GetService<PersistenceService>();
 			var window = scope.GetService<MainWindow>();
-			var vm = scope.GetService<MainWindowViewModel>();
+			var vm = scope.GetService<IMainWindowViewModel>();
 
 			window.DataContext = vm;
             window.Closed += (_, _) => scope.Dispose();

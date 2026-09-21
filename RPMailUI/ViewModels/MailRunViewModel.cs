@@ -5,17 +5,18 @@ using RPMailCore.Models;
 using RPMailCore.Processors;
 using RPMailUI.Models;
 using RPMailUI.Services;
+using RPMailUI.Contracts.ViewModels;
 
 namespace RPMailUI.ViewModels;
 
-public sealed class MailRunViewModel : IDisposable
+public sealed class MailRunViewModel : IMailRunViewModel
 {
 	readonly DisposableBag _d = new();
 	readonly MailRunProcessor _processor;
 	readonly ReadOnlyReactiveProperty<RunResult> _result;
 
 	// 暴露给View
-	public TaskListViewModel TaskList { get; }
+	public ITaskListViewModel TaskList { get; }
 
 	public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
 	public IReadOnlyBindableReactiveProperty<double> Progress { get; }
@@ -32,7 +33,7 @@ public sealed class MailRunViewModel : IDisposable
 	public MailRunViewModel(
 		ErrorRouteService es,
 		MailRunProcessor processor,
-		TaskListViewModel taskList,
+		ITaskListViewModel taskList,
 		ConfigService conf
 	)
 	{
