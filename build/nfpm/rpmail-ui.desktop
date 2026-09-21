@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=RP-Mail UI
+Comment=Avalonia desktop UI for RobotPilots Mail Sender
+Exec=rpmail-ui
+Icon=rpmail-ui
+Terminal=false
+Type=Application
+Categories=Office;Email;

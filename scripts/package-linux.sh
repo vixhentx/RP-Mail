@@ -41,6 +41,13 @@ exec /usr/lib/${name}/${executable} "\$@"
 EOF
   chmod 0755 "$pkg_root/usr/bin/${name}"
 
+  if [[ "$name" == "rpmail-ui" ]]; then
+    install -D -m 0644 build/nfpm/rpmail-ui.desktop \
+      "$pkg_root/usr/share/applications/rpmail-ui.desktop"
+    install -D -m 0644 RPMailUI/Assets/icon.svg \
+      "$pkg_root/usr/share/icons/hicolor/scalable/apps/rpmail-ui.svg"
+  fi
+
   export VERSION="$version"
   export NFPM_ARCH="$nfpm_arch"
   export PKG_ROOT="$pkg_root"
@@ -65,6 +72,20 @@ EOF
     -e "s#@ARCH_DEPENDS@#$ARCH_DEPENDS#g" \
     -e "s#@IPK_DEPENDS@#$IPK_DEPENDS#g" \
     build/nfpm/rpmail-linux.yaml > "$nfpm_config"
+
+  if [[ "$name" == "rpmail-ui" ]]; then
+    local nfpm_config_with_ui="${nfpm_config}.tmp"
+    awk -v root="$PKG_ROOT" '
+      /^deb:/ {
+        print "  - src: " root "/usr/share/applications/rpmail-ui.desktop"
+        print "    dst: /usr/share/applications/rpmail-ui.desktop"
+        print "  - src: " root "/usr/share/icons/hicolor/scalable/apps/rpmail-ui.svg"
+        print "    dst: /usr/share/icons/hicolor/scalable/apps/rpmail-ui.svg"
+      }
+      { print }
+    ' "$nfpm_config" > "$nfpm_config_with_ui"
+    mv "$nfpm_config_with_ui" "$nfpm_config"
+  fi
 
   for packager in deb rpm apk archlinux ipk; do
     local extension="$packager"

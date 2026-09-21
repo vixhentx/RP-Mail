@@ -48,6 +48,11 @@ buildDotnetModule {
       -p:InformationalVersion=$version \
       -p:NuGetAudit=false
 
+    install -D -m 0644 build/nfpm/rpmail-ui.desktop \
+      "$out/share/applications/rpmail-ui.desktop"
+    install -D -m 0644 RPMailUI/Assets/icon.svg \
+      "$out/share/icons/hicolor/scalable/apps/rpmail-ui.svg"
+
     runHook postInstall
   '';
 
