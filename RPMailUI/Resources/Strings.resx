@@ -97,10 +97,13 @@
     <value>Open</value>
   </data>
   <data name="OpenFilePickerTitle" xml:space="preserve">
-    <value>Open {0} File</value>
+    <value>Open {FileType} File</value>
   </data>
   <data name="FileTypeName" xml:space="preserve">
-    <value>{0} File</value>
+    <value>{FileType} File</value>
+  </data>
+  <data name="Json" xml:space="preserve">
+    <value>JSON</value>
   </data>
   <data name="AnyFile" xml:space="preserve">
     <value>Any File</value>
@@ -110,6 +113,18 @@
   </data>
   <data name="CannotOpen" xml:space="preserve">
     <value>Cannot open {0}: {1}</value>
+  </data>
+  <data name="FilePickerFailed" xml:space="preserve">
+    <value>File picker failed: {Message}</value>
+  </data>
+  <data name="SelectedConfigNoDirectory" xml:space="preserve">
+    <value>Selected config file has no local directory.</value>
+  </data>
+  <data name="FailedToReadConfig" xml:space="preserve">
+    <value>Failed to read config: {Message}</value>
+  </data>
+  <data name="FailedToWriteFile" xml:space="preserve">
+    <value>Failed to write file: {Message}</value>
   </data>
   <data name="Append" xml:space="preserve">
     <value>Append</value>

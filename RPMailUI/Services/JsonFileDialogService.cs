@@ -3,7 +3,10 @@ using System.Text.Json.Serialization.Metadata;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
 using R3;
+using RPMailCore.Extensions;
+using SmartFormat;
 using RPMailUI.Models;
+using RPMailUI.Resources;
 
 namespace RPMailUI.Services;
 
@@ -23,15 +26,38 @@ public sealed class JsonFileDialogService(
 		{
 			files = await provider.OpenFilePickerAsync(new()
 			{
-				Title = $"Select Config File: {typeof(T).Name}",
+				Title = Smart.FormatDict(
+					Strings.OpenFilePickerTitle,
+					new ()
+					{
+						["FileType"] = Strings.Json,
+					}),
 				AllowMultiple = false,
-				FileTypeFilter = [new("JSON") { Patterns = ["*.json"] }],
+				FileTypeFilter =
+				[
+					new(Smart.FormatDict(
+						Strings.FileTypeName,
+						new ()
+						{
+							["FileType"] = Strings.Json,
+						}))
+					{
+						Patterns = ["*.json"],
+					}
+				],
 				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
 			});
 		}
 		catch (Exception ex)
 		{
-			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"File picker failed: {ex.Message}"));
+			es.Error.OnNext(ErrorItemData.Create(
+				LogLevel.Error,
+				Smart.FormatDict(
+					Strings.FilePickerFailed,
+					new ()
+					{
+						["Message"] = ex.Message,
+					})));
 			return null;
 		}
 
@@ -44,7 +70,9 @@ public sealed class JsonFileDialogService(
 			var directory = path is null ? null : Path.GetDirectoryName(path);
 			if (directory is null)
 			{
-				es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, "Selected config file has no local directory."));
+				es.Error.OnNext(ErrorItemData.Create(
+					LogLevel.Error,
+					Strings.SelectedConfigNoDirectory));
 				return null;
 			}
 
@@ -54,16 +82,39 @@ public sealed class JsonFileDialogService(
 		}
 		catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
 		{
-			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"Failed to read config: {ex.Message}"));
+			es.Error.OnNext(ErrorItemData.Create(
+				LogLevel.Error,
+				Smart.FormatDict(
+					Strings.FailedToReadConfig,
+					new ()
+					{
+						["Message"] = ex.Message,
+					})));
 			return null;
 		}
 	}
 
-	public async ValueTask WriteConf<T>(T conf, JsonTypeInfo<T> info, string suggestedName, string workspaceDirectory, CancellationToken ct = default)
+	public async ValueTask WriteConf<T>(
+		T conf,
+		JsonTypeInfo<T> info,
+		string suggestedName,
+		string workspaceDirectory,
+		CancellationToken ct = default
+	)
 		where T : class
 	{
 		var text = JsonSerializer.Serialize(conf, info);
-		_ = await WriteAsync($"Select Config File: {typeof(T).Name}", suggestedName, text, workspaceDirectory, ct);
+		_ = await WriteAsync(
+			Smart.FormatDict(
+				Strings.OpenFilePickerTitle,
+				new ()
+				{
+					["FileType"] = Strings.Json,
+				}),
+			suggestedName,
+			text,
+			workspaceDirectory,
+			ct);
 	}
 
 	public async ValueTask<string?> PickDirectory(string workspaceDirectory)
@@ -72,7 +123,7 @@ public sealed class JsonFileDialogService(
 		{
 			var directories = await provider.OpenFolderPickerAsync(new()
 			{
-				Title = "Select Workspace Directory",
+				Title = Strings.SelectDirectory,
 				AllowMultiple = false,
 				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
 			});
@@ -80,47 +131,85 @@ public sealed class JsonFileDialogService(
 		}
 		catch (Exception ex)
 		{
-			es.Error.OnNext(ErrorItemData.Create(LogLevel.Error, $"File picker failed: {ex.Message}"));
+			es.Error.OnNext(ErrorItemData.Create(
+				LogLevel.Error,
+				Smart.FormatDict(
+					Strings.FilePickerFailed,
+					new ()
+					{
+						["Message"] = ex.Message,
+					})));
 			return null;
 		}
 	}
 
-    public async Task<bool> WriteAsync(string title, string suggestedName, string json, string workspaceDirectory, CancellationToken ct = default)
-    {
-        IStorageFile? file;
-        try
-        {
-            file = await provider.SaveFilePickerAsync(
+	public async Task<bool> WriteAsync(
+		string title,
+		string suggestedName,
+		string json,
+		string workspaceDirectory,
+		CancellationToken ct = default
+	)
+	{
+		IStorageFile? file;
+		try
+		{
+			file = await provider.SaveFilePickerAsync(
 				new FilePickerSaveOptions
 				{
 					Title = title,
 					SuggestedFileName = suggestedName,
 					DefaultExtension = "json",
-					FileTypeChoices = [new("JSON") { Patterns = ["*.json"] }],
+					FileTypeChoices =
+					[
+						new(Smart.FormatDict(
+							Strings.FileTypeName,
+							new ()
+							{
+								["FileType"] = Strings.Json,
+							}))
+						{
+							Patterns = ["*.json"],
+						}
+					],
 					SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(workspaceDirectory),
 				}
 			);
-        }
-        catch (Exception ex)
-        {
-            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"File picker failed: {ex.Message}"));
-            return false;
-        }
+		}
+		catch (Exception ex)
+		{
+			es.Error.OnNext(ErrorItemData.Create(
+				LogLevel.Error,
+				Smart.FormatDict(
+					Strings.FilePickerFailed,
+					new()
+					{
+						["Message"] = ex.Message,
+					})));
+			return false;
+		}
 
-        if (file is null)
-            return false;
+		if (file is null)
+			return false;
 
-        try
-        {
-            await using var stream = await file.OpenWriteAsync();
-            await using var writer = new StreamWriter(stream);
+		try
+		{
+			await using var stream = await file.OpenWriteAsync();
+			await using var writer = new StreamWriter(stream);
 			await writer.WriteAsync(json.AsMemory(), ct);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            es.Error.OnNext(ErrorItemData.Create(LogLevel.Error,$"Failed to write file: {ex.Message}"));
-            return false;
-        }
-    }
+			return true;
+		}
+		catch (Exception ex)
+		{
+			es.Error.OnNext(ErrorItemData.Create(
+				LogLevel.Error,
+				Smart.FormatDict(
+					Strings.FailedToWriteFile,
+					new ()
+					{
+						["Message"] = ex.Message,
+					})));
+			return false;
+		}
+	}
 }

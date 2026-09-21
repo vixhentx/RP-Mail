@@ -97,10 +97,13 @@
     <value>打开</value>
   </data>
   <data name="OpenFilePickerTitle" xml:space="preserve">
-    <value>打开 {0} 文件</value>
+    <value>打开 {FileType} 文件</value>
   </data>
   <data name="FileTypeName" xml:space="preserve">
-    <value>{0} 文件</value>
+    <value>{FileType} 文件</value>
+  </data>
+  <data name="Json" xml:space="preserve">
+    <value>JSON</value>
   </data>
   <data name="AnyFile" xml:space="preserve">
     <value>任意文件</value>
@@ -110,6 +113,18 @@
   </data>
   <data name="CannotOpen" xml:space="preserve">
     <value>无法打开 {0}：{1}</value>
+  </data>
+  <data name="FilePickerFailed" xml:space="preserve">
+    <value>文件选择器打开失败：{Message}</value>
+  </data>
+  <data name="SelectedConfigNoDirectory" xml:space="preserve">
+    <value>选择的配置文件没有本地目录。</value>
+  </data>
+  <data name="FailedToReadConfig" xml:space="preserve">
+    <value>读取配置文件失败：{Message}</value>
+  </data>
+  <data name="FailedToWriteFile" xml:space="preserve">
+    <value>写入文件失败：{Message}</value>
   </data>
   <data name="Append" xml:space="preserve">
     <value>添加</value>
