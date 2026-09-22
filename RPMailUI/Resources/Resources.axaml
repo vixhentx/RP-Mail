@@ -4,19 +4,53 @@
                     xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections">
     <generic:List x:TypeArguments="system:String" x:Key="AllCharSets"/>
 
-    <!-- Task status colors -->
-    <Color x:Key="TaskStatus.Ready">White</Color>
-    <Color x:Key="TaskStatus.Pending">LightGray</Color>
-    <Color x:Key="TaskStatus.Preparing">LightCyan</Color>
-    <Color x:Key="TaskStatus.Running">Cyan</Color>
-    <Color x:Key="TaskStatus.Success">Green</Color>
-    <Color x:Key="TaskStatus.Failed">Red</Color>
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <Color x:Key="TaskStatus.Ready">#E8EEF8</Color>
+            <Color x:Key="TaskStatus.Pending">#F1F3F5</Color>
+            <Color x:Key="TaskStatus.Preparing">#DDF7F5</Color>
+            <Color x:Key="TaskStatus.Running">#D7F4FF</Color>
+            <Color x:Key="TaskStatus.Success">#DDF5E5</Color>
+            <Color x:Key="TaskStatus.Failed">#FFE3E0</Color>
 
-    <!-- Flyout severity colors -->
-    <Color x:Key="Flyout.Error.Foreground">LightYellow</Color>
-    <Color x:Key="Flyout.Error.Background">Crimson</Color>
-    <Color x:Key="Flyout.Warning.Foreground">LightYellow</Color>
-    <Color x:Key="Flyout.Warning.Background">DarkOrange</Color>
-    <Color x:Key="Flyout.Info.Foreground">LightYellow</Color>
-    <Color x:Key="Flyout.Info.Background">DarkCyan</Color>
+            <Color x:Key="Flyout.Error.Foreground">#7F1D1D</Color>
+            <Color x:Key="Flyout.Error.Background">#FECACA</Color>
+            <Color x:Key="Flyout.Warning.Foreground">#78350F</Color>
+            <Color x:Key="Flyout.Warning.Background">#FED7AA</Color>
+            <Color x:Key="Flyout.Info.Foreground">#164E63</Color>
+            <Color x:Key="Flyout.Info.Background">#CFFAFE</Color>
+
+            <SolidColorBrush x:Key="RpWindowBrush" Color="#F7F8FC" />
+            <SolidColorBrush x:Key="RpPanelBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="RpSubtleBrush" Color="#EEF1F7" />
+            <SolidColorBrush x:Key="RpBorderBrush" Color="#D8DEEA" />
+            <SolidColorBrush x:Key="RpTextBrush" Color="#202638" />
+            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#667085" />
+            <SolidColorBrush x:Key="RpAccentBrush" Color="#3C65EA" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="TaskStatus.Ready">#29354F</Color>
+            <Color x:Key="TaskStatus.Pending">#343A46</Color>
+            <Color x:Key="TaskStatus.Preparing">#164E63</Color>
+            <Color x:Key="TaskStatus.Running">#155E75</Color>
+            <Color x:Key="TaskStatus.Success">#166534</Color>
+            <Color x:Key="TaskStatus.Failed">#7F1D1D</Color>
+
+            <Color x:Key="Flyout.Error.Foreground">#FEE2E2</Color>
+            <Color x:Key="Flyout.Error.Background">#991B1B</Color>
+            <Color x:Key="Flyout.Warning.Foreground">#FEF3C7</Color>
+            <Color x:Key="Flyout.Warning.Background">#9A3412</Color>
+            <Color x:Key="Flyout.Info.Foreground">#CFFAFE</Color>
+            <Color x:Key="Flyout.Info.Background">#155E75</Color>
+
+            <SolidColorBrush x:Key="RpWindowBrush" Color="#151923" />
+            <SolidColorBrush x:Key="RpPanelBrush" Color="#202532" />
+            <SolidColorBrush x:Key="RpSubtleBrush" Color="#2A3140" />
+            <SolidColorBrush x:Key="RpBorderBrush" Color="#3B4558" />
+            <SolidColorBrush x:Key="RpTextBrush" Color="#F2F4F7" />
+            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#AAB4C5" />
+            <SolidColorBrush x:Key="RpAccentBrush" Color="#8AA4FF" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

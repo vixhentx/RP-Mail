@@ -19,47 +19,43 @@
 	<DockPanel>
 		<controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
 							Errors="{CompiledBinding Error.Items.Value}" HorizontalAlignment="Stretch" MaxHeight="55"/>
-		<ProgressBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="5" Value="{CompiledBinding Run.Progress.Value}"/>
+		<ProgressBar Classes="run-progress" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Value="{CompiledBinding Run.Progress.Value}"/>
 		<Panel DockPanel.Dock="Bottom">
 			<StackPanel ZIndex="1" Spacing="10"
 						Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0">
-				<Button Content="{x:Static res:Strings.OpenOutput}" IsVisible="{CompiledBinding Run.ShouldOpenOutputFolder.Value}" Command="{CompiledBinding Run.OpenOutputFolderCommand}"
-						FontSize="20"/>
-				<Button Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding Run.ShouldRetry.Value}" Command="{CompiledBinding Run.RetryCommand}"
-						FontSize="20"/>
-				<Button Content="{x:Static res:Strings.Start}" IsVisible="{CompiledBinding Run.ShouldStart.Value}" Command="{CompiledBinding Run.StartCommand}"
-						FontSize="20" FontWeight="SemiBold"/>
-				<Button Content="{x:Static res:Strings.Cancel}" IsVisible="{CompiledBinding Run.ShouldCancel.Value}" Command="{CompiledBinding Run.CancelCommand}"
-						FontSize="20"/>
+				<Button Classes="toolbar-button" Content="{x:Static res:Strings.OpenOutput}" IsVisible="{CompiledBinding Run.ShouldOpenOutputFolder.Value}" Command="{CompiledBinding Run.OpenOutputFolderCommand}"/>
+				<Button Classes="toolbar-button" Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding Run.ShouldRetry.Value}" Command="{CompiledBinding Run.RetryCommand}"/>
+				<Button Classes="primary-action" Content="{x:Static res:Strings.Start}" IsVisible="{CompiledBinding Run.ShouldStart.Value}" Command="{CompiledBinding Run.StartCommand}"/>
+				<Button Classes="toolbar-button" Content="{x:Static res:Strings.Cancel}" IsVisible="{CompiledBinding Run.ShouldCancel.Value}" Command="{CompiledBinding Run.CancelCommand}"/>
 			</StackPanel>
 			<TabControl MaxHeight="300">
-				<TabItem Header="{x:Static res:Strings.TaskList}" FontSize="20" FontWeight="SemiBold">
+				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.TaskList}">
 					<controls:TaskListView DataContext="{CompiledBinding Run.TaskList}"/>
 				</TabItem>
-				<TabItem Header="{x:Static res:Strings.Console}" FontSize="20" FontWeight="SemiBold">
+				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.Console}">
 					<TextBox IsReadOnly="True" Text="{CompiledBinding Run.ConsoleLog.Value}"/>
 				</TabItem>
-				<TabItem Header="{x:Static res:Strings.Hide}" FontSize="20" FontWeight="SemiBold"/>
+				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.Hide}"/>
 			</TabControl>
 		</Panel>
-		<ScrollViewer Margin="5" AllowAutoHide="True">
+		<ScrollViewer Classes="config-scroll" AllowAutoHide="True">
 			<StackPanel Orientation="Vertical" Spacing="5">
 				<DockPanel>
 					<StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
-						<Button Content="{x:Static res:Strings.Browse}" Command="{CompiledBinding Workspace.BrowseWorkspaceCommand}"/>
-						<Button Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Workspace.ImportMailConfigCommand}"/>
-						<Button Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Workspace.ExportMailConfigCommand}"/>
+						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Browse}" Command="{CompiledBinding Workspace.BrowseWorkspaceCommand}"/>
+						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Workspace.ImportMailConfigCommand}"/>
+						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Workspace.ExportMailConfigCommand}"/>
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="10">
-						<TextBlock VerticalAlignment="Center" Text="{x:Static res:Strings.WorkspaceDirectory}"/>
+						<TextBlock Classes="field-label" VerticalAlignment="Center" Text="{x:Static res:Strings.WorkspaceDirectory}"/>
 						<TextBox Text="{CompiledBinding Workspace.WorkspaceDirectory.Value, Mode=TwoWay}"/>
 					</StackPanel>
 				</DockPanel>
-				<Expander Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
+				<Expander Classes="section-expander" Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
 					<StackPanel Orientation="Vertical" Spacing="5">
 						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Content.ImportCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Content.ExportCommand}" FontSize="15"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Content.ImportCommand}"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Content.ExportCommand}"/>
 						</StackPanel>
 						<controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{CompiledBinding Content.CsvPath.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
 						<controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{CompiledBinding Content.BodyHtmlPath.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
@@ -70,22 +66,22 @@
 						<controls:ExtraAttributeView DataContext="{CompiledBinding Content.ExtraAttributes}"/>
 					</StackPanel>
 				</Expander>
-				<Expander Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">
+				<Expander Classes="section-expander" Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">
 					<StackPanel Spacing="5">
 						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Sender.ImportCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Sender.ExportCommand}" FontSize="15"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Sender.ImportCommand}"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Sender.ExportCommand}"/>
 						</StackPanel>
 						<controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{CompiledBinding Sender.SenderEmail.Value}"/>
 						<controls:TextBarView Caption="{x:Static res:Strings.PasswordCaption}" Text="{CompiledBinding Sender.SenderPassword.Value}"/>
 						<controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{CompiledBinding Sender.SmtpHost.Value}"/>
 					</StackPanel>
 				</Expander>
-				<Expander Header="{x:Static res:Strings.ConvertSettings}" HorizontalAlignment="Stretch">
+				<Expander Classes="section-expander" Header="{x:Static res:Strings.ConvertSettings}" HorizontalAlignment="Stretch">
 					<StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-							<Button Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Convert.ImportCommand}" FontSize="15"/>
-							<Button Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Convert.ExportCommand}" FontSize="15"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Convert.ImportCommand}"/>
+							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Convert.ExportCommand}"/>
 						</StackPanel>
 						<controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True" FilePath="{CompiledBinding Convert.OutputDir.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
 						<CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{CompiledBinding Convert.DeleteAfterSent.Value}"/>

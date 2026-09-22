@@ -28,8 +28,7 @@
                 <ItemsControl ItemsSource="{CompiledBinding Tasks.Value}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="model:TaskItemData">
-                            <Border VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                    CornerRadius="5" BorderThickness="2">
+                            <Border Classes="task-item" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                                 <Border.Background>
                                     <SolidColorBrush Color="{CompiledBinding Status, Converter={StaticResource ResourceColorConverter}}"/>
                                 </Border.Background>

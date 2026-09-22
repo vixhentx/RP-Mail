@@ -14,5 +14,6 @@
              </Application.Resources>
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="/Resources/Styles.axaml" />
     </Application.Styles>
 </Application>

@@ -8,10 +8,10 @@
     <DockPanel>
         <DockPanel DockPanel.Dock="Top">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button Content="{x:Static res:Strings.Append}" Command="{CompiledBinding AppendCommand}"/>
-                <Button Content="{x:Static res:Strings.Remove}" Command="{CompiledBinding RemoveCommand}"/>
+                <Button Classes="toolbar-button" Content="{x:Static res:Strings.Append}" Command="{CompiledBinding AppendCommand}"/>
+                <Button Classes="toolbar-button" Content="{x:Static res:Strings.Remove}" Command="{CompiledBinding RemoveCommand}"/>
             </StackPanel>
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{x:Static res:Strings.ExtraAttributes}" Margin="5"/>
+            <TextBlock Classes="field-label" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{x:Static res:Strings.ExtraAttributes}" Margin="5"/>
         </DockPanel>
         <ListBox x:Name="ExtraAttributeListBox" SelectionMode="Single"
                  ItemsSource="{CompiledBinding ItemsView}"
