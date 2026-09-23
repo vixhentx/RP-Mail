@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using R3;
 using RPMailCore.Models;
@@ -6,6 +5,7 @@ using RPMailCore.Processors;
 using RPMailUI.Models;
 using RPMailUI.Services;
 using RPMailUI.Contracts.ViewModels;
+using RPMailUI.Resources;
 using System.Diagnostics;
 
 namespace RPMailUI.ViewModels;
@@ -20,6 +20,7 @@ public sealed class MailRunViewModel : IMailRunViewModel
 {
 	readonly DisposableBag _d = new();
 	public ITaskListViewModel TaskList { get; }
+	public IErrorViewModel Error { get; }
 
 	public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
 	public IReadOnlyBindableReactiveProperty<double> Progress { get; }
@@ -28,6 +29,9 @@ public sealed class MailRunViewModel : IMailRunViewModel
 	public IReadOnlyBindableReactiveProperty<bool> ShouldOpenOutputFolder { get; }
 	public IReadOnlyBindableReactiveProperty<bool> ShouldStart { get; }
 	public IReadOnlyBindableReactiveProperty<bool> ShouldCancel { get; }
+	public IReadOnlyBindableReactiveProperty<MailRunState> State { get; }
+	public IReadOnlyBindableReactiveProperty<string> StateText { get; }
+	public IReadOnlyBindableReactiveProperty<string> ProgressText { get; }
 
 
 	public ReactiveCommand OpenOutputFolderCommand { get; }
@@ -39,10 +43,12 @@ public sealed class MailRunViewModel : IMailRunViewModel
 		ErrorRouteService es,
 		MailRunProcessor processor,
 		ITaskListViewModel taskList,
+		IErrorViewModel errorVm,
 		ConfigService conf
 	)
 	{
 		TaskList = taskList;
+		Error = errorVm;
 
 		var shouldStart = processor.Running
 			.Select(static x => !x)
@@ -88,6 +94,21 @@ public sealed class MailRunViewModel : IMailRunViewModel
 				.ObserveOnUIThreadDispatcher()
 				.Publish();
 
+		State = Observable.Merge(
+			processor.Running.Select(static running => running ? MailRunState.Running : MailRunState.Ready),
+			result.Select(static r => r.Success ? MailRunState.Succeeded : MailRunState.Failed))
+			.ToReadOnlyBindableReactiveProperty(MailRunState.Ready)
+			.AddTo(ref _d);
+		StateText = State.AsObservable().Select(static state => state switch
+		{
+			MailRunState.Running => Strings.RunStateRunning,
+			MailRunState.Succeeded => Strings.RunStateSucceeded,
+			MailRunState.Failed => Strings.RunStateFailed,
+			_ => Strings.RunStateReady,
+		})
+			.ToReadOnlyBindableReactiveProperty(Strings.RunStateReady)
+			.AddTo(ref _d);
+
 		var hasResult = result
 				.Select(_ => true)
 				.Prepend(false)
@@ -123,6 +144,10 @@ public sealed class MailRunViewModel : IMailRunViewModel
 			.ObserveOnUIThreadDispatcher()
 			.ToReadOnlyBindableReactiveProperty()
 			.AddTo(ref _d);
+		ProgressText = Progress.AsObservable()
+			.Select(static progress => $"{progress:0}%")
+			.ToReadOnlyBindableReactiveProperty("0%")
+			.AddTo(ref _d);
 
 		ConsoleLog = processor.Output
 			.Where(static x => x is MessageOutput)
@@ -151,5 +176,6 @@ public sealed class MailRunViewModel : IMailRunViewModel
 	{
 		_d.Dispose();
 		TaskList.Dispose();
+		Error.Dispose();
 	}
 }

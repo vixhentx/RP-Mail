@@ -1,11 +1,16 @@
 using R3;
 using RPMailUI.Contracts.ViewModels;
+using RPMailUI.Models;
 
 namespace RPMailUI.Design.ViewModels;
 
 public sealed class DesignMailRunViewModel : IMailRunViewModel
 {
+    public IReadOnlyBindableReactiveProperty<MailRunState> State { get; } = new BindableReactiveProperty<MailRunState>(MailRunState.Running);
+    public IReadOnlyBindableReactiveProperty<string> StateText { get; } = new BindableReactiveProperty<string>("Sending");
+    public IReadOnlyBindableReactiveProperty<string> ProgressText { get; } = new BindableReactiveProperty<string>("62%");
     public ITaskListViewModel TaskList { get; } = new DesignTaskListViewModel();
+	public IErrorViewModel Error { get; } = new DesignErrorViewModel();
     public IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; } =
         new BindableReactiveProperty<string>("Loading contacts...\n2 messages sent\n1 message failed");
     public IReadOnlyBindableReactiveProperty<double> Progress { get; } =
@@ -28,6 +33,7 @@ public sealed class DesignMailRunViewModel : IMailRunViewModel
 	public void Dispose()
     {
         TaskList.Dispose();
+		Error.Dispose();
         ConsoleLog.Dispose();
         Progress.Dispose();
         ShouldRetry.Dispose();
@@ -38,5 +44,8 @@ public sealed class DesignMailRunViewModel : IMailRunViewModel
         RetryCommand.Dispose();
         StartCommand.Dispose();
 		CancelCommand.Dispose();
+		State.Dispose();
+		StateText.Dispose();
+		ProgressText.Dispose();
     }
 }

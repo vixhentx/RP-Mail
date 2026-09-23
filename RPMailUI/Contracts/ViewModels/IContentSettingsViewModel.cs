@@ -11,6 +11,7 @@ public interface IContentSettingsViewModel : IDisposable
     BindableReactiveProperty<string> BodyHtmlPath { get; }
     BindableReactiveProperty<string> Subject { get; }
     BindableReactiveProperty<string> CharSet { get; }
+	IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; }
     IAttachmentListViewModel Attachments { get; }
     IExtraAttributeListViewModel ExtraAttributes { get; }
 }

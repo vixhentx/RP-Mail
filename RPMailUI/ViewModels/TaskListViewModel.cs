@@ -30,6 +30,9 @@ public sealed class TaskListViewModel : ITaskListViewModel
 	public IReadOnlyBindableReactiveProperty<ImmutableArray<string>> AvailableHeaders { get; }
 
 	public IReadOnlyBindableReactiveProperty<ImmutableArray<TaskItemData>> Tasks { get; }
+	public IReadOnlyBindableReactiveProperty<int> TotalCount { get; }
+	public IReadOnlyBindableReactiveProperty<int> SuccessCount { get; }
+	public IReadOnlyBindableReactiveProperty<int> FailedCount { get; }
 
 	public TaskListViewModel(Observable<MailRunOutput> output)
 	{
@@ -105,6 +108,16 @@ public sealed class TaskListViewModel : ITaskListViewModel
 			)
 			.ObserveOnUIThreadDispatcher()
 			.ToReadOnlyBindableReactiveProperty([])
+			.AddTo(ref _d);
+
+		TotalCount = Tasks.AsObservable().Select(static tasks => tasks.Length)
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
+		SuccessCount = Tasks.AsObservable().Select(static tasks => tasks.Count(static task => task.Status == MailTaskStatus.Success))
+			.ToReadOnlyBindableReactiveProperty()
+			.AddTo(ref _d);
+		FailedCount = Tasks.AsObservable().Select(static tasks => tasks.Count(static task => task.Status == MailTaskStatus.Failed))
+			.ToReadOnlyBindableReactiveProperty()
 			.AddTo(ref _d);
 	}
 

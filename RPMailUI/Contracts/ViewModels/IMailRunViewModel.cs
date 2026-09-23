@@ -1,11 +1,16 @@
 using System;
 using R3;
+using RPMailUI.Models;
 
 namespace RPMailUI.Contracts.ViewModels;
 
 public interface IMailRunViewModel : IDisposable
 {
+    IReadOnlyBindableReactiveProperty<MailRunState> State { get; }
+    IReadOnlyBindableReactiveProperty<string> StateText { get; }
+    IReadOnlyBindableReactiveProperty<string> ProgressText { get; }
     ITaskListViewModel TaskList { get; }
+	IErrorViewModel Error { get; }
     IReadOnlyBindableReactiveProperty<string> ConsoleLog { get; }
     IReadOnlyBindableReactiveProperty<double> Progress { get; }
     IReadOnlyBindableReactiveProperty<bool> ShouldRetry { get; }

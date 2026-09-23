@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+             xmlns:controls="clr-namespace:RPMailUI.Controls"
+             xmlns:res="using:RPMailUI.Resources"
+             x:Class="RPMailUI.Views.ConvertSettingsView"
+             x:DataType="contracts:IConvertSettingsViewModel"
+             x:CompileBindings="False">
+    <ScrollViewer Classes="editor-scroll" AllowAutoHide="True">
+        <StackPanel Spacing="14">
+            <DockPanel Classes="section-heading">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding ImportCommand}"/>
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding ExportCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="page-title" Text="{x:Static res:Strings.ConvertSettings}"/>
+                    <TextBlock Classes="page-subtitle" Text="{x:Static res:Strings.ConvertSummary}"/>
+                </StackPanel>
+            </DockPanel>
+            <Border Classes="settings-card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="card-title" Text="{x:Static res:Strings.OutputOptions}"/>
+                    <controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True"
+                                           FilePath="{CompiledBinding OutputDir.Value}"
+                                           WorkspaceDirectory="{CompiledBinding WorkspaceDirectory.Value}"/>
+                </StackPanel>
+            </Border>
+            <Border Classes="settings-card">
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="card-title" Text="{x:Static res:Strings.ProcessingOptions}"/>
+                    <CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{CompiledBinding DeleteAfterSent.Value}"/>
+                    <CheckBox Content="{x:Static res:Strings.ConvertOnly}" IsChecked="{CompiledBinding ConvertOnly.Value}"/>
+                    <CheckBox Content="{x:Static res:Strings.SaveRawDoc}" IsChecked="{CompiledBinding SaveRawDocs.Value}"/>
+                    <CheckBox Content="{x:Static res:Strings.SaveHtml}" IsChecked="{CompiledBinding SaveHtmlFile.Value}"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

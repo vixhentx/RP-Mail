@@ -55,6 +55,22 @@
         <DependentUpon>TaskListView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Views\ContentSettingsView.axaml.cs">
+        <DependentUpon>ContentSettingsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\ConvertSettingsView.axaml.cs">
+        <DependentUpon>ConvertSettingsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\RunPanelView.axaml.cs">
+        <DependentUpon>RunPanelView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\SenderSettingsView.axaml.cs">
+        <DependentUpon>SenderSettingsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>

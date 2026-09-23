@@ -1,5 +1,4 @@
 using R3;
-using RPMailCore.Models;
 using RPMailCore.Serialization;
 using RPMailUI.Models;
 using RPMailUI.Services;
@@ -20,6 +19,7 @@ public sealed class ContentSettingsViewModel : IContentSettingsViewModel
 	public BindableReactiveProperty<string> BodyHtmlPath { get; } = new("");
 	public BindableReactiveProperty<string> Subject { get; } = new("");
 	public BindableReactiveProperty<string> CharSet { get; } = new("utf-8");
+	public IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; }
 
 	public IAttachmentListViewModel Attachments { get; }
 	public IExtraAttributeListViewModel ExtraAttributes { get; }
@@ -91,6 +91,11 @@ public sealed class ContentSettingsViewModel : IContentSettingsViewModel
 			.Subscribe(conf.Pipe, static (module,conf) => conf.Value = module)
 			.AddTo(ref _d);
 
+		WorkspaceDirectory = conf.Pipe
+			.Select(static p => p.Value.WorkspaceDirectory)
+			.ToReadOnlyBindableReactiveProperty("")
+			.AddTo(ref _d);
+
 		// 配置导入
 		ImportCommand
 			.WithLatestFrom(conf.Pipe, static (_, pipe) => pipe.Value.WorkspaceDirectory)
@@ -128,15 +133,13 @@ public sealed class ContentSettingsViewModel : IContentSettingsViewModel
 
 	public void Dispose()
 	{
-		Attachments.Dispose();
-		ExtraAttributes.Dispose();
-
 		_d.Dispose();
-		ImportCommand.Dispose();
-		ExportCommand.Dispose();
 		CsvPath.Dispose();
 		BodyHtmlPath.Dispose();
 		Subject.Dispose();
 		CharSet.Dispose();
+		Attachments.Dispose();
+		ExtraAttributes.Dispose();
+
 	}
 }

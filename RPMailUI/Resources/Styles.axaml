@@ -5,6 +5,187 @@
         <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
     </Style>
 
+    <Style Selector="Border.top-bar">
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="18,12" />
+    </Style>
+
+    <Style Selector="Border.workspace-bar">
+        <Setter Property="Background" Value="{DynamicResource RpSubtleBrush}" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="Border.navigation-panel">
+        <Setter Property="Background" Value="{DynamicResource RpSubtleBrush}" />
+        <Setter Property="Padding" Value="14,18" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+    </Style>
+
+    <Style Selector="Border.editor-panel">
+        <Setter Property="Background" Value="{DynamicResource RpWindowBrush}" />
+        <Setter Property="Padding" Value="18,16" />
+    </Style>
+
+    <Style Selector="Border.run-panel">
+        <Setter Property="Background" Value="{DynamicResource RpSubtleBrush}" />
+        <Setter Property="Padding" Value="14,16" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1,0,0,0" />
+    </Style>
+
+    <Style Selector="Border.status-bar">
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+
+    <Style Selector="TextBlock.app-title">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.app-version">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.page-title">
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.page-subtitle">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="TextBlock.nav-caption">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="4,0,4,8" />
+    </Style>
+
+    <Style Selector="Button.nav-item">
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Padding" Value="10,9" />
+        <Setter Property="MinHeight" Value="58" />
+    </Style>
+
+    <Style Selector="TextBlock.nav-item-title">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.nav-item-summary">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Border.settings-card">
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.card-title">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style Selector="DockPanel.section-heading">
+        <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+
+    <Style Selector="ScrollViewer.editor-scroll">
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <Style Selector="Button.subtle-button">
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Padding" Value="10,5" />
+    </Style>
+
+    <Style Selector="Button.cancel-button">
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
+    </Style>
+
+    <Style Selector="Border.run-summary">
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.run-state">
+        <Setter Property="Foreground" Value="{DynamicResource RpAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Border.metric-card">
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="8" />
+    </Style>
+
+    <Style Selector="TextBlock.metric-value">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.metric-label">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="TextBlock.muted-text">
+        <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.status-number">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.success-text">
+        <Setter Property="Foreground" Value="#248A4A" />
+    </Style>
+
+    <Style Selector="TextBlock.error-text">
+        <Setter Property="Foreground" Value="#C43B3B" />
+    </Style>
+
+    <Style Selector="TabControl.run-tabs">
+        <Setter Property="MinHeight" Value="160" />
+    </Style>
+
+    <Style Selector="TextBox.console-output">
+        <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,monospace" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="10" />
+    </Style>
+
+    <Style Selector="Border.error-panel">
+        <Setter Property="MaxHeight" Value="120" />
+        <Setter Property="Background" Value="{DynamicResource RpPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
     <Style Selector="TextBlock.field-label">
         <Setter Property="Foreground" Value="{DynamicResource RpMutedTextBrush}" />
         <Setter Property="FontSize" Value="13" />
@@ -75,4 +256,10 @@
     <Style Selector="ScrollViewer.config-scroll">
         <Setter Property="Margin" Value="12" />
     </Style>
+
+	<Style Selector="TabbedPage.navi-header TabControl TabItem TextBlock">
+		<Setter Property="MinWidth" Value="150"/>
+		<Setter Property="FontSize" Value="18"/>
+		<Setter Property="FontWeight" Value="SemiBold"/>
+	</Style>
 </Styles>

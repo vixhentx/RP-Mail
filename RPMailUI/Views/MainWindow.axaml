@@ -1,96 +1,77 @@
 <Window xmlns="https://github.com/avaloniaui"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
-		xmlns:design="using:RPMailUI.Design.ViewModels"
-		xmlns:res="using:RPMailUI.Resources"
-		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:controls="clr-namespace:RPMailUI.Controls"
-		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-		x:Class="RPMailUI.Views.MainWindow"
-		x:DataType="contracts:IMainWindowViewModel"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+        xmlns:design="using:RPMailUI.Design.ViewModels"
+        xmlns:res="using:RPMailUI.Resources"
+        xmlns:views="using:RPMailUI.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        d:DesignWidth="1280" d:DesignHeight="760"
+        x:Class="RPMailUI.Views.MainWindow"
+        x:Name="RootWindow"
+        x:DataType="contracts:IMainWindowViewModel"
         Icon="/Assets/icon.ico"
-		Title="RP-Mail UI"
-		MinHeight="300" MinWidth="400">
+        Title="RP-Mail UI"
+        MinHeight="500" MinWidth="520"
+        >
+    <Design.DataContext>
+        <design:DesignMainWindowViewModel/>
+    </Design.DataContext>
 
-	<Design.DataContext>
-		<design:DesignMainWindowViewModel/>
-	</Design.DataContext>
-	<DockPanel>
-		<controls:ErrorView DockPanel.Dock="Top" x:Name="ErrorView"
-							Errors="{CompiledBinding Error.Items.Value}" HorizontalAlignment="Stretch" MaxHeight="55"/>
-		<ProgressBar Classes="run-progress" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Value="{CompiledBinding Run.Progress.Value}"/>
-		<Panel DockPanel.Dock="Bottom">
-			<StackPanel ZIndex="1" Spacing="10"
-						Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,20,0">
-				<Button Classes="toolbar-button" Content="{x:Static res:Strings.OpenOutput}" IsVisible="{CompiledBinding Run.ShouldOpenOutputFolder.Value}" Command="{CompiledBinding Run.OpenOutputFolderCommand}"/>
-				<Button Classes="toolbar-button" Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding Run.ShouldRetry.Value}" Command="{CompiledBinding Run.RetryCommand}"/>
-				<Button Classes="primary-action" Content="{x:Static res:Strings.Start}" IsVisible="{CompiledBinding Run.ShouldStart.Value}" Command="{CompiledBinding Run.StartCommand}"/>
-				<Button Classes="toolbar-button" Content="{x:Static res:Strings.Cancel}" IsVisible="{CompiledBinding Run.ShouldCancel.Value}" Command="{CompiledBinding Run.CancelCommand}"/>
-			</StackPanel>
-			<TabControl MaxHeight="300">
-				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.TaskList}">
-					<controls:TaskListView DataContext="{CompiledBinding Run.TaskList}"/>
-				</TabItem>
-				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.Console}">
-					<TextBox IsReadOnly="True" Text="{CompiledBinding Run.ConsoleLog.Value}"/>
-				</TabItem>
-				<TabItem Classes="workspace-tab" Header="{x:Static res:Strings.Hide}"/>
-			</TabControl>
-		</Panel>
-		<ScrollViewer Classes="config-scroll" AllowAutoHide="True">
-			<StackPanel Orientation="Vertical" Spacing="5">
-				<DockPanel>
-					<StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
-						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Browse}" Command="{CompiledBinding Workspace.BrowseWorkspaceCommand}"/>
-						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Workspace.ImportMailConfigCommand}"/>
-						<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Workspace.ExportMailConfigCommand}"/>
-					</StackPanel>
-					<StackPanel Orientation="Horizontal" Spacing="10">
-						<TextBlock Classes="field-label" VerticalAlignment="Center" Text="{x:Static res:Strings.WorkspaceDirectory}"/>
-						<TextBox Text="{CompiledBinding Workspace.WorkspaceDirectory.Value, Mode=TwoWay}"/>
-					</StackPanel>
-				</DockPanel>
-				<Expander Classes="section-expander" Header="{x:Static res:Strings.ContentSettings}" HorizontalAlignment="Stretch" IsExpanded="True">
-					<StackPanel Orientation="Vertical" Spacing="5">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Content.ImportCommand}"/>
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Content.ExportCommand}"/>
-						</StackPanel>
-						<controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV" FilePath="{CompiledBinding Content.CsvPath.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
-						<controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML" FilePath="{CompiledBinding Content.BodyHtmlPath.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{CompiledBinding Content.Subject.Value}"/>
-						<controls:TextPromptBarView Caption="{x:Static res:Strings.CharSetCaption}" PromptsSource="{StaticResource AllCharSets}" Text="{CompiledBinding Content.CharSet.Value}"/>
-						<controls:AttachmentView Margin="0,5,0,5" x:Name="AttachmentView"
-												 DataContext="{CompiledBinding Content.Attachments}"/>
-						<controls:ExtraAttributeView DataContext="{CompiledBinding Content.ExtraAttributes}"/>
-					</StackPanel>
-				</Expander>
-				<Expander Classes="section-expander" Header="{x:Static res:Strings.SenderSettings}" HorizontalAlignment="Stretch">
-					<StackPanel Spacing="5">
-						<StackPanel Orientation="Horizontal" Spacing="10">
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Sender.ImportCommand}"/>
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Sender.ExportCommand}"/>
-						</StackPanel>
-						<controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{CompiledBinding Sender.SenderEmail.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.PasswordCaption}" Text="{CompiledBinding Sender.SenderPassword.Value}"/>
-						<controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{CompiledBinding Sender.SmtpHost.Value}"/>
-					</StackPanel>
-				</Expander>
-				<Expander Classes="section-expander" Header="{x:Static res:Strings.ConvertSettings}" HorizontalAlignment="Stretch">
-					<StackPanel>
-						<StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,5">
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Convert.ImportCommand}"/>
-							<Button Classes="toolbar-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Convert.ExportCommand}"/>
-						</StackPanel>
-						<controls:FileBarView Caption="{x:Static res:Strings.OutputFolderCaption}" IsDirectory="True" FilePath="{CompiledBinding Convert.OutputDir.Value}" WorkspaceDirectory="{CompiledBinding Workspace.WorkspaceDirectory.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.DeleteAfterSent}" IsChecked="{CompiledBinding Convert.DeleteAfterSent.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.ConvertOnly}" IsChecked="{CompiledBinding Convert.ConvertOnly.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.SaveRawDoc}" IsChecked="{CompiledBinding Convert.SaveRawDocs.Value}"/>
-						<CheckBox Content="{x:Static res:Strings.SaveHtml}" IsChecked="{CompiledBinding Convert.SaveHtmlFile.Value}"/>
-					</StackPanel>
-				</Expander>
-			</StackPanel>
-		</ScrollViewer>
-	</DockPanel>
+    <DockPanel x:Name="LayoutRoot">
+        <Border DockPanel.Dock="Top" Classes="top-bar">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Classes="app-title" Text="RP-Mail"/>
+                    <TextBlock Classes="app-version" Text="UI"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.OpenOutput}" IsVisible="{CompiledBinding Run.ShouldOpenOutputFolder.Value}" Command="{CompiledBinding Run.OpenOutputFolderCommand}"/>
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding Run.ShouldRetry.Value}" Command="{CompiledBinding Run.RetryCommand}"/>
+                    <Button Classes="cancel-button" Content="{x:Static res:Strings.Cancel}" IsVisible="{CompiledBinding Run.ShouldCancel.Value}" Command="{CompiledBinding Run.CancelCommand}"/>
+                    <Button Classes="primary-action" Content="{x:Static res:Strings.Start}" IsVisible="{CompiledBinding Run.ShouldStart.Value}" Command="{CompiledBinding Run.StartCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Top" Classes="workspace-bar">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+                <TextBlock Classes="field-label" VerticalAlignment="Center" Text="{x:Static res:Strings.WorkspaceDirectory}"/>
+                <TextBox Grid.Column="1" Text="{CompiledBinding Workspace.WorkspaceDirectory.Value, Mode=TwoWay}"/>
+                <Button Grid.Column="2" Classes="subtle-button" Content="{x:Static res:Strings.Browse}" Command="{CompiledBinding Workspace.BrowseWorkspaceCommand}"/>
+                <Button Grid.Column="3" Classes="subtle-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding Workspace.ImportMailConfigCommand}"/>
+                <Button Grid.Column="4" Classes="subtle-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding Workspace.ExportMailConfigCommand}"/>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Classes="status-bar">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="14">
+                <TextBlock Classes="muted-text" Text="{CompiledBinding Run.StateText.Value}"/>
+                <TextBlock Grid.Column="1" Classes="muted-text" Text="{x:Static res:Strings.Total}"/>
+                <TextBlock Grid.Column="2" Classes="status-number" Text="{CompiledBinding Run.TaskList.TotalCount.Value}"/>
+                <TextBlock Grid.Column="3" Classes="muted-text" Text="{CompiledBinding Run.ProgressText.Value}"/>
+            </Grid>
+        </Border>
+
+        <Border x:Name="RunHost" DockPanel.Dock="Right" Classes="run-panel">
+            <views:RunPanelView DataContext="{CompiledBinding Run}"/>
+        </Border>
+
+		<!-- 主要编辑区 -->
+        <Border x:Name="EditorHost" Classes="editor-panel">
+            <TabbedPage TabPlacement="Left" Classes="navi-header">
+				<ContentPage Header="{x:Static res:Strings.ContentSettings}">
+					<views:ContentSettingsView DataContext="{CompiledBinding Content}"/>
+				</ContentPage>
+				<ContentPage Header="{x:Static res:Strings.SenderSettings}">
+					<views:SenderSettingsView DataContext="{CompiledBinding Sender}"/>
+				</ContentPage>
+				<ContentPage Header="{x:Static res:Strings.ConvertSettings}">
+					<views:ConvertSettingsView DataContext="{CompiledBinding Convert}"/>
+				</ContentPage>
+			</TabbedPage>
+        </Border>
+
+    </DockPanel>
 </Window>

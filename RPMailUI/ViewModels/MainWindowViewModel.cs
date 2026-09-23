@@ -1,11 +1,11 @@
 using R3;
 using RPMailUI.Contracts.ViewModels;
+using RPMailUI.Models;
 
 namespace RPMailUI.ViewModels;
 
 public class MainWindowViewModel : IMainWindowViewModel
 {
-
 	readonly DisposableBag _d = new();
 	public IWorkspaceConfigViewModel Workspace { get; }
 	public IContentSettingsViewModel Content { get; }

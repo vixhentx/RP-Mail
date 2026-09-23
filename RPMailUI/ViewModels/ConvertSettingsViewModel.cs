@@ -22,6 +22,8 @@ public sealed class ConvertSettingsViewModel : IConvertSettingsViewModel
 	public BindableReactiveProperty<bool> SaveRawDocs { get; } = new(false);
 	public BindableReactiveProperty<bool> SaveHtmlFile { get; } = new(false);
 
+	public IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; }
+
 	public ConvertSettingsViewModel(
 		ConfigService conf,
 		JsonFileDialogService fileDialog
@@ -44,6 +46,11 @@ public sealed class ConvertSettingsViewModel : IConvertSettingsViewModel
 
 				_synching = false;
 			})
+			.AddTo(ref _d);
+
+		WorkspaceDirectory = conf.Pipe
+			.Select(static p => p.Value.WorkspaceDirectory)
+			.ToReadOnlyBindableReactiveProperty("")
 			.AddTo(ref _d);
 
 		// 用户编辑产生配置

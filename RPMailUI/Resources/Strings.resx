@@ -171,4 +171,32 @@
   <data name="WorkspaceDirectory" xml:space="preserve">
     <value>Workspace Directory</value>
   </data>
+  <data name="InputFiles" xml:space="preserve">
+    <value>Input Files</value>
+  </data>
+  <data name="MailFields" xml:space="preserve">
+    <value>Mail Fields</value>
+  </data>
+  <data name="SmtpFields" xml:space="preserve">
+    <value>SMTP Fields</value>
+  </data>
+  <data name="ProcessingOptions" xml:space="preserve">
+	<value>Processing Options</value>
+  </data>
+  <data name="OutputOptions" xml:space="preserve">
+	<value>Output Options</value>
+  </data>
+  <data name="RunStateReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="RunStateRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="RunStateSucceeded" xml:space="preserve"><value>Completed</value></data>
+  <data name="RunStateFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Configuration" xml:space="preserve"><value>Configuration</value></data>
+  <data name="Run" xml:space="preserve"><value>Run</value></data>
+  <data name="ContentSummary" xml:space="preserve"><value>Mail content and attachments</value></data>
+  <data name="SenderSummary" xml:space="preserve"><value>SMTP sender account</value></data>
+  <data name="ConvertSummary" xml:space="preserve"><value>Output and conversion</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Succeeded" xml:space="preserve"><value>Succeeded</value></data>
+  <data name="Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="RunSummary" xml:space="preserve"><value>Run summary</value></data>
 </root>

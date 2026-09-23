@@ -17,12 +17,16 @@ public sealed class DesignContentSettingsViewModel : IContentSettingsViewModel
     public BindableReactiveProperty<string> CharSet { get; } =
         new("utf-8");
 
+	public IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; } =
+		new BindableReactiveProperty<string>("/tmp/RPMail");
+
     public IAttachmentListViewModel Attachments { get; } =
         new DesignAttachmentListViewModel();
     public IExtraAttributeListViewModel ExtraAttributes { get; } =
         new DesignExtraAttributeListViewModel();
 
-    public void Dispose()
+
+	public void Dispose()
     {
         ImportCommand.Dispose();
         ExportCommand.Dispose();
@@ -30,6 +34,7 @@ public sealed class DesignContentSettingsViewModel : IContentSettingsViewModel
         BodyHtmlPath.Dispose();
         Subject.Dispose();
         CharSet.Dispose();
+		WorkspaceDirectory.Dispose();
         Attachments.Dispose();
         ExtraAttributes.Dispose();
     }

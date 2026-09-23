@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+             xmlns:controls="clr-namespace:RPMailUI.Controls"
+             xmlns:res="using:RPMailUI.Resources"
+             x:Class="RPMailUI.Views.RunPanelView"
+             x:Name="Root"
+             x:DataType="contracts:IMailRunViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="12">
+        <Border Classes="run-summary">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="card-title" Text="{x:Static res:Strings.RunSummary}"/>
+                <TextBlock Grid.Column="1" Classes="run-state" Text="{CompiledBinding StateText.Value}"/>
+                <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Classes="run-progress" Value="{CompiledBinding Progress.Value}"/>
+                <TextBlock Grid.Row="2" Classes="muted-text" Text="{CompiledBinding ProgressText.Value}"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.OpenOutput}" IsVisible="{CompiledBinding ShouldOpenOutputFolder.Value}" Command="{CompiledBinding OpenOutputFolderCommand}"/>
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Retry}" IsVisible="{CompiledBinding ShouldRetry.Value}" Command="{CompiledBinding RetryCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="6">
+            <Border Classes="metric-card">
+                <StackPanel>
+					<TextBlock Classes="metric-value" Text="{CompiledBinding TaskList.TotalCount.Value}"/>
+					<TextBlock Classes="metric-label" Text="{x:Static res:Strings.Total}"/>
+				</StackPanel>
+            </Border>
+            <Border Grid.Column="1" Classes="metric-card">
+                <StackPanel>
+					<TextBlock Classes="metric-value success-text" Text="{CompiledBinding TaskList.SuccessCount.Value}"/>
+					<TextBlock Classes="metric-label" Text="{x:Static res:Strings.Succeeded}"/>
+				</StackPanel>
+            </Border>
+            <Border Grid.Column="2" Classes="metric-card">
+                <StackPanel>
+					<TextBlock Classes="metric-value error-text" Text="{CompiledBinding TaskList.FailedCount.Value}"/>
+					<TextBlock Classes="metric-label" Text="{x:Static res:Strings.Failed}"/>
+				</StackPanel>
+            </Border>
+        </Grid>
+
+        <TabControl Grid.Row="3" Classes="run-tabs">
+            <TabItem Header="{x:Static res:Strings.TaskList}">
+                <controls:TaskListView DataContext="{CompiledBinding TaskList}"/>
+            </TabItem>
+            <TabItem Header="{x:Static res:Strings.Console}">
+                <TextBox Classes="console-output" IsReadOnly="True" TextWrapping="Wrap" Text="{CompiledBinding ConsoleLog.Value}"/>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="4" Classes="error-panel" IsVisible="{CompiledBinding Error.HasErrors.Value}">
+            <controls:ErrorView DataContext="{CompiledBinding Error}"/>
+        </Border>
+    </Grid>
+</UserControl>

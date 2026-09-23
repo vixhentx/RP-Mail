@@ -14,10 +14,14 @@ public sealed class DesignConvertSettingsViewModel : IConvertSettingsViewModel
     public BindableReactiveProperty<bool> SaveRawDocs { get; } = new(true);
     public BindableReactiveProperty<bool> SaveHtmlFile { get; } = new(true);
 
+	public IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; } =
+		new BindableReactiveProperty<string>("/tmp/RPMail");
+
     public void Dispose()
     {
         ImportCommand.Dispose();
         ExportCommand.Dispose();
+		WorkspaceDirectory.Dispose();
         OutputDir.Dispose();
         DeleteAfterSent.Dispose();
         ConvertOnly.Dispose();

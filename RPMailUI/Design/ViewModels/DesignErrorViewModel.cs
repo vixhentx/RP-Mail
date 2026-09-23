@@ -13,6 +13,11 @@ public sealed class DesignErrorViewModel : IErrorViewModel
             new("The SMTP server rejected one message", "Flyout.Error"),
             new("One attachment could not be found", "Flyout.Warning")
         ]);
+    public IReadOnlyBindableReactiveProperty<bool> HasErrors { get; } = new BindableReactiveProperty<bool>(true);
 
-    public void Dispose() => Items.Dispose();
+    public void Dispose()
+    {
+        Items.Dispose();
+        HasErrors.Dispose();
+    }
 }

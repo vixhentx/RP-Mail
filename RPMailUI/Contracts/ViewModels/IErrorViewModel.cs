@@ -8,4 +8,5 @@ namespace RPMailUI.Contracts.ViewModels;
 public interface IErrorViewModel : IDisposable
 {
     IReadOnlyBindableReactiveProperty<ImmutableArray<ErrorItemData>> Items { get; }
+    IReadOnlyBindableReactiveProperty<bool> HasErrors { get; }
 }

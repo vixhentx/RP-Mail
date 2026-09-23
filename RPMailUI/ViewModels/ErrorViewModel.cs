@@ -9,6 +9,7 @@ namespace RPMailUI.ViewModels;
 public class ErrorViewModel : IErrorViewModel
 {
 	public IReadOnlyBindableReactiveProperty<ImmutableArray<ErrorItemData>> Items { get; }
+	public IReadOnlyBindableReactiveProperty<bool> HasErrors { get; }
 
 	public ErrorViewModel(
 		ErrorRouteService es
@@ -16,7 +17,14 @@ public class ErrorViewModel : IErrorViewModel
 	{
 		Items = es.ErrorList
 			.ToReadOnlyBindableReactiveProperty([]);
+		HasErrors = Items.AsObservable()
+			.Select(static items => !items.IsEmpty)
+			.ToReadOnlyBindableReactiveProperty(false);
 	}
 
-	public void Dispose() => Items.Dispose();
+	public void Dispose()
+	{
+		Items.Dispose();
+		HasErrors.Dispose();
+	}
 }

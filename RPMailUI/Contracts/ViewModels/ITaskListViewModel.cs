@@ -7,6 +7,9 @@ namespace RPMailUI.Contracts.ViewModels;
 
 public interface ITaskListViewModel : IDisposable
 {
+    IReadOnlyBindableReactiveProperty<int> TotalCount { get; }
+    IReadOnlyBindableReactiveProperty<int> SuccessCount { get; }
+    IReadOnlyBindableReactiveProperty<int> FailedCount { get; }
     BindableReactiveProperty<string> SearchText { get; }
     BindableReactiveProperty<string?> SelectedHeader { get; }
     IReadOnlyBindableReactiveProperty<ImmutableArray<string>> AvailableHeaders { get; }

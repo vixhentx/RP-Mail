@@ -20,6 +20,9 @@ public sealed class DesignTaskListViewModel : ITaskListViewModel
             new("Vix", MailTaskStatus.Running, "Sending..."),
             new("Qlagu", MailTaskStatus.Failed, "The SMTP server rejected the message")
         ]);
+    public IReadOnlyBindableReactiveProperty<int> TotalCount { get; } = new BindableReactiveProperty<int>(3);
+    public IReadOnlyBindableReactiveProperty<int> SuccessCount { get; } = new BindableReactiveProperty<int>(1);
+    public IReadOnlyBindableReactiveProperty<int> FailedCount { get; } = new BindableReactiveProperty<int>(1);
 
     public void Dispose()
     {
@@ -27,5 +30,8 @@ public sealed class DesignTaskListViewModel : ITaskListViewModel
         SelectedHeader.Dispose();
         AvailableHeaders.Dispose();
         Tasks.Dispose();
+        TotalCount.Dispose();
+        SuccessCount.Dispose();
+        FailedCount.Dispose();
     }
 }

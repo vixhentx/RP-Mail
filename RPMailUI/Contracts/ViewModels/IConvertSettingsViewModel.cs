@@ -12,4 +12,5 @@ public interface IConvertSettingsViewModel : IDisposable
     BindableReactiveProperty<bool> ConvertOnly { get; }
     BindableReactiveProperty<bool> SaveRawDocs { get; }
     BindableReactiveProperty<bool> SaveHtmlFile { get; }
+	IReadOnlyBindableReactiveProperty<string> WorkspaceDirectory { get; }
 }

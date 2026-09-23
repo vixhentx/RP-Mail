@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+             xmlns:controls="clr-namespace:RPMailUI.Controls"
+             xmlns:res="using:RPMailUI.Resources"
+             x:Class="RPMailUI.Views.ContentSettingsView"
+             x:DataType="contracts:IContentSettingsViewModel"
+             x:CompileBindings="False">
+    <ScrollViewer Classes="editor-scroll" AllowAutoHide="True">
+        <StackPanel Spacing="14">
+            <DockPanel Classes="section-heading">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding ImportCommand}"/>
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding ExportCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="page-title" Text="{x:Static res:Strings.ContentSettings}"/>
+                    <TextBlock Classes="page-subtitle" Text="{x:Static res:Strings.ContentSummary}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Border Classes="settings-card">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="card-title" Text="{x:Static res:Strings.InputFiles}"/>
+                    <controls:FileBarView Caption="{x:Static res:Strings.CsvFile}" FileType="CSV"
+                                           FilePath="{CompiledBinding CsvPath.Value}"
+                                           WorkspaceDirectory="{CompiledBinding WorkspaceDirectory.Value}"/>
+                    <controls:FileBarView Caption="{x:Static res:Strings.BodyHtmlFile}" FileType="HTML"
+                                           FilePath="{CompiledBinding BodyHtmlPath.Value}"
+                                           WorkspaceDirectory="{CompiledBinding WorkspaceDirectory.Value}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="settings-card">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="card-title" Text="{x:Static res:Strings.MailFields}"/>
+                    <controls:TextBarView Caption="{x:Static res:Strings.SubjectCaption}" Text="{CompiledBinding Subject.Value}"/>
+                    <controls:TextPromptBarView Caption="{x:Static res:Strings.CharSetCaption}"
+                                                  PromptsSource="{StaticResource AllCharSets}"
+                                                  Text="{CompiledBinding CharSet.Value}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="settings-card">
+                <controls:AttachmentView DataContext="{CompiledBinding Attachments}"/>
+            </Border>
+
+            <Border Classes="settings-card">
+                <controls:ExtraAttributeView DataContext="{CompiledBinding ExtraAttributes}"/>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+             xmlns:controls="clr-namespace:RPMailUI.Controls"
+             xmlns:res="using:RPMailUI.Resources"
+             x:Class="RPMailUI.Views.SenderSettingsView"
+             x:DataType="contracts:ISenderSettingsViewModel">
+    <ScrollViewer Classes="editor-scroll" AllowAutoHide="True">
+        <StackPanel Spacing="14">
+            <DockPanel Classes="section-heading">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Import}" Command="{CompiledBinding ImportCommand}"/>
+                    <Button Classes="subtle-button" Content="{x:Static res:Strings.Export}" Command="{CompiledBinding ExportCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="page-title" Text="{x:Static res:Strings.SenderSettings}"/>
+                    <TextBlock Classes="page-subtitle" Text="{x:Static res:Strings.SenderSummary}"/>
+                </StackPanel>
+            </DockPanel>
+            <Border Classes="settings-card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="card-title" Text="{x:Static res:Strings.SmtpFields}"/>
+                    <controls:TextBarView Caption="{x:Static res:Strings.SenderEmailCaption}" Text="{CompiledBinding SenderEmail}"/>
+                    <DockPanel>
+                        <Label Classes="field-label" DockPanel.Dock="Left" Content="{x:Static res:Strings.PasswordCaption}" VerticalAlignment="Center" Margin="5,0,10,0"/>
+                        <TextBox PasswordChar="*" Text="{CompiledBinding SenderPassword}"/>
+                    </DockPanel>
+                    <controls:TextBarView Caption="{x:Static res:Strings.SmtpHostCaption}" Text="{CompiledBinding SmtpHost}"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

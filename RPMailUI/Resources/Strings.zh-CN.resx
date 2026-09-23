@@ -171,4 +171,32 @@
   <data name="WorkspaceDirectory" xml:space="preserve">
     <value>工作目录</value>
   </data>
+  <data name="InputFiles" xml:space="preserve">
+    <value>输入文件</value>
+  </data>
+  <data name="MailFields" xml:space="preserve">
+    <value>邮件字段</value>
+  </data>
+  <data name="SmtpFields" xml:space="preserve">
+    <value>SMTP字段</value>
+  </data>
+  <data name="ProcessingOptions" xml:space="preserve">
+	<value>处理器选项</value>
+  </data>
+  <data name="OutputOptions" xml:space="preserve">
+	<value>输出选项</value>
+  </data>
+  <data name="RunStateReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="RunStateRunning" xml:space="preserve"><value>运行中</value></data>
+  <data name="RunStateSucceeded" xml:space="preserve"><value>已完成</value></data>
+  <data name="RunStateFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Configuration" xml:space="preserve"><value>配置</value></data>
+  <data name="Run" xml:space="preserve"><value>运行</value></data>
+  <data name="ContentSummary" xml:space="preserve"><value>邮件内容和附件</value></data>
+  <data name="SenderSummary" xml:space="preserve"><value>SMTP 发件账户</value></data>
+  <data name="ConvertSummary" xml:space="preserve"><value>输出和转换选项</value></data>
+  <data name="Total" xml:space="preserve"><value>总数</value></data>
+  <data name="Succeeded" xml:space="preserve"><value>成功</value></data>
+  <data name="Failed" xml:space="preserve"><value>失败</value></data>
+  <data name="RunSummary" xml:space="preserve"><value>运行摘要</value></data>
 </root>
