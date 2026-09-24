@@ -60,7 +60,7 @@
 
 		<!-- 主要编辑区 -->
         <Border x:Name="EditorHost" Classes="editor-panel">
-            <TabbedPage TabPlacement="Left" Classes="navi-header">
+            <TabbedPage TabPlacement="Left" Classes="navi-page">
 				<ContentPage Header="{x:Static res:Strings.ContentSettings}">
 					<views:ContentSettingsView DataContext="{CompiledBinding Content}"/>
 				</ContentPage>

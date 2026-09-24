@@ -1,47 +1,71 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:converter="clr-namespace:RPMailUI.Converter"
-                xmlns:model="clr-namespace:RPMailUI.Models"
-                 xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
-                xmlns:res="using:RPMailUI.Resources"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                 x:DataType="contracts:ITaskListViewModel"
-                x:Class="RPMailUI.Controls.TaskListView">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:design="using:RPMailUI.Design.ViewModels"
+             xmlns:converter="clr-namespace:RPMailUI.Converter"
+             xmlns:model="clr-namespace:RPMailUI.Models"
+             xmlns:contracts="using:RPMailUI.Contracts.ViewModels"
+             xmlns:res="using:RPMailUI.Resources"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
+             x:Name="TaskListRoot"
+             x:DataType="contracts:ITaskListViewModel"
+             x:Class="RPMailUI.Controls.TaskListView">
     <Design.Width>400</Design.Width>
     <Design.Height>600</Design.Height>
-    <UserControl.Resources>
-			<converter:ResourceColorConverter x:Key="ResourceColorConverter"/>
-    </UserControl.Resources>
-        <ScrollViewer>
-            <DockPanel>
-                <Grid DockPanel.Dock="Top"
-                      ColumnDefinitions="Auto,Auto,Auto,*">
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Static res:Strings.PropertyShown}"/>
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Margin="5"
-                              ItemsSource="{CompiledBinding AvailableHeaders.Value}"
-                              SelectedItem="{CompiledBinding SelectedHeader.Value, Mode=TwoWay}"/>
-                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{x:Static res:Strings.Search}"/>
-                    <TextBox Grid.Column="3" Text="{CompiledBinding SearchText.Value, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="5"/>
-                </Grid>
-                <ItemsControl ItemsSource="{CompiledBinding Tasks.Value}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="model:TaskItemData">
-                            <Border Classes="task-item" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                <Border.Background>
-                                    <SolidColorBrush Color="{CompiledBinding Status, Converter={StaticResource ResourceColorConverter}}"/>
-                                </Border.Background>
-                                <DockPanel>
-                                    <SelectableTextBlock DockPanel.Dock="Right" Margin="5"
-                                                         FontSize="14" Text="{CompiledBinding TooltipText}"/>
-                                    <SelectableTextBlock FontSize="14" Margin="5" Text="{CompiledBinding Text}">
-                                    </SelectableTextBlock>
-                                </DockPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </DockPanel>
-        </ScrollViewer>
+    <Design.DataContext>
+        <design:DesignTaskListViewModel/>
+    </Design.DataContext>
+    <ScrollViewer Classes="task-list-scroll">
+        <DockPanel>
+            <Grid DockPanel.Dock="Top"
+                  ColumnDefinitions="Auto,Auto,Auto,*"
+                  Classes="task-filter-row">
+                <TextBlock Grid.Column="0"
+                           Classes="field-label"
+                           VerticalAlignment="Center"
+                           Text="{x:Static res:Strings.PropertyShown}"/>
+                <ComboBox Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          Margin="5"
+                          ItemsSource="{CompiledBinding AvailableHeaders.Value}"
+                          SelectedItem="{CompiledBinding SelectedHeader.Value, Mode=TwoWay}"/>
+                <TextBlock Grid.Column="2"
+                           Classes="field-label"
+                           VerticalAlignment="Center"
+                           Text="{x:Static res:Strings.Search}"/>
+                <TextBox Grid.Column="3"
+                         Text="{CompiledBinding SearchText.Value, Mode=TwoWay}"
+                         HorizontalAlignment="Stretch"
+                         Margin="5"/>
+            </Grid>
+            <ItemsControl ItemsSource="{CompiledBinding Tasks.Value}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="model:TaskItemData">
+                        <Border Classes="task-item"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch">
+                            <Border.Background>
+                                <SolidColorBrush Color="{CompiledBinding Status,
+                                    Converter={x:Static converter:TaskStatusColorConverter.Instance}}"/>
+                            </Border.Background>
+                            <DockPanel>
+                                <SelectableTextBlock DockPanel.Dock="Right"
+                                                     Classes="task-secondary-text"
+                                                     Margin="5"
+                                                     FontSize="14"
+                                                     Text="{CompiledBinding TooltipText}"/>
+                                <SelectableTextBlock Classes="task-primary-text"
+                                                     FontSize="14"
+                                                     Margin="5"
+                                                     Text="{CompiledBinding Text}"/>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </DockPanel>
+    </ScrollViewer>
 </UserControl>

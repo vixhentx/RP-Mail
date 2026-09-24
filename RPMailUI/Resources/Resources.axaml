@@ -6,51 +6,73 @@
 
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="TaskStatus.Ready">#E8EEF8</Color>
-            <Color x:Key="TaskStatus.Pending">#F1F3F5</Color>
-            <Color x:Key="TaskStatus.Preparing">#DDF7F5</Color>
-            <Color x:Key="TaskStatus.Running">#D7F4FF</Color>
-            <Color x:Key="TaskStatus.Success">#DDF5E5</Color>
-            <Color x:Key="TaskStatus.Failed">#FFE3E0</Color>
+            <Color x:Key="TaskStatus.Ready">#E7EDF4</Color>
+            <Color x:Key="TaskStatus.Pending">#EFF2F5</Color>
+            <Color x:Key="TaskStatus.Preparing">#DDF3F3</Color>
+            <Color x:Key="TaskStatus.Running">#DCEBFA</Color>
+            <Color x:Key="TaskStatus.Success">#DCEFE3</Color>
+            <Color x:Key="TaskStatus.Failed">#F8E2E0</Color>
 
             <Color x:Key="Flyout.Error.Foreground">#7F1D1D</Color>
-            <Color x:Key="Flyout.Error.Background">#FECACA</Color>
-            <Color x:Key="Flyout.Warning.Foreground">#78350F</Color>
-            <Color x:Key="Flyout.Warning.Background">#FED7AA</Color>
-            <Color x:Key="Flyout.Info.Foreground">#164E63</Color>
-            <Color x:Key="Flyout.Info.Background">#CFFAFE</Color>
+            <Color x:Key="Flyout.Error.Background">#F8E2E0</Color>
+            <Color x:Key="Flyout.Warning.Foreground">#664B00</Color>
+            <Color x:Key="Flyout.Warning.Background">#FFF3CD</Color>
+            <Color x:Key="Flyout.Info.Foreground">#174A73</Color>
+            <Color x:Key="Flyout.Info.Background">#DCEBFA</Color>
 
-            <SolidColorBrush x:Key="RpWindowBrush" Color="#F7F8FC" />
+            <SolidColorBrush x:Key="RpWindowBrush" Color="#F3F5F7" />
             <SolidColorBrush x:Key="RpPanelBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="RpSubtleBrush" Color="#EEF1F7" />
-            <SolidColorBrush x:Key="RpBorderBrush" Color="#D8DEEA" />
-            <SolidColorBrush x:Key="RpTextBrush" Color="#202638" />
-            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#667085" />
-            <SolidColorBrush x:Key="RpAccentBrush" Color="#3C65EA" />
+            <SolidColorBrush x:Key="RpSubtleBrush" Color="#E9EDF1" />
+            <SolidColorBrush x:Key="RpControlBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="RpBorderBrush" Color="#C7CFD8" />
+            <SolidColorBrush x:Key="RpTextBrush" Color="#202A34" />
+            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#586675" />
+            <SolidColorBrush x:Key="RpAccentBrush" Color="#1769AA" />
+            <SolidColorBrush x:Key="RpAccentTextBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="RpSuccessBrush" Color="#237447" />
+            <SolidColorBrush x:Key="RpErrorBrush" Color="#A12D2D" />
+            <SolidColorBrush x:Key="RpRunningBrush" Color="#1769AA" />
+            <SolidColorBrush x:Key="RpTaskReadyBrush" Color="#E7EDF4" />
+            <SolidColorBrush x:Key="RpTaskPendingBrush" Color="#EFF2F5" />
+            <SolidColorBrush x:Key="RpTaskPreparingBrush" Color="#DDF3F3" />
+            <SolidColorBrush x:Key="RpTaskRunningBrush" Color="#DCEBFA" />
+            <SolidColorBrush x:Key="RpTaskSuccessBrush" Color="#DCEFE3" />
+            <SolidColorBrush x:Key="RpTaskFailedBrush" Color="#F8E2E0" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Dark">
-            <Color x:Key="TaskStatus.Ready">#29354F</Color>
-            <Color x:Key="TaskStatus.Pending">#343A46</Color>
-            <Color x:Key="TaskStatus.Preparing">#164E63</Color>
-            <Color x:Key="TaskStatus.Running">#155E75</Color>
-            <Color x:Key="TaskStatus.Success">#166534</Color>
-            <Color x:Key="TaskStatus.Failed">#7F1D1D</Color>
+            <Color x:Key="TaskStatus.Ready">#343E49</Color>
+            <Color x:Key="TaskStatus.Pending">#303841</Color>
+            <Color x:Key="TaskStatus.Preparing">#244747</Color>
+            <Color x:Key="TaskStatus.Running">#21415D</Color>
+            <Color x:Key="TaskStatus.Success">#254535</Color>
+            <Color x:Key="TaskStatus.Failed">#542F32</Color>
 
-            <Color x:Key="Flyout.Error.Foreground">#FEE2E2</Color>
-            <Color x:Key="Flyout.Error.Background">#991B1B</Color>
-            <Color x:Key="Flyout.Warning.Foreground">#FEF3C7</Color>
-            <Color x:Key="Flyout.Warning.Background">#9A3412</Color>
-            <Color x:Key="Flyout.Info.Foreground">#CFFAFE</Color>
-            <Color x:Key="Flyout.Info.Background">#155E75</Color>
+            <Color x:Key="Flyout.Error.Foreground">#FCE8E6</Color>
+            <Color x:Key="Flyout.Error.Background">#7F2929</Color>
+            <Color x:Key="Flyout.Warning.Foreground">#FFF1C2</Color>
+            <Color x:Key="Flyout.Warning.Background">#594817</Color>
+            <Color x:Key="Flyout.Info.Foreground">#E3F1FF</Color>
+            <Color x:Key="Flyout.Info.Background">#21415D</Color>
 
-            <SolidColorBrush x:Key="RpWindowBrush" Color="#151923" />
-            <SolidColorBrush x:Key="RpPanelBrush" Color="#202532" />
-            <SolidColorBrush x:Key="RpSubtleBrush" Color="#2A3140" />
-            <SolidColorBrush x:Key="RpBorderBrush" Color="#3B4558" />
-            <SolidColorBrush x:Key="RpTextBrush" Color="#F2F4F7" />
-            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#AAB4C5" />
-            <SolidColorBrush x:Key="RpAccentBrush" Color="#8AA4FF" />
+            <SolidColorBrush x:Key="RpWindowBrush" Color="#1D242B" />
+            <SolidColorBrush x:Key="RpPanelBrush" Color="#272F37" />
+            <SolidColorBrush x:Key="RpSubtleBrush" Color="#222A31" />
+            <SolidColorBrush x:Key="RpControlBrush" Color="#202830" />
+            <SolidColorBrush x:Key="RpBorderBrush" Color="#46515C" />
+            <SolidColorBrush x:Key="RpTextBrush" Color="#F0F3F6" />
+            <SolidColorBrush x:Key="RpMutedTextBrush" Color="#B1BBC5" />
+            <SolidColorBrush x:Key="RpAccentBrush" Color="#66A9E6" />
+            <SolidColorBrush x:Key="RpAccentTextBrush" Color="#14202B" />
+            <SolidColorBrush x:Key="RpSuccessBrush" Color="#83C99B" />
+            <SolidColorBrush x:Key="RpErrorBrush" Color="#F09A93" />
+            <SolidColorBrush x:Key="RpRunningBrush" Color="#83B9E8" />
+            <SolidColorBrush x:Key="RpTaskReadyBrush" Color="#343E49" />
+            <SolidColorBrush x:Key="RpTaskPendingBrush" Color="#303841" />
+            <SolidColorBrush x:Key="RpTaskPreparingBrush" Color="#244747" />
+            <SolidColorBrush x:Key="RpTaskRunningBrush" Color="#21415D" />
+            <SolidColorBrush x:Key="RpTaskSuccessBrush" Color="#254535" />
+            <SolidColorBrush x:Key="RpTaskFailedBrush" Color="#542F32" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

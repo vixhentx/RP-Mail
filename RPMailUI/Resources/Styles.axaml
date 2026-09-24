@@ -98,6 +98,7 @@
     </Style>
 
     <Style Selector="TextBlock.card-title">
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontSize" Value="14" />
     </Style>
@@ -130,7 +131,7 @@
     </Style>
 
     <Style Selector="TextBlock.run-state">
-        <Setter Property="Foreground" Value="{DynamicResource RpAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource RpRunningBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
@@ -143,6 +144,7 @@
     </Style>
 
     <Style Selector="TextBlock.metric-value">
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
@@ -157,15 +159,16 @@
     </Style>
 
     <Style Selector="TextBlock.status-number">
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style Selector="TextBlock.success-text">
-        <Setter Property="Foreground" Value="#248A4A" />
+        <Setter Property="Foreground" Value="{DynamicResource RpSuccessBrush}" />
     </Style>
 
     <Style Selector="TextBlock.error-text">
-        <Setter Property="Foreground" Value="#C43B3B" />
+        <Setter Property="Foreground" Value="{DynamicResource RpErrorBrush}" />
     </Style>
 
     <Style Selector="TabControl.run-tabs">
@@ -197,12 +200,22 @@
     </Style>
 
     <Style Selector="TextBox">
+        <Setter Property="Background" Value="{DynamicResource RpControlBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
         <Setter Property="MinHeight" Value="34" />
         <Setter Property="Padding" Value="10,6" />
     </Style>
 
     <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource RpControlBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
         <Setter Property="MinHeight" Value="34" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="Foreground" Value="{DynamicResource RpTextBrush}" />
     </Style>
 
     <Style Selector="Button.toolbar-button">
@@ -212,7 +225,7 @@
 
     <Style Selector="Button.primary-action">
         <Setter Property="Background" Value="{DynamicResource RpAccentBrush}" />
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Foreground" Value="{DynamicResource RpAccentTextBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Padding" Value="18,9" />
     </Style>
@@ -257,9 +270,16 @@
         <Setter Property="Margin" Value="12" />
     </Style>
 
-	<Style Selector="TabbedPage.navi-header TabControl TabItem TextBlock">
-		<Setter Property="MinWidth" Value="150"/>
-		<Setter Property="FontSize" Value="18"/>
-		<Setter Property="FontWeight" Value="SemiBold"/>
-	</Style>
+    <Style Selector="TabbedPage.navi-page TabControl TabItem TextBlock">
+        <Setter Property="MinWidth" Value="150" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TabbedPage.navi-page, TabbedPage.navi-page ContentPage">
+        <Setter Property="Background" Value="{DynamicResource RpSubtleBrush}" />
+        <Setter Property="Padding" Value="14,18" />
+        <Setter Property="BorderBrush" Value="{DynamicResource RpBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+    </Style>
 </Styles>
