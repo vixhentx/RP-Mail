@@ -5,8 +5,10 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using R3;
+using RPMailCore.Extensions;
 using RPMailUI.Resources;
 using RPMailUI.Services;
+using SmartFormat;
 
 namespace RPMailUI.Controls;
 
@@ -91,10 +93,10 @@ public partial class FileBarView : UserControl
         if (!IsDirectory)
         {
             var fileTypeExt = string.IsNullOrWhiteSpace(FileType) ? "*" : FileType.ToLower();
-            var fileTypeName = string.IsNullOrWhiteSpace(FileType) ? Strings.AnyFile : string.Format(Strings.FileTypeName, FileType);
+            var fileTypeName = string.IsNullOrWhiteSpace(FileType) ? Strings.AnyFile : Smart.FormatDict(Strings.FileTypeName, new(){[nameof(FileType)] = FileType});
             var files = await provider.OpenFilePickerAsync(new()
             {
-                Title = string.Format(Strings.OpenFilePickerTitle, FileType),
+                Title = Smart.FormatDict(Strings.OpenFilePickerTitle, new(){[nameof(FileType)] = FileType}),
                 AllowMultiple = false,
 				SuggestedStartLocation = await provider.TryGetFolderFromPathAsync(WorkspaceDirectory),
                 FileTypeFilter = [new(fileTypeName)
