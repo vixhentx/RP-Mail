@@ -8,7 +8,32 @@ version="${VERSION:-$(git describe --tags --always --dirty 2>/dev/null | sed 's/
 version="${version#v}"
 rid="${RID:-linux-x64}"
 nfpm_arch="${NFPM_ARCH:-amd64}"
+max_glibc_version="${MAX_GLIBC_VERSION:-2.27}"
 package_dir="artifacts/packages"
+
+check_glibc_baseline() {
+  local publish_dir="$1"
+  local highest
+
+  highest="$({
+    while IFS= read -r -d '' file; do
+      if file -b "$file" | grep -q 'ELF'; then
+        readelf --version-info "$file" 2>/dev/null || true
+      fi
+    done < <(find "$publish_dir" -type f -print0)
+  } | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sed 's/GLIBC_//' | sort -V | tail -n 1)"
+
+  if [[ -z "$highest" ]]; then
+    printf 'no ELF files found in publish directory: %s\n' "$publish_dir" >&2
+    return 1
+  fi
+
+  if [[ "$(printf '%s\n' "$highest" "$max_glibc_version" | sort -V | tail -n 1)" != "$max_glibc_version" ]]; then
+    printf 'glibc baseline exceeded: publish requires GLIBC_%s, maximum is GLIBC_%s\n' \
+      "$highest" "$max_glibc_version" >&2
+    return 1
+  fi
+}
 
 package_app() {
   local name="$1"
@@ -34,12 +59,13 @@ package_app() {
     -p:PublishAot=true \
     -p:NuGetAudit=false
 
+  check_glibc_baseline "$publish_dir"
   cp -a "$publish_dir"/. "$pkg_root/usr/lib/${name}/"
-  cat > "$pkg_root/usr/bin/${name}" <<EOF
+  cat > "$pkg_root/usr/bin/${executable}" <<EOF
 #!/usr/bin/env sh
 exec /usr/lib/${name}/${executable} "\$@"
 EOF
-  chmod 0755 "$pkg_root/usr/bin/${name}"
+  chmod 0755 "$pkg_root/usr/bin/${executable}"
 
   if [[ "$name" == "rpmail-ui" ]]; then
     install -D -m 0644 build/nfpm/rpmail-ui.desktop \
@@ -51,7 +77,8 @@ EOF
   export VERSION="$version"
   export NFPM_ARCH="$nfpm_arch"
   export PKG_ROOT="$pkg_root"
-  export NAME="$name"
+  export PACKAGE_NAME="$name"
+  export EXECUTABLE="$executable"
   export DESCRIPTION="$description"
   export DEB_DEPENDS="$deb_depends"
   export RPM_DEPENDS="$rpm_depends"
@@ -64,7 +91,8 @@ EOF
     -e "s#@VERSION@#$VERSION#g" \
     -e "s#@NFPM_ARCH@#$NFPM_ARCH#g" \
     -e "s#@PKG_ROOT@#$PKG_ROOT#g" \
-    -e "s#@NAME@#$NAME#g" \
+    -e "s#@PACKAGE_NAME@#$PACKAGE_NAME#g" \
+    -e "s#@EXECUTABLE@#$EXECUTABLE#g" \
     -e "s#@DESCRIPTION@#$DESCRIPTION#g" \
     -e "s#@DEB_DEPENDS@#$DEB_DEPENDS#g" \
     -e "s#@RPM_DEPENDS@#$RPM_DEPENDS#g" \
@@ -75,6 +103,7 @@ EOF
 
   if [[ "$name" == "rpmail-ui" ]]; then
     local nfpm_config_with_ui="${nfpm_config}.tmp"
+    # Keep desktop assets in the shared contents list for every package format.
     awk -v root="$PKG_ROOT" '
       /^deb:/ {
         print "  - src: " root "/usr/share/applications/rpmail-ui.desktop"
@@ -101,7 +130,7 @@ EOF
 
 package_app "rpmail-console" "RPMailConsole/RPMailConsole.csproj" "RPMailConsole" \
   "Console mail sender with Scriban templates and Typst PDF rendering." \
-  '["libicu74 | libicu76 | libicu72 | libicu70 | libicu66", "libgcc-s1"]' \
+  '["libicu74 | libicu76 | libicu72 | libicu70 | libicu66 | libicu60", "libgcc-s1 | libgcc1"]' \
   '["libicu", "libgcc"]' \
   '["icu-libs", "libgcc"]' \
   '["icu", "gcc-libs"]' \
@@ -109,7 +138,7 @@ package_app "rpmail-console" "RPMailConsole/RPMailConsole.csproj" "RPMailConsole
 
 package_app "rpmail-ui" "RPMailUI/RPMailUI.csproj" "RPMailUI" \
   "Avalonia desktop UI for RobotPilots Mail Sender." \
-  '["libicu74 | libicu76 | libicu72 | libicu70 | libicu66", "libgcc-s1", "libfontconfig1", "libfreetype6", "libx11-6", "libxcursor1", "libxi6", "libxrandr2", "libxrender1", "libice6", "libsm6", "libxkbcommon0"]' \
+  '["libicu74 | libicu76 | libicu72 | libicu70 | libicu66 | libicu60", "libgcc-s1 | libgcc1", "libfontconfig1", "libfreetype6", "libx11-6", "libxcursor1", "libxi6", "libxrandr2", "libxrender1", "libice6", "libsm6", "libxkbcommon0"]' \
   '["libicu", "libgcc", "fontconfig", "freetype", "libX11", "libXcursor", "libXi", "libXrandr", "libXrender", "libICE", "libSM", "libxkbcommon"]' \
   '["icu-libs", "libgcc", "fontconfig", "freetype", "libx11", "libxcursor", "libxi", "libxrandr", "libxrender", "libice", "libsm", "libxkbcommon"]' \
   '["icu", "gcc-libs", "fontconfig", "freetype2", "libx11", "libxcursor", "libxi", "libxrandr", "libxrender", "libice", "libsm", "libxkbcommon"]' \

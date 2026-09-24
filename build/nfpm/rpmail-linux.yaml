@@ -1,4 +1,4 @@
-name: @NAME@
+name: @PACKAGE_NAME@
 arch: @NFPM_ARCH@
 platform: linux
 version: @VERSION@
@@ -11,10 +11,10 @@ license: MIT
 description: @DESCRIPTION@
 depends: []
 contents:
-  - src: @PKG_ROOT@/usr/lib/@NAME@
-    dst: /usr/lib/@NAME@
-  - src: @PKG_ROOT@/usr/bin/@NAME@
-    dst: /usr/bin/@NAME@
+  - src: @PKG_ROOT@/usr/lib/@PACKAGE_NAME@
+    dst: /usr/lib/@PACKAGE_NAME@
+  - src: @PKG_ROOT@/usr/bin/@EXECUTABLE@
+    dst: /usr/bin/@EXECUTABLE@
 deb:
   fields:
     Bugs: https://github.com/vixhentx/RP-Mail/issues
