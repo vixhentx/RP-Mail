@@ -12,21 +12,28 @@ permissions:
 jobs:
   linux-packages:
     name: Linux distro packages
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: stable
 
-      - name: Build nfpm
+      - name: Install native packaging tools
         run: |
-          CGO_ENABLED=0 go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
+          sudo apt-get update
+          sudo apt-get install -y clang zlib1g-dev libicu-dev libssl-dev libkrb5-dev rpm
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.47.0
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Build Linux distribution packages
@@ -34,26 +41,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/packages
-          docker run --rm \
-            --volume "$PWD:/src" \
-            --volume "$(go env GOPATH)/bin/nfpm:/usr/local/bin/nfpm:ro" \
-            --workdir /src \
-            --env RID=linux-x64 \
-            --env NFPM_ARCH=amd64 \
-            --env MAX_GLIBC_VERSION=2.27 \
-            --env VERSION="$VERSION" \
-            ubuntu:18.04 \
-            /bin/bash -lc '
-              set -euo pipefail
-              sed -i "s|http://archive.ubuntu.com/ubuntu/|http://old-releases.ubuntu.com/ubuntu/|g; s|http://security.ubuntu.com/ubuntu/|http://old-releases.ubuntu.com/ubuntu/|g" /etc/apt/sources.list
-              apt-get -o Acquire::Check-Valid-Until=false update
-              DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl file binutils clang zlib1g-dev libicu-dev libssl-dev libkrb5-dev rpm
-              curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-              bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
-              export PATH="/usr/share/dotnet:$PATH"
-              ./scripts/package-linux.sh
-            '
+          ./scripts/package-linux.sh
         env:
+          RID: linux-x64
+          NFPM_ARCH: amd64
+          MAX_GLIBC_VERSION: "2.35"
           VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
 
       - name: Upload Linux artifacts

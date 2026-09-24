@@ -8,7 +8,7 @@ version="${VERSION:-$(git describe --tags --always --dirty 2>/dev/null | sed 's/
 version="${version#v}"
 rid="${RID:-linux-x64}"
 nfpm_arch="${NFPM_ARCH:-amd64}"
-max_glibc_version="${MAX_GLIBC_VERSION:-2.27}"
+max_glibc_version="${MAX_GLIBC_VERSION:-2.35}"
 package_dir="artifacts/packages"
 
 check_glibc_baseline() {
