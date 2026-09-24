@@ -5,20 +5,38 @@
     "senderPassword": "your-password"
   },
   "template": {
-    "csvPath": "samples/sample.csv",
-    "bodyHtmlPath": "samples/template.html",
-    "subject": "{{ user.title }}",
-    "extraAttributes": {
-      "company": "ACME Inc."
-    },
+    "csvPath": "data.csv",
+    "bodyHtmlPath": "body.html",
+    "subject": "RobotPilots 2077 笔面结果通知 - {{ user.name }}",
+    "receiverHeader": "email",
+    "charSet": "utf-8",
     "attachments": [
       {
-        "source": "samples/attachment.typ",
-        "name": "{{ user.name }}_attachment_1.pdf"
+        "source": "attachment.typ",
+        "name": "RobotPilots 2077 笔面结果通知 - {{ user.name }}.pdf"
+      },
+      {
+        "source": "Assets/{{ user.group }}.txt",
+        "name": "{{ user.admitted == 'true' ? user.group + '.txt' : '' }}"
+      },
+      {
+        "source": "Assets/粉丝群.txt",
+        "name": "粉丝群.txt"
       }
-    ]
+    ],
+    "extraAttributes": {
+      "mail": "demo\\@robotpilots.com",
+      "name": "喵喵拳",
+      "phone": "1145141919810",
+      "date":"2076-09-17",
+      "session":"2077赛季"
+    }
   },
   "output": {
-    "outputDir": "Output"
+    "outputDir": "Output",
+    "saveHtmlFile": true,
+    "saveRawDocs": true,
+    "convertOnly": false,
+    "deleteAfterSent": false
   }
 }
